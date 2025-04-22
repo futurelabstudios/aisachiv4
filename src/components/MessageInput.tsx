@@ -30,17 +30,17 @@ export default function MessageInput({ onSendMessage, isLoading, language }: Mes
         type="text"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder={language === 'english' ? 'Type your message...' : 'अपना संदेश लिखें...'}
-        className="flex-1 py-6 text-lg rounded-xl border-gray-300 focus:border-sachiv-primary focus:ring-1 focus:ring-sachiv-primary"
+        placeholder={language === 'english' ? 'Type your message...' : language === 'hindi' ? 'अपना संदेश लिखें...' : 'Apna message likhe...'}
+        className="flex-1 py-3 sm:py-6 text-base sm:text-lg rounded-xl border-gray-300 focus:border-sachiv-primary focus:ring-1 focus:ring-sachiv-primary"
         disabled={isLoading}
       />
       <Button 
         type="submit" 
         disabled={!message.trim() || isLoading}
-        className="btn-primary h-full aspect-square"
-        aria-label="Send message"
+        className="btn-primary h-12 sm:h-14 aspect-square rounded-xl"
+        aria-label={language === 'english' ? 'Send message' : language === 'hindi' ? 'संदेश भेजें' : 'Message bheje'}
       >
-        <ArrowRight className="h-6 w-6" />
+        <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
       </Button>
     </form>
   );

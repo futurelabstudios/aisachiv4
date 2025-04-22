@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import ChatMessage from "@/components/ChatMessage";
@@ -7,6 +6,7 @@ import VoiceButton from "@/components/VoiceButton";
 import { Message, Language, ChatState } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
+import { useTranslations } from "@/hooks/useTranslations";
 
 export default function ChatPage() {
   const [chatState, setChatState] = useState<ChatState>({
@@ -20,6 +20,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const speechRecognition = useSpeechRecognition();
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const { t } = useTranslations(chatState.language);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -123,11 +124,11 @@ export default function ChatPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-[100dvh] bg-gray-50">
       <Header language={chatState.language} onLanguageChange={handleLanguageChange} />
       
-      <main className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-md mx-auto">
+      <main className="flex-1 overflow-y-auto p-2 sm:p-4">
+        <div className="max-w-2xl mx-auto">
           {chatState.messages.map((message) => (
             <ChatMessage 
               key={message.id} 
@@ -137,23 +138,23 @@ export default function ChatPage() {
           ))}
           
           {isListening && (
-            <div className="flex justify-center my-4">
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <p className="text-sachiv-gray text-center">
-                  {chatState.language === 'english' ? 'Listening...' : 'सुन रहा हूँ...'}
+            <div className="flex justify-center my-2 px-2">
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 w-full">
+                <p className="text-sachiv-gray text-center text-sm">
+                  {chatState.language === 'english' ? 'Listening...' : chatState.language === 'hindi' ? 'सुन रहा हूं...' : 'Sun raha hu...'}
                 </p>
                 {transcript && (
-                  <p className="mt-2 text-center font-medium">{transcript}</p>
+                  <p className="mt-2 text-center font-medium text-sm">{transcript}</p>
                 )}
               </div>
             </div>
           )}
           
           {chatState.isLoading && (
-            <div className="flex justify-center my-4">
-              <div className="bg-white p-4 rounded-xl shadow-sm animate-pulse border border-gray-200">
-                <p className="text-sachiv-gray text-center">
-                  {chatState.language === 'english' ? 'Thinking...' : 'सोच रहा हूँ...'}
+            <div className="flex justify-center my-2 px-2">
+              <div className="bg-white p-3 rounded-xl shadow-sm animate-pulse border border-gray-200 w-full">
+                <p className="text-sachiv-gray text-center text-sm">
+                  {t('thinking')}
                 </p>
               </div>
             </div>
@@ -163,13 +164,11 @@ export default function ChatPage() {
         </div>
       </main>
       
-      <footer className="border-t border-gray-200 bg-white p-4">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sachiv-gray">
-              {chatState.language === 'english' 
-                ? 'Tap and hold to speak' 
-                : 'बोलने के लिए टैप करें और दबाकर रखें'}
+      <footer className="border-t border-gray-200 bg-white p-2 sm:p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-2 sm:mb-4">
+            <p className="text-sachiv-gray text-sm">
+              {t('tapToSpeak')}
             </p>
             <VoiceButton 
               isListening={isListening}
@@ -188,7 +187,9 @@ export default function ChatPage() {
           <p className="text-xs text-center mt-2 text-sachiv-gray">
             {chatState.language === 'english' 
               ? 'AI Sachiv - Your Gram Panchayat Assistant' 
-              : 'एआई सचिव - आपका ग्राम पंचायत सहायक'}
+              : chatState.language === 'hindi'
+              ? 'एआई सचिव - आपका ग्राम पंचायत सहायक'
+              : 'AI Sachiv - Aapka Gram Panchayat Sahayak'}
           </p>
         </div>
       </footer>

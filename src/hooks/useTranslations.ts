@@ -10,7 +10,10 @@ type TranslationKey =
   | 'errorMessage'
   | 'voiceAgentTitle'
   | 'voiceAgentDescription'
-  | 'recentConversations';
+  | 'recentConversations'
+  | 'thinking'
+  | 'inputPlaceholder'
+  | 'speakNow';
 
 const translations: Record<Language, Record<TranslationKey, string>> = {
   english: {
@@ -22,18 +25,24 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     errorMessage: "Something went wrong. Please try again.",
     voiceAgentTitle: "Voice Agent Mode",
     voiceAgentDescription: "Speak with your AI Sachiv assistant.",
-    recentConversations: "Recent Conversations"
+    recentConversations: "Recent Conversations",
+    thinking: "Thinking...",
+    inputPlaceholder: "Type your message...",
+    speakNow: "Speak now"
   },
   hindi: {
     welcomeMessage: "एआई सचिव में आपका स्वागत है! मैं आपकी कैसे मदद कर सकता हूं?",
     sendMessage: "संदेश भेजें",
     listening: "सुन रहा हूं...",
     tapToSpeak: "बोलने के लिए दबाएं और पकड़ें",
-    processing: "प्रोसेसिंग...",
+    processing: "प्रोसेसिंग हो रही है...",
     errorMessage: "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
     voiceAgentTitle: "वॉइस एजेंट मोड",
     voiceAgentDescription: "अपने एआई सचिव सहायक से बात करें।",
-    recentConversations: "हाल की बातचीत"
+    recentConversations: "हाल की बातचीत",
+    thinking: "सोच रहा हूं...",
+    inputPlaceholder: "अपना संदेश लिखें...",
+    speakNow: "अब बोलें"
   },
   hinglish: {
     welcomeMessage: "AI Sachiv me aapka swagat hai! Mai aapki kaise help kar sakta hu?",
@@ -44,7 +53,10 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     errorMessage: "Kuch galat ho gaya. Phirse koshish kare.",
     voiceAgentTitle: "Voice Agent Mode",
     voiceAgentDescription: "Apne AI Sachiv assistant se baat karen.",
-    recentConversations: "Recent Conversations"
+    recentConversations: "Recent Conversations",
+    thinking: "Soch raha hu...",
+    inputPlaceholder: "Apna message likhe...",
+    speakNow: "Ab bolo"
   }
 };
 
