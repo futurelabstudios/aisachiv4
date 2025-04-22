@@ -52,6 +52,15 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				sachiv: {
+					primary: '#8B5CF6', // Deep purple
+					secondary: '#F97316', // Warm orange
+					light: '#F8FAFC', // Light background
+					dark: '#1E293B', // Dark text
+					gray: '#94A3B8', // Muted text
+					success: '#10B981', // Green for success states
+					error: '#EF4444', // Red for error states
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

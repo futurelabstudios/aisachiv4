@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -32,7 +34,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -96,6 +98,36 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Custom styles for accessibility */
+  .btn-primary {
+    @apply bg-sachiv-primary hover:bg-sachiv-primary/90 text-white font-medium py-4 px-6 rounded-xl shadow-md transition-all duration-300 text-xl focus:outline-none focus:ring-2 focus:ring-sachiv-primary focus:ring-opacity-50;
+  }
+  
+  .btn-secondary {
+    @apply bg-sachiv-secondary hover:bg-sachiv-secondary/90 text-white font-medium py-4 px-6 rounded-xl shadow-md transition-all duration-300 text-xl focus:outline-none focus:ring-2 focus:ring-sachiv-secondary focus:ring-opacity-50;
+  }
+  
+  .btn-icon {
+    @apply flex items-center justify-center h-14 w-14 rounded-full bg-sachiv-primary text-white shadow-lg transition-all duration-300 hover:bg-sachiv-primary/90;
+  }
+  
+  .btn-voice {
+    @apply flex items-center justify-center h-24 w-24 rounded-full bg-sachiv-primary text-white shadow-lg transition-all duration-300 hover:bg-sachiv-primary/90 focus:outline-none focus:ring-4 focus:ring-sachiv-primary/50;
+  }
+  
+  .message-bubble {
+    @apply p-4 rounded-2xl text-lg max-w-[85%] shadow-sm;
+  }
+  
+  .user-message {
+    @apply message-bubble bg-sachiv-primary text-white ml-auto;
+  }
+  
+  .bot-message {
+    @apply message-bubble bg-white text-sachiv-dark mr-auto border border-gray-100;
   }
 }
