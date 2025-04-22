@@ -1,0 +1,45 @@
+
+import { Language } from '@/types';
+
+type TranslationKey = 
+  | 'welcomeMessage'
+  | 'sendMessage'
+  | 'listening'
+  | 'tapToSpeak'
+  | 'processing'
+  | 'errorMessage';
+
+const translations: Record<Language, Record<TranslationKey, string>> = {
+  english: {
+    welcomeMessage: "Welcome to AI Sachiv! How can I help you today?",
+    sendMessage: "Send message",
+    listening: "Listening...",
+    tapToSpeak: "Tap and hold to speak",
+    processing: "Processing...",
+    errorMessage: "Something went wrong. Please try again.",
+  },
+  hindi: {
+    welcomeMessage: "एआई सचिव में आपका स्वागत है! मैं आपकी कैसे मदद कर सकता हूं?",
+    sendMessage: "संदेश भेजें",
+    listening: "सुन रहा हूं...",
+    tapToSpeak: "बोलने के लिए दबाएं और पकड़ें",
+    processing: "प्रोसेसिंग...",
+    errorMessage: "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+  },
+  hinglish: {
+    welcomeMessage: "AI Sachiv me aapka swagat hai! Mai aapki kaise help kar sakta hu?",
+    sendMessage: "Message bheje",
+    listening: "Sun raha hu...",
+    tapToSpeak: "Bolne ke liye dabaye aur pakde",
+    processing: "Processing ho raha hai...",
+    errorMessage: "Kuch galat ho gaya. Phirse koshish kare.",
+  }
+};
+
+export const useTranslations = (language: Language) => {
+  const t = (key: TranslationKey): string => {
+    return translations[language][key];
+  };
+
+  return { t };
+};
