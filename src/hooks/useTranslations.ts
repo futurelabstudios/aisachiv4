@@ -7,7 +7,10 @@ type TranslationKey =
   | 'listening'
   | 'tapToSpeak'
   | 'processing'
-  | 'errorMessage';
+  | 'errorMessage'
+  | 'voiceAgentTitle'
+  | 'voiceAgentDescription'
+  | 'recentConversations';
 
 const translations: Record<Language, Record<TranslationKey, string>> = {
   english: {
@@ -17,6 +20,9 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     tapToSpeak: "Tap and hold to speak",
     processing: "Processing...",
     errorMessage: "Something went wrong. Please try again.",
+    voiceAgentTitle: "Voice Agent Mode",
+    voiceAgentDescription: "Speak with your AI Sachiv assistant.",
+    recentConversations: "Recent Conversations"
   },
   hindi: {
     welcomeMessage: "एआई सचिव में आपका स्वागत है! मैं आपकी कैसे मदद कर सकता हूं?",
@@ -25,6 +31,9 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     tapToSpeak: "बोलने के लिए दबाएं और पकड़ें",
     processing: "प्रोसेसिंग...",
     errorMessage: "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+    voiceAgentTitle: "वॉइस एजेंट मोड",
+    voiceAgentDescription: "अपने एआई सचिव सहायक से बात करें।",
+    recentConversations: "हाल की बातचीत"
   },
   hinglish: {
     welcomeMessage: "AI Sachiv me aapka swagat hai! Mai aapki kaise help kar sakta hu?",
@@ -33,6 +42,9 @@ const translations: Record<Language, Record<TranslationKey, string>> = {
     tapToSpeak: "Bolne ke liye dabaye aur pakde",
     processing: "Processing ho raha hai...",
     errorMessage: "Kuch galat ho gaya. Phirse koshish kare.",
+    voiceAgentTitle: "Voice Agent Mode",
+    voiceAgentDescription: "Apne AI Sachiv assistant se baat karen.",
+    recentConversations: "Recent Conversations"
   }
 };
 
