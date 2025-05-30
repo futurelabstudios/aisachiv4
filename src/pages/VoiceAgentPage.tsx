@@ -18,21 +18,24 @@ export default function VoiceAgentPage() {
       description: 'Speak with your AI Sachiv assistant.',
       recentConversations: 'Recent Conversations',
       conversationSaved: "Conversation saved",
-      conversationSavedDesc: "Your conversation has been recorded locally"
+      conversationSavedDesc: "Your conversation has been recorded locally",
+      startConversation: "Start Voice Conversation"
     },
     hindi: {
       title: 'वॉइस एजेंट मोड',
       description: 'अपने एआई सचिव सहायक से बात करें।',
       recentConversations: 'हाल की बातचीत',
       conversationSaved: "वार्तालाप सहेजा गया",
-      conversationSavedDesc: "आपकी वार्तालाप स्थानीय रूप से दर्ज की गई है"
+      conversationSavedDesc: "आपकी वार्तालाप स्थानीय रूप से दर्ज की गई है",
+      startConversation: "वॉइस वार्तालाप शुरू करें"
     },
     hinglish: {
       title: 'Voice Agent Mode',
       description: 'Apne AI Sachiv assistant se baat karen.',
       recentConversations: 'Recent Conversations',
       conversationSaved: "Conversation save ho gaya",
-      conversationSavedDesc: "Aapki conversation local device par save ho gayi hai"
+      conversationSavedDesc: "Aapki conversation local device par save ho gayi hai",
+      startConversation: "Voice Conversation Start Karen"
     }
   };
 
@@ -107,11 +110,8 @@ export default function VoiceAgentPage() {
         </div>
 
         {/* ElevenLabs Convai Widget */}
-        <div className="w-full max-w-2xl mx-auto mb-8">
-          <elevenlabs-convai 
-            agent-id="o3Q9qV20D6Dr8KEvj9e1"
-            className="w-full h-[600px] rounded-lg shadow-lg"
-          ></elevenlabs-convai>
+        <div className="w-full max-w-md mx-auto mb-8 flex justify-center">
+          <elevenlabs-convai agent-id="o3Q9qV20D6Dr8KEvj9e1"></elevenlabs-convai>
         </div>
 
         {/* Recent Conversations */}
