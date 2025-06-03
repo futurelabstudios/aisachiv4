@@ -63,6 +63,15 @@ export default function Index() {
             <div className="mt-12 text-center">
               <p className="text-gray-500">{t('chooseMode')}</p>
             </div>
+            
+            {/* Desktop Footer */}
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <div className="bg-gray-50 rounded-xl p-6 text-center">
+                <p className="text-xs text-gray-500 font-medium tracking-wide">
+                  Built by Futurelab Ikigai and Piramal Foundation © 2025
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -123,76 +132,85 @@ export default function Index() {
           </div>
         </main>
 
+        {/* Mobile Footer */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <p className="text-xs text-gray-600 font-medium tracking-wide">
+              Built by Futurelab Ikigai and Piramal Foundation © 2025
+            </p>
+          </div>
+        </div>
+
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
-          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
-            <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
-              <Home size={14} />
-              <span className="text-xs mt-1 font-medium">{t('home')}</span>
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
+            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
+              <Home size={18} className="text-emerald-600" />
+              <span className="text-xs mt-1 font-medium text-emerald-700">{t('home')}</span>
             </div>
             
             <Link 
               to="/chat" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <MessageCircle size={14} />
+              <MessageCircle size={18} />
               <span className="text-xs mt-1 font-medium">{t('chat')}</span>
             </Link>
             
             <Link 
               to="/voice-agent" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <Mic size={14} />
+              <Mic size={18} />
               <span className="text-xs mt-1 font-medium">{t('voice')}</span>
             </Link>
 
             <Link 
               to="/circulars" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <LinkIcon size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <LinkIcon size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
             </Link>
 
             <Link 
               to="/document" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <FileText size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <FileText size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
             </Link>
 
             <Link 
               to="/academy" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <GraduationCap size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <GraduationCap size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
               </span>
             </Link>
 
             <Link 
               to="/glossary" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <BookOpen size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <BookOpen size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
               </span>
             </Link>
 
             <Link 
               to="/videos" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <PlayCircle size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <PlayCircle size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'वीडियो' : 'Videos'}
               </span>
             </Link>

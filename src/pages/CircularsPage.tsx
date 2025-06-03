@@ -873,10 +873,12 @@ export default function CircularsPage() {
             </div>
             
             {/* Desktop Footer */}
-            <div className="mt-8 pt-4 border-t border-gray-200 text-center">
-              <p className="text-xs text-gray-500">
-                Built by Futurelab Ikigai and Piramal Foundation
-              </p>
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="bg-gray-50 rounded-xl p-6 text-center">
+                <p className="text-xs text-gray-500 font-medium tracking-wide">
+                  Built by Futurelab Ikigai and Piramal Foundation © 2025
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1031,86 +1033,88 @@ export default function CircularsPage() {
         </main>
 
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
-          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
             <Link 
               to="/" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <Home size={14} />
-              <span className="text-xs mt-1 font-medium">{t('home')}</span>
+              <Home size={18} />
+              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
             </Link>
             
             <Link 
               to="/chat" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <MessageCircle size={14} />
-              <span className="text-xs mt-1 font-medium">{t('chat')}</span>
+              <MessageCircle size={18} />
+              <span className="text-xs mt-1 font-medium text-center">{t('chat')}</span>
             </Link>
             
             <Link 
               to="/voice-agent" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <Mic size={14} />
-              <span className="text-xs mt-1 font-medium">{t('voice')}</span>
+              <Mic size={18} />
+              <span className="text-xs mt-1 font-medium text-center">{t('voice')}</span>
             </Link>
 
-            <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
-              <LinkIcon size={14} />
-              <span className="text-xs mt-1 font-medium">
+            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
+              <LinkIcon size={18} className="text-emerald-600" />
+              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
             </div>
 
             <Link 
               to="/document" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <FileText size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <FileText size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
             </Link>
 
             <Link 
               to="/academy" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <GraduationCap size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <GraduationCap size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
               </span>
             </Link>
 
             <Link 
               to="/glossary" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <BookOpen size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <BookOpen size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
               </span>
             </Link>
 
             <Link 
               to="/videos" 
-              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
             >
-              <PlayCircle size={14} />
-              <span className="text-xs mt-1 font-medium">
+              <PlayCircle size={18} />
+              <span className="text-xs mt-1 font-medium text-center">
                 {language === 'hindi' ? 'वीडियो' : 'Videos'}
               </span>
             </Link>
           </div>
         </nav>
 
-        {/* Footer */}
-        <div className="bg-gray-50 border-t border-gray-200 px-4 py-2 text-center mb-16">
-          <p className="text-xs text-gray-500">
-            Built by Futurelab Ikigai and Piramal Foundation
-          </p>
+        {/* Mobile Footer */}
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <p className="text-xs text-gray-600 font-medium tracking-wide">
+              Built by Futurelab Ikigai and Piramal Foundation © 2025
+            </p>
+          </div>
         </div>
       </div>
     </div>
