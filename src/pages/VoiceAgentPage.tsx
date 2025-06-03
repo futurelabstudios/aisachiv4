@@ -1,15 +1,15 @@
-
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import { Language } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { useTranslations } from "@/hooks/useTranslations";
+import { Link, useLocation } from "react-router-dom";
+import { Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
 
 export default function VoiceAgentPage() {
-  const [language, setLanguage] = useState<Language>('english');
+  const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   const [conversations, setConversations] = useState<Array<{timestamp: string, text: string}>>([]);
   const [apiKey, setApiKey] = useState<string>("");
-  const { t } = useTranslations(language);
 
   // Set translations for this page
   const translations = {
@@ -39,8 +39,17 @@ export default function VoiceAgentPage() {
     }
   };
 
-  const handleLanguageChange = (newLanguage: Language) => {
-    setLanguage(newLanguage);
+  const toggleLanguage = () => {
+    if (language === 'hindi') setLanguage('hinglish');
+    else setLanguage('hindi');
+  };
+
+  const getLanguageButtonText = () => {
+    switch(language) {
+      case 'hindi': return t('switchToHinglish');
+      case 'hinglish': return t('switchToHindi');
+      default: return 'हिंदी';
+    }
   };
 
   // Load OpenAI API key 
@@ -96,41 +105,205 @@ export default function VoiceAgentPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <Header language={language} onLanguageChange={handleLanguageChange} />
-      
-      <main className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="text-center mb-8 max-w-sm">
-          <h2 className="text-2xl font-semibold mb-4 text-sachiv-dark">
-            {translations[language].title}
-          </h2>
-          <p className="text-sachiv-gray">
-            {translations[language].description}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
+      {/* Desktop Layout */}
+      <div className="hidden lg:block desktop-layout">
+        <div className="chat-desktop">
+          {/* Sidebar */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-emerald-600 mb-2">{t('appTitle')}</h1>
+              <p className="text-gray-600 text-sm">{t('appSubtitle')}</p>
+            </div>
+            
+            <Button
+              onClick={toggleLanguage}
+              variant="outline"
+              className="w-full mb-4 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              {getLanguageButtonText()}
+            </Button>
 
-        {/* ElevenLabs Convai Widget */}
-        <div className="w-full max-w-md mx-auto mb-8 flex justify-center">
-          <elevenlabs-convai agent-id="o3Q9qV20D6Dr8KEvj9e1"></elevenlabs-convai>
-        </div>
-
-        {/* Recent Conversations */}
-        <div className="w-full max-w-2xl mx-auto mt-8">
-          <h3 className="text-xl font-semibold mb-4 text-sachiv-dark">
-            {translations[language].recentConversations}
-          </h3>
-          <div className="space-y-4">
-            {conversations.slice(-5).map((conv, index) => (
-              <div key={index} className="p-4 bg-white rounded-lg shadow">
-                <p className="text-sm text-sachiv-gray">
-                  {formatDate(conv.timestamp)}
-                </p>
-                <p className="mt-2">{conv.text}</p>
+            <div className="space-y-3">
+              <Link to="/" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <Home className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">{t('home')}</span>
+              </Link>
+              
+              <Link to="/chat" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">{t('chat')}</span>
+              </Link>
+              
+              <div className="flex items-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <Mic className="w-5 h-5 mr-3 text-emerald-600" />
+                <span className="text-emerald-700 font-medium">{t('voice')}</span>
               </div>
-            ))}
+
+              <Link to="/circulars" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <LinkIcon className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
+                </span>
+              </Link>
+
+              <Link to="/document" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <FileText className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">{t('documentAnalysis')}</span>
+              </Link>
+
+              <Link to="/academy" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
+                </span>
+              </Link>
+
+              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Main Voice Area */}
+          <div className="chat-main-desktop">
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-emerald-600 mb-4">{t('voiceTitle')}</h2>
+                <p className="text-gray-600">{t('voiceDescription')}</p>
+              </div>
+
+              {/* ElevenLabs Convai Widget */}
+              <div className="flex justify-center mb-8">
+                <elevenlabs-convai agent-id="o3Q9qV20D6Dr8KEvj9e1"></elevenlabs-convai>
+              </div>
+
+              {/* Recent Conversations */}
+              <div className="max-w-2xl mx-auto">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">{t('recentConversations')}</h3>
+                <div className="space-y-4">
+                  {conversations.slice(-5).map((conv, index) => (
+                    <div key={index} className="p-4 bg-white rounded-xl shadow-sm border border-gray-200">
+                      <p className="text-sm text-gray-500 mb-2">{formatDate(conv.timestamp)}</p>
+                      <p className="text-gray-700">{conv.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="lg:hidden flex flex-col h-screen">
+        {/* Mobile Header */}
+        <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between max-w-md mx-auto">
+            <div>
+              <h1 className="text-xl font-bold text-emerald-600">{t('appTitle')}</h1>
+              <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
+            </div>
+            <Button
+              onClick={toggleLanguage}
+              variant="outline"
+              size="sm"
+              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            >
+              <Globe className="w-4 h-4 mr-1" />
+              {getLanguageButtonText()}
+            </Button>
+          </div>
+        </header>
+
+        {/* Mobile Voice Area */}
+        <main className="flex-1 overflow-y-auto bg-white mobile-padding">
+          <div className="max-w-md mx-auto p-4">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-emerald-600 mb-4">{t('voiceTitle')}</h2>
+              <p className="text-gray-600">{t('voiceDescription')}</p>
+            </div>
+
+            {/* ElevenLabs Convai Widget */}
+            <div className="flex justify-center mb-8">
+              <elevenlabs-convai agent-id="o3Q9qV20D6Dr8KEvj9e1"></elevenlabs-convai>
+            </div>
+
+            {/* Recent Conversations */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">{t('recentConversations')}</h3>
+              <div className="space-y-4">
+                {conversations.slice(-5).map((conv, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <p className="text-sm text-gray-500 mb-2">{formatDate(conv.timestamp)}</p>
+                    <p className="text-gray-700 text-sm">{conv.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Mobile Navigation */}
+        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
+          <div className="flex justify-center items-center space-x-3 max-w-md mx-auto">
+            <Link 
+              to="/" 
+              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <Home size={18} />
+              <span className="text-xs mt-1 font-medium">{t('home')}</span>
+            </Link>
+            
+            <Link 
+              to="/chat" 
+              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <MessageCircle size={18} />
+              <span className="text-xs mt-1 font-medium">{t('chat')}</span>
+            </Link>
+            
+            <div className="nav-item active flex flex-col items-center p-2 rounded-xl">
+              <Mic size={18} />
+              <span className="text-xs mt-1 font-medium">{t('voice')}</span>
+            </div>
+
+            <Link 
+              to="/circulars" 
+              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <LinkIcon size={18} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
+              </span>
+            </Link>
+
+            <Link 
+              to="/document" 
+              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <FileText size={18} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
+              </span>
+            </Link>
+
+            <Link 
+              to="/academy" 
+              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <GraduationCap size={18} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'अकादमी' : 'Academy'}
+              </span>
+            </Link>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export type Language = 'english' | 'hindi' | 'hinglish';
+export type Language = 'hindi' | 'hinglish';
 
 export interface Message {
   id: string;
