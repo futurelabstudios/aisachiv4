@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, BookOpen, CheckCircle, PlayCircle, Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, Volume2, VolumeX, ExternalLink } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, BookOpen, PlayCircle, Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, Volume2, VolumeX, Search, Filter, Star, Clock, Users, Award, Lightbulb, Target, TrendingUp, Zap, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 
@@ -11,6 +12,8 @@ interface Module {
     hindi: string;
     hinglish: string;
   };
+  emoji: string;
+  color: string;
   description: {
     hindi: string;
     hinglish: string;
@@ -19,187 +22,217 @@ interface Module {
     hindi: string[];
     hinglish: string[];
   };
-  completed?: boolean;
 }
 
 const trainingModules: Module[] = [
   {
     id: 1,
+    emoji: "🎯",
+    color: "emerald",
     title: {
-      hindi: 'सरपंच के मूलभूत कर्तव्य और जिम्मेदारियां',
-      hinglish: 'Sarpanch ke Basic Duties aur Responsibilities'
+      hindi: 'सरपंच के मुख्य काम',
+      hinglish: 'Sarpanch ke Main Kaam'
     },
     description: {
-      hindi: 'एक सरपंच के रूप में आपकी मुख्य जिम्मेदारियों को समझें और मास्टर करें',
-      hinglish: 'Ek sarpanch ke roop mein aapki main responsibilities ko samjhe aur master kare'
+      hindi: 'आपकी जिम्मेदारियां और दैनिक कार्य',
+      hinglish: 'Aapki responsibilities aur daily tasks'
     },
     content: {
       hindi: [
-        'ग्राम पंचायत की बैठकों की अध्यक्षता करना - हर महीने कम से कम दो बैठकें',
-        'गांव की समस्याओं का समाधान करना - प्राथमिकता के आधार पर',
-        'सरकारी योजनाओं का सही क्रियान्वयन सुनिश्चित करना - मनरेगा, आवास, स्वच्छता',
-        'ग्रामीणों की शिकायतों को सुनना और हल करना - निष्पक्ष तरीके से',
-        'गांव के विकास कार्यों की निगरानी करना - गुणवत्ता और समय सीमा',
-        'पारदर्शिता और जवाबदेही बनाए रखना - सभी कार्यों में',
-        'ग्राम सभा की बैठकों का आयोजन करना - वर्ष में न्यूनतम 4 बैठकें',
-        'सामाजिक न्याय और समानता सुनिश्चित करना',
-        'महिलाओं और बच्चों के अधिकारों की सुरक्षा करना',
-        'पर्यावरण संरक्षण में नेतृत्व प्रदान करना'
+        'महीने में कम से कम 2 ग्राम पंचायत की बैठक करना',
+        'गांव की समस्याओं को सुनना और हल करना',
+        'सभी वर्गों के लोगों की बात सुनना',
+        'ग्राम सभा की बैठक साल में 4 बार करना',
+        'गांव के विकास के लिए योजना बनाना',
+        'शिकायतों का जल्दी समाधान करना',
+        'सभी के साथ निष्पक्ष व्यवहार करना'
       ],
       hinglish: [
-        'Gram Panchayat ki meetings ki adhyakshata karna - har mahine kam se kam do meetings',
-        'Gaon ki problems ka solution karna - priority ke base par',
-        'Government schemes ka sahi implementation ensure karna - MGNREGA, Awas, Swachhata',
-        'Gramin logo ki complaints sunna aur solve karna - fair tarike se',
-        'Gaon ke development works ki monitoring karna - quality aur time limit',
-        'Transparency aur accountability maintain karna - sabhi kaam mein',
-        'Gram Sabha ki meetings ka aayojan karna - saal mein minimum 4 meetings',
-        'Social justice aur equality ensure karna',
-        'Women aur children ke rights ki protection karna',
-        'Environment conservation mein leadership provide karna'
+        'Mahine mein kam se kam 2 Gram Panchayat meetings karna',
+        'Gaon ki problems sunna aur solve karna',
+        'Sabhi sections ke logo ki baat sunna',
+        'Gram Sabha meeting saal mein 4 baar karna',
+        'Gaon ke development ke liye plan banana',
+        'Complaints ka jaldi solution karna',
+        'Sabhi ke saath fair treatment karna'
       ]
     }
   },
   {
     id: 2,
+    emoji: "🏛️",
+    color: "blue",
     title: {
-      hindi: 'ग्राम पंचायत प्रशासन और रिकॉर्ड रखरखाव',
-      hinglish: 'Gram Panchayat Administration aur Record Keeping'
+      hindi: 'सरकारी योजनाएं चलाना',
+      hinglish: 'Government Schemes Chalana'
     },
     description: {
-      hindi: 'सही प्रशासनिक प्रक्रियाओं और रिकॉर्ड रखरखाव में विशेषज्ञता प्राप्त करें',
-      hinglish: 'Sahi administrative processes aur record keeping mein expertise hasil kare'
+      hindi: 'मुख्य सरकारी योजनाओं को सही तरीके से लागू करना',
+      hinglish: 'Important government schemes ko sahi tarike se implement karna'
     },
     content: {
       hindi: [
-        'ग्राम पंचायत के आवश्यक दस्तावेजों की जानकारी - व्यापक फाइलिंग सिस्टम',
-        'बैठकों के कार्यवृत्त का रखरखाव - कानूनी आवश्यकताओं के अनुसार',
-        'वित्तीय रिकॉर्ड और खातों का प्रबंधन - ऑडिट के लिए तैयार',
-        'जन्म-मृत्यु प्रमाणपत्र की प्रक्रिया - ऑनलाइन और ऑफलाइन दोनों',
-        'आय-जाति प्रमाणपत्र जारी करना - सत्यापन प्रक्रिया सहित',
-        'डिजिटल रिकॉर्ड का महत्व - ई-गवर्नेंस एप्लीकेशन का उपयोग',
-        'सूचना का अधिकार (RTI) का अनुपालन - 30 दिन की समय सीमा',
-        'ग्राम पंचायत विकास योजना (GPDP) का निर्माण',
-        'सामाजिक लेखा परीक्षा (Social Audit) की तैयारी',
-        'डेटा बैकअप और सुरक्षा प्रोटोकॉल'
+        'मनरेगा में काम देना और पेमेंट कराना',
+        'प्रधानमंत्री आवास योजना में घर बनवाना',
+        'शौचालय बनवाना (स्वच्छ भारत मिशन)',
+        'बच्चों की पढ़ाई के लिए स्कॉलरशिप दिलवाना',
+        'पेंशन योजनाओं में नाम जुड़वाना',
+        'राशन कार्ड और अन्य दस्तावेज बनवाना',
+        'गरीब परिवारों को योजनाओं का लाभ दिलवाना'
       ],
       hinglish: [
-        'Gram Panchayat ke essential documents ki jaankari - comprehensive filing system',
-        'Meetings ke karyavritt ka rakhrakhaav - legal requirements ke according',
-        'Financial records aur accounts ka management - audit ke liye ready',
-        'Janam-mrityu certificate ki process - online aur offline dono',
-        'Income-caste certificate issue karna - verification process ke saath',
-        'Digital records ka importance - e-governance applications ka use',
-        'Right to Information (RTI) ka compliance - 30 din ki time limit',
-        'Gram Panchayat Development Plan (GPDP) ka formation',
-        'Social Audit ki preparation',
-        'Data backup aur security protocols'
+        'MGNREGA mein kaam dena aur payment karana',
+        'PM Awas Yojana mein ghar banwana',
+        'Toilet banwana (Swachh Bharat Mission)',
+        'Baccho ki padhai ke liye scholarship dilwana',
+        'Pension schemes mein naam judwana',
+        'Ration card aur documents banwana',
+        'Gareeb families ko schemes ka fayda dilwana'
       ]
     }
   },
   {
     id: 3,
+    emoji: "💰",
+    color: "yellow",
     title: {
-      hindi: 'सरकारी योजनाएं और उनका क्रियान्वयन',
-      hinglish: 'Government Schemes aur unka Implementation'
+      hindi: 'पैसे का हिसाब-किताब',
+      hinglish: 'Paise ka Hisab-Kitab'
     },
     description: {
-      hindi: 'प्रमुख सरकारी योजनाओं को समझें और उन्हें सफलतापूर्वक लागू करें',
-      hinglish: 'Major government schemes ko samjhe aur unhe successfully implement kare'
+      hindi: 'ग्राम पंचायत के पैसे को सही तरीके से खर्च करना',
+      hinglish: 'Gram Panchayat ke paise ko sahi tarike se spend karna'
     },
     content: {
       hindi: [
-        'महात्मा गांधी नरेगा योजना का संचालन',
-        'प्रधानमंत्री आवास योजना की जानकारी',
-        'स्वच्छ भारत मिशन का क्रियान्वयन',
-        'पीएम किसान सम्मान निधि योजना',
-        'आयुष्मान भारत योजना की जानकारी',
-        'बेटी बचाओ बेटी पढ़ाओ योजना',
-        'योजनाओं के लाभार्थियों की पहचान और चयन'
+        'साल का बजट बनाना - कितना पैसा कहां खर्च होगा',
+        'हर खर्च की रसीद रखना',
+        'बैंक खाते की जांच नियमित करना',
+        'योजनाओं का पैसा सही जगह खर्च करना',
+        'गांव वालों को बताना कि पैसा कहां खर्च हुआ',
+        'कोई भी खर्च छुपाना नहीं',
+        'ऑडिट के लिए सभी कागजात तैयार रखना'
       ],
       hinglish: [
-        'Mahatma Gandhi NREGA scheme ka sanchaalan',
-        'Pradhan Mantri Awas Yojana ki jaankari',
-        'Swachh Bharat Mission ka implementation',
-        'PM Kisan Samman Nidhi Yojana',
-        'Ayushman Bharat Yojana ki jaankari',
-        'Beti Bachao Beti Padhao Yojana',
-        'Schemes ke beneficiaries ki pehchaan aur selection'
+        'Saal ka budget banana - kitna paisa kaha spend hoga',
+        'Har expense ki receipt rakhna',
+        'Bank account ki checking regular karna',
+        'Schemes ka paisa sahi jagah spend karna',
+        'Gaon walo ko batana ki paisa kaha spend hua',
+        'Koi bhi expense chupana nahi',
+        'Audit ke liye sabhi papers ready rakhna'
       ]
     }
   },
   {
     id: 4,
+    emoji: "👥",
+    color: "purple",
     title: {
-      hindi: 'वित्तीय प्रबंधन और बजट नियोजन',
-      hinglish: 'Financial Management aur Budget Planning'
+      hindi: 'लोगों के साथ अच्छे रिश्ते',
+      hinglish: 'Logo ke saath Acche Rishte'
     },
     description: {
-      hindi: 'ग्राम पंचायत के वित्त का सही प्रबंधन और बजट बनाना सीखें',
-      hinglish: 'Gram Panchayat ke finance ka sahi management aur budget banana sikhe'
+      hindi: 'गांव में एकता बनाना और सबको साथ लेकर चलना',
+      hinglish: 'Gaon mein unity banana aur sabko saath lekar chalna'
     },
     content: {
       hindi: [
-        'ग्राम पंचायत के आय के स्रोत',
-        'वार्षिक बजट तैयार करना',
-        'खर्चों की निगरानी और नियंत्रण',
-        'लेखा-जोखा और ऑडिट की प्रक्रिया',
-        'बैंक खाते का संचालन',
-        'वित्तीय पारदर्शिता बनाए रखना',
-        'केंद्र और राज्य से प्राप्त होने वाले फंड का उपयोग'
+        'सभी जाति-धर्म के लोगों के साथ बराबरी का व्यवहार',
+        'महिलाओं और युवाओं को काम में भागीदारी देना',
+        'झगड़ों को प्यार से सुलझाना',
+        'गांव की परंपराओं का सम्मान करना',
+        'नशे और अपराध को रोकना',
+        'त्योहारों और कार्यक्रमों में सभी को शामिल करना',
+        'गांव के बुजुर्गों की सलाह लेना'
       ],
       hinglish: [
-        'Gram Panchayat ke income ke sources',
-        'Annual budget taiyar karna',
-        'Expenses ki monitoring aur control',
-        'Lekha-jokha aur audit ki process',
-        'Bank account ka sanchaalan',
-        'Financial transparency maintain karna',
-        'Center aur state se milne wale funds ka upyog'
+        'Sabhi caste-religion ke logo ke saath equal treatment',
+        'Women aur youth ko kaam mein participation dena',
+        'Fights ko pyaar se solve karna',
+        'Gaon ki traditions ka respect karna',
+        'Nasha aur crime ko rokna',
+        'Festivals aur programs mein sabko include karna',
+        'Gaon ke elders ki advice lena'
       ]
     }
   },
   {
     id: 5,
+    emoji: "📋",
+    color: "indigo",
     title: {
-      hindi: 'सामुदायिक नेतृत्व और समस्या समाधान',
-      hinglish: 'Community Leadership aur Problem Solving'
+      hindi: 'कागजात और रिकॉर्ड रखना',
+      hinglish: 'Papers aur Records Rakhna'
     },
     description: {
-      hindi: 'एक प्रभावी नेता बनें और गांव की समस्याओं का समाधान करें',
-      hinglish: 'Ek effective leader bane aur gaon ki problems ka solution kare'
+      hindi: 'जरूरी दस्तावेजों को व्यवस्थित रखना',
+      hinglish: 'Important documents ko systematic rakhna'
     },
     content: {
       hindi: [
-        'प्रभावी संवाद और बातचीत की कला',
-        'विवादों का निपटारा और मध्यस्थता',
-        'सामुदायिक सहयोग को बढ़ावा देना',
-        'गांव में एकता बनाए रखना',
-        'महिलाओं और युवाओं की भागीदारी सुनिश्चित करना',
-        'पर्यावरण संरक्षण के उपाय',
-        'डिजिटल तकनीक का उपयोग'
+        'बैठकों का रिकॉर्ड लिखना और रखना',
+        'जन्म-मृत्यु प्रमाणपत्र बनाना',
+        'जाति-आय प्रमाणपत्र जारी करना',
+        'सभी योजनाओं की फाइल अलग रखना',
+        'गांव की जनसंख्या की जानकारी रखना',
+        'सभी कागजात सुरक्षित स्थान पर रखना',
+        'जरूरत पड़ने पर तुरंत कागजात निकालना'
       ],
       hinglish: [
-        'Effective communication aur conversation ki kala',
-        'Disputes ka niptara aur mediation',
-        'Community cooperation ko badhawa dena',
-        'Gaon mein unity maintain karna',
-        'Women aur youth ki participation ensure karna',
-        'Environment protection ke upaay',
-        'Digital technology ka upyog'
+        'Meetings ka record likhna aur rakhna',
+        'Birth-death certificate banana',
+        'Caste-income certificate issue karna',
+        'Sabhi schemes ki file alag rakhna',
+        'Gaon ki population ki information rakhna',
+        'Sabhi papers safe place par rakhna',
+        'Jarurat padne par turant papers nikalna'
       ]
-    }
-  }
-];
-
-// Enhanced training modules with more comprehensive content
+         }
+   },
+   {
+     id: 6,
+     emoji: "💻",
+     color: "cyan",
+     title: {
+       hindi: 'डिजिटल सेवा और ऑनलाइन काम',
+       hinglish: 'Digital Service aur Online Kaam'
+     },
+     description: {
+       hindi: 'कंप्यूटर और मोबाइल से सरकारी काम करना',
+       hinglish: 'Computer aur mobile se government kaam karna'
+     },
+     content: {
+       hindi: [
+         'ई-ग्राम स्वराज पोर्टल का उपयोग करना',
+         'PFMS (Public Financial Management System) पर पेमेंट करना',
+         'योजनाओं की ऑनलाइन मॉनिटरिंग करना',
+         'डिजिटल फॉर्म भरना और जमा करना',
+         'ऑनलाइन रिपोर्ट तैयार करना',
+         'वीडियो कॉल से मीटिंग करना',
+         'मोबाइल ऐप से काम की जांच करना'
+       ],
+       hinglish: [
+         'e-Gram Swaraj portal ka use karna',
+         'PFMS (Public Financial Management System) par payment karna',
+         'Schemes ki online monitoring karna',
+         'Digital forms bharna aur submit karna',
+         'Online reports taiyar karna',
+         'Video call se meetings karna',
+         'Mobile apps se kaam ki checking karna'
+       ]
+     }
+   }
+ ];
 
 export default function SarpanchAcademyPage() {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
-  const [completedModules, setCompletedModules] = useState<number[]>([]);
   const [isReading, setIsReading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
 
   const toggleLanguage = () => {
     if (language === 'hindi') setLanguage('hinglish');
@@ -214,25 +247,42 @@ export default function SarpanchAcademyPage() {
     }
   };
 
-  const markModuleComplete = (moduleId: number) => {
-    if (!completedModules.includes(moduleId)) {
-      setCompletedModules([...completedModules, moduleId]);
-      // Store completion in localStorage
-      localStorage.setItem('completed-modules', JSON.stringify([...completedModules, moduleId]));
-    }
-  };
+  // Module categories for better organization
+  const moduleCategories = [
+    { id: "all", name: { hindi: "सभी मॉड्यूल", hinglish: "All Modules" }, icon: BookOpen },
+    { id: "basics", name: { hindi: "बुनियादी बातें", hinglish: "Basics" }, icon: Target },
+    { id: "admin", name: { hindi: "प्रशासन", hinglish: "Administration" }, icon: Award },
+    { id: "schemes", name: { hindi: "योजनाएं", hinglish: "Schemes" }, icon: TrendingUp },
+    { id: "finance", name: { hindi: "वित्त", hinglish: "Finance" }, icon: Star },
+    { id: "leadership", name: { hindi: "नेतृत्व", hinglish: "Leadership" }, icon: Zap }
+  ];
+
+  const difficultyLevels = [
+    { id: "all", name: { hindi: "सभी स्तर", hinglish: "All Levels" } },
+    { id: "beginner", name: { hindi: "शुरुआती", hinglish: "Beginner" } },
+    { id: "intermediate", name: { hindi: "मध्यम", hinglish: "Intermediate" } },
+    { id: "advanced", name: { hindi: "उन्नत", hinglish: "Advanced" } }
+  ];
+
+  // Filter modules based on search and category
+  const filteredModules = trainingModules.filter(module => {
+    const matchesSearch = module.title[language].toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         module.description[language].toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || module.color === selectedCategory;
+    const matchesDifficulty = selectedDifficulty === "all" || module.color === selectedDifficulty;
+    
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
 
   // Text-to-Speech functionality with Indian accent
   const startReading = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Set language and try to get Indian English voice
       utterance.lang = language === 'hindi' ? 'hi-IN' : 'en-IN';
-      utterance.rate = 0.7;
+      utterance.rate = 0.8;
       utterance.pitch = 1.0;
       
-      // Try to find Indian English voice
       const voices = window.speechSynthesis.getVoices();
       const indianVoice = voices.find(voice => 
         voice.lang === 'en-IN' || 
@@ -268,6 +318,18 @@ export default function SarpanchAcademyPage() {
   };
 
   const selectedModuleData = selectedModule ? trainingModules.find(m => m.id === selectedModule) : null;
+
+  const getColorClasses = (color: string) => {
+    switch(color) {
+      case 'emerald': return 'from-emerald-400 to-emerald-600 border-emerald-200 bg-emerald-50';
+      case 'blue': return 'from-blue-400 to-blue-600 border-blue-200 bg-blue-50';
+      case 'yellow': return 'from-yellow-400 to-yellow-600 border-yellow-200 bg-yellow-50';
+      case 'purple': return 'from-purple-400 to-purple-600 border-purple-200 bg-purple-50';
+      case 'indigo': return 'from-indigo-400 to-indigo-600 border-indigo-200 bg-indigo-50';
+      case 'cyan': return 'from-cyan-400 to-cyan-600 border-cyan-200 bg-cyan-50';
+      default: return 'from-gray-400 to-gray-600 border-gray-200 bg-gray-50';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
@@ -325,6 +387,13 @@ export default function SarpanchAcademyPage() {
                 </span>
               </div>
 
+              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+                </span>
+              </Link>
+
               <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
@@ -338,171 +407,160 @@ export default function SarpanchAcademyPage() {
           <div className="chat-main-desktop">
             <div className="flex-1 overflow-y-auto p-6">
               {!selectedModule ? (
-                // Module Selection
+                // Simple and Beautiful Module Selection
                 <div>
-                  <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-emerald-600 mb-4">
-                      {language === 'hindi' ? '🎓 सरपंच अकादमी' : '🎓 Sarpanch Academy'}
+                  <div className="text-center mb-12">
+                    <div className="text-8xl mb-6">🎓</div>
+                    <h2 className="text-4xl font-bold text-emerald-600 mb-4">
+                      {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                       {language === 'hindi' 
-                        ? 'एक सफल सरपंच बनने के लिए आवश्यक प्रशिक्षण मॉड्यूल'
-                        : 'Essential training modules to become a successful sarpanch'
+                        ? 'सफल सरपंच बनने के लिए 6 आसान मॉड्यूल सीखें'
+                        : 'Learn 6 easy modules to become a successful sarpanch'
                       }
                     </p>
                   </div>
 
-                  {/* Training Modules */}
-                  <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto mb-8">
+                  {/* Beautiful Training Modules */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
                     {trainingModules.map((module) => (
                       <Card 
                         key={module.id}
-                        className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+                        className="cursor-pointer hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 overflow-hidden group"
                         onClick={() => setSelectedModule(module.id)}
                       >
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-4 flex-1">
-                              <div className="bg-emerald-100 p-3 rounded-full">
-                                <BookOpen className="w-6 h-6 text-emerald-600" />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                  मॉड्यूल {module.id}: {module.title[language]}
-                                </h3>
-                                <p className="text-gray-600 text-sm">
-                                  {module.description[language]}
-                                </p>
-                              </div>
-                            </div>
-                            {completedModules.includes(module.id) && (
-                              <CheckCircle className="w-6 h-6 text-green-500" />
-                            )}
+                        <div className={`h-2 bg-gradient-to-r ${getColorClasses(module.color).split(' ')[0]} ${getColorClasses(module.color).split(' ')[1]} ${getColorClasses(module.color).split(' ')[2]}`}></div>
+                        <CardContent className="p-6 text-center">
+                          <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                            {module.emoji}
+                          </div>
+                          <div className="bg-gray-100 text-gray-600 text-sm font-bold px-3 py-1 rounded-full inline-block mb-3">
+                            {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {module.id}
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-emerald-600 transition-colors">
+                            {module.title[language]}
+                          </h3>
+                          <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                            {module.description[language]}
+                          </p>
+                          <div className="flex items-center justify-center text-emerald-600 font-medium group-hover:text-emerald-700">
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            {language === 'hindi' ? 'सीखना शुरू करें' : 'Start Learning'}
                           </div>
                         </CardContent>
                       </Card>
                     ))}
                   </div>
 
-                  {/* Quick Assessment Section */}
-                  <div className="max-w-4xl mx-auto">
-                    <h3 className="text-2xl font-bold text-emerald-600 mb-6">
-                      {language === 'hindi' ? '📋 स्व-मूल्यांकन परीक्षा' : '📋 Self Assessment Quiz'}
-                    </h3>
-                    
-                    <Card className="mb-6">
-                      <CardContent className="p-6">
-                        <div className="text-center">
-                          <div className="bg-yellow-100 p-6 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                            <span className="text-3xl">🏆</span>
-                          </div>
-                          <h4 className="text-lg font-bold text-gray-800 mb-2">
-                            {language === 'hindi' ? 'प्रगति ट्रैकर' : 'Progress Tracker'}
-                          </h4>
-                          <p className="text-gray-600 mb-4">
-                            {language === 'hindi' 
-                              ? `${completedModules.length}/5 मॉड्यूल पूर्ण किए गए`
-                              : `${completedModules.length}/5 modules completed`
-                            }
-                          </p>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div 
-                              className="bg-emerald-500 h-3 rounded-full transition-all duration-300"
-                              style={{ width: `${(completedModules.length / 5) * 100}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-sm text-gray-500 mt-2">
-                            {language === 'hindi' 
-                              ? `${Math.round((completedModules.length / 5) * 100)}% पूर्ण`
-                              : `${Math.round((completedModules.length / 5) * 100)}% Complete`
-                            }
-                          </p>
-                        </div>
+                  {/* Motivational Section */}
+                  <div className="text-center mt-16">
+                    <Card className="max-w-3xl mx-auto bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0">
+                      <CardContent className="p-8">
+                        <div className="text-4xl mb-4">✨</div>
+                        <h3 className="text-2xl font-bold mb-4">
+                          {language === 'hindi' ? 'आप एक बेहतरीन सरपंच बन सकते हैं!' : 'You can become an excellent sarpanch!'}
+                        </h3>
+                                                 <p className="text-lg opacity-90">
+                           {language === 'hindi' 
+                             ? 'ये 6 मॉड्यूल आपको सब कुछ सिखाएंगे जो एक सफल सरपंच को जानना चाहिए'
+                             : 'These 6 modules will teach you everything a successful sarpanch needs to know'
+                           }
+                        </p>
                       </CardContent>
                     </Card>
-
-                    {completedModules.length === 5 && (
-                      <Card className="border-green-200 bg-green-50">
-                        <CardContent className="p-6 text-center">
-                          <div className="text-4xl mb-4">🎉</div>
-                          <h4 className="text-xl font-bold text-green-800 mb-2">
-                            {language === 'hindi' ? 'बधाई हो!' : 'Congratulations!'}
-                          </h4>
-                          <p className="text-green-700">
-                            {language === 'hindi' 
-                              ? 'आपने सभी प्रशिक्षण मॉड्यूल सफलतापूर्वक पूरे कर लिए हैं। अब आप एक कुशल सरपंच बनने के लिए तैयार हैं!'
-                              : 'You have successfully completed all training modules. You are now ready to become a skilled sarpanch!'
-                            }
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
                   </div>
                 </div>
               ) : (
-                // Module Content
+                // Simple and Clear Module Content
                 <div>
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-8">
                     <Button
                       onClick={() => setSelectedModule(null)}
                       variant="outline"
-                      size="sm"
+                      className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      {language === 'hindi' ? 'वापस' : 'Back'}
+                      {language === 'hindi' ? 'वापस जाएं' : 'Go Back'}
                     </Button>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => {
-                          if (selectedModuleData) {
-                            const fullText = `${selectedModuleData.title[language]}. ${selectedModuleData.content[language].join('. ')}`;
-                            toggleReading(fullText);
-                          }
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                      >
-                        {isReading ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                        {isReading 
-                          ? (language === 'hindi' ? 'रोकें' : 'Stop') 
-                          : (language === 'hindi' ? 'सुनें' : 'Listen')
+                    <Button
+                      onClick={() => {
+                        if (selectedModuleData) {
+                          const fullText = `${selectedModuleData.title[language]}. ${selectedModuleData.content[language].join('. ')}`;
+                          toggleReading(fullText);
                         }
-                      </Button>
-                      <Button
-                        onClick={() => markModuleComplete(selectedModule)}
-                        className="primary-button"
-                        disabled={completedModules.includes(selectedModule)}
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {completedModules.includes(selectedModule) 
-                          ? (language === 'hindi' ? 'पूर्ण' : 'Completed')
-                          : (language === 'hindi' ? 'पूर्ण करें' : 'Mark Complete')
-                        }
-                      </Button>
-                    </div>
+                      }}
+                      variant="outline"
+                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                    >
+                      {isReading ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                      {isReading 
+                        ? (language === 'hindi' ? 'रोकें' : 'Stop') 
+                        : (language === 'hindi' ? 'सुनें' : 'Listen')
+                      }
+                    </Button>
                   </div>
 
                   {selectedModuleData && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-emerald-600">
-                          मॉड्यूल {selectedModuleData.id}: {selectedModuleData.title[language]}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {selectedModuleData.content[language].map((point, index) => (
-                            <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <div className="bg-emerald-100 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                <span className="text-emerald-600 text-xs font-bold">{index + 1}</span>
-                              </div>
-                              <p className="text-gray-700">{point}</p>
-                            </div>
-                          ))}
+                    <div className="max-w-4xl mx-auto">
+                      {/* Module Header */}
+                      <div className="text-center mb-12">
+                        <div className="text-8xl mb-6">{selectedModuleData.emoji}</div>
+                        <div className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
+                          {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {selectedModuleData.id}
                         </div>
-                      </CardContent>
-                    </Card>
+                        <h2 className="text-4xl font-bold text-emerald-600 mb-4">
+                          {selectedModuleData.title[language]}
+                        </h2>
+                        <p className="text-xl text-gray-600">
+                          {selectedModuleData.description[language]}
+                        </p>
+                      </div>
+
+                      {/* Simple Content List */}
+                      <Card className="border-l-4 border-l-emerald-500 shadow-lg">
+                        <CardHeader className="bg-emerald-50">
+                          <CardTitle className="text-emerald-600 text-xl">
+                            {language === 'hindi' ? '📚 आपको ये सब सीखना है:' : '📚 You need to learn all this:'}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="space-y-0">
+                            {selectedModuleData.content[language].map((point, index) => (
+                              <div key={index} className="flex items-start gap-4 p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
+                                <div className="bg-emerald-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-emerald-600 font-bold">{index + 1}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-gray-800 text-lg leading-relaxed">
+                                    {point}
+                                  </p>
+                                </div>
+                                <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" />
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Encouragement */}
+                      <div className="text-center mt-12">
+                        <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
+                          <CardContent className="p-6">
+                            <div className="text-3xl mb-3">🌟</div>
+                            <h3 className="font-bold mb-2">
+                              {language === 'hindi' ? 'बहुत बढ़िया!' : 'Very Good!'}
+                            </h3>
+                            <p className="text-sm opacity-90">
+                              {language === 'hindi' 
+                                ? 'अब आप एक्सपर्ट हो गए!'
+                                : 'Now you are an expert!'
+                              }
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -511,7 +569,7 @@ export default function SarpanchAcademyPage() {
         </div>
       </div>
 
-      {/* Mobile Layout */}
+      {/* Mobile Layout - Simple and Clean */}
       <div className="lg:hidden flex flex-col h-screen">
         {/* Mobile Header */}
         <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
@@ -528,7 +586,7 @@ export default function SarpanchAcademyPage() {
               )}
               <div>
                 <h1 className="text-lg font-bold text-emerald-600">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
+                  🎓 {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
                 </h1>
                 <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
               </div>
@@ -550,78 +608,64 @@ export default function SarpanchAcademyPage() {
           <div className="max-w-md mx-auto p-4">
             {!selectedModule ? (
               <div>
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-emerald-600 mb-2">
-                    {language === 'hindi' ? '🎓 प्रशिक्षण मॉड्यूल' : '🎓 Training Modules'}
+                <div className="text-center mb-8">
+                  <div className="text-6xl mb-4">🎓</div>
+                  <h2 className="text-2xl font-bold text-emerald-600 mb-3">
+                    {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
                   </h2>
-                  <p className="text-gray-600 text-sm">
-                    {language === 'hindi' 
-                      ? 'सफल सरपंच बनने के लिए सीखें'
-                      : 'Learn to become a successful sarpanch'
-                    }
+                                     <p className="text-gray-600 text-sm">
+                     {language === 'hindi' 
+                       ? '6 आसान मॉड्यूल सीखें'
+                       : 'Learn 6 easy modules'
+                     }
                   </p>
                 </div>
 
                 {/* Mobile Training Modules */}
-                <div className="space-y-4 mb-8">
+                <div className="space-y-4">
                   {trainingModules.map((module) => (
                     <Card 
                       key={module.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 border-l-emerald-500"
                       onClick={() => setSelectedModule(module.id)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3 flex-1">
-                            <div className="bg-emerald-100 p-2 rounded-full">
-                              <BookOpen className="w-4 h-4 text-emerald-600" />
+                        <div className="flex items-center gap-4">
+                          <div className="text-3xl">{module.emoji}</div>
+                          <div className="flex-1">
+                            <div className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full inline-block mb-2">
+                              {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {module.id}
                             </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800 text-sm mb-1">
-                                मॉड्यूल {module.id}
-                              </h3>
-                              <p className="text-gray-600 text-xs">
-                                {module.title[language]}
-                              </p>
-                            </div>
+                            <h3 className="font-bold text-gray-800 text-sm mb-1">
+                              {module.title[language]}
+                            </h3>
+                            <p className="text-gray-600 text-xs">
+                              {module.description[language]}
+                            </p>
                           </div>
-                          {completedModules.includes(module.id) && (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                          )}
+                          <div className="text-emerald-600">
+                            <BookOpen className="w-5 h-5" />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
 
-                {/* Mobile Progress Tracker */}
-                <div>
-                  <h3 className="text-lg font-bold text-emerald-600 mb-4">
-                    {language === 'hindi' ? '📋 प्रगति ट्रैकर' : '📋 Progress Tracker'}
-                  </h3>
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="text-center">
-                        <div className="bg-yellow-100 p-3 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                          <span className="text-xl">🏆</span>
-                        </div>
-                        <p className="text-gray-600 text-sm mb-3">
-                          {language === 'hindi' 
-                            ? `${completedModules.length}/5 मॉड्यूल पूर्ण`
-                            : `${completedModules.length}/5 modules completed`
-                          }
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${(completedModules.length / 5) * 100}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {Math.round((completedModules.length / 5) * 100)}% 
-                          {language === 'hindi' ? ' पूर्ण' : ' Complete'}
-                        </p>
-                      </div>
+                {/* Mobile Motivation */}
+                <div className="mt-8">
+                  <Card className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0">
+                    <CardContent className="p-4 text-center">
+                      <div className="text-3xl mb-2">✨</div>
+                      <h3 className="font-bold mb-2">
+                        {language === 'hindi' ? 'आप कर सकते हैं!' : 'You can do it!'}
+                      </h3>
+                                             <p className="text-sm opacity-90">
+                         {language === 'hindi' 
+                           ? 'ये 6 मॉड्यूल आपको सब कुछ सिखाएंगे'
+                           : 'These 6 modules will teach you everything'
+                         }
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
@@ -631,37 +675,72 @@ export default function SarpanchAcademyPage() {
               <div>
                 {selectedModuleData && (
                   <div>
-                    <div className="mb-4">
-                      <h2 className="text-lg font-bold text-emerald-600 mb-2">
-                        मॉड्यूल {selectedModuleData.id}
-                      </h2>
-                      <h3 className="font-semibold text-gray-800 text-sm mb-3">
+                    <div className="text-center mb-6">
+                      <div className="text-5xl mb-3">{selectedModuleData.emoji}</div>
+                      <div className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
+                        {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {selectedModuleData.id}
+                      </div>
+                      <h2 className="text-xl font-bold text-emerald-600 mb-2">
                         {selectedModuleData.title[language]}
-                      </h3>
-                      
+                      </h2>
+                      <p className="text-gray-600 text-sm mb-4">
+                        {selectedModuleData.description[language]}
+                      </p>
                       <Button
-                        onClick={() => markModuleComplete(selectedModule)}
-                        className="primary-button w-full mb-4"
+                        onClick={() => {
+                          if (selectedModuleData) {
+                            const fullText = `${selectedModuleData.title[language]}. ${selectedModuleData.content[language].join('. ')}`;
+                            toggleReading(fullText);
+                          }
+                        }}
+                        variant="outline"
                         size="sm"
-                        disabled={completedModules.includes(selectedModule)}
+                        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
                       >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        {completedModules.includes(selectedModule) 
-                          ? (language === 'hindi' ? 'पूर्ण ✓' : 'Completed ✓')
-                          : (language === 'hindi' ? 'पूर्ण करें' : 'Mark Complete')
+                        {isReading ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                        {isReading 
+                          ? (language === 'hindi' ? 'रोकें' : 'Stop') 
+                          : (language === 'hindi' ? 'सुनें' : 'Listen')
                         }
                       </Button>
                     </div>
 
+                    {/* Mobile Simple Content */}
                     <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-emerald-600 mb-3">
+                        📚 {language === 'hindi' ? 'आपको ये सब सीखना है:' : 'You need to learn all this:'}
+                      </h3>
                       {selectedModuleData.content[language].map((point, index) => (
-                        <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="bg-emerald-100 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                            <span className="text-emerald-600 text-xs font-bold">{index + 1}</span>
+                        <div key={index} className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                          <div className="bg-emerald-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-emerald-600 text-sm font-bold">{index + 1}</span>
                           </div>
-                          <p className="text-gray-700 text-sm">{point}</p>
+                          <div className="flex-1">
+                            <p className="text-gray-800 text-sm leading-relaxed">
+                              {point}
+                            </p>
+                          </div>
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-1" />
                         </div>
                       ))}
+                    </div>
+
+                    {/* Mobile Encouragement */}
+                    <div className="mt-6">
+                      <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl mb-2">🌟</div>
+                          <h3 className="font-bold mb-1">
+                            {language === 'hindi' ? 'बहुत बढ़िया!' : 'Very Good!'}
+                          </h3>
+                          <p className="text-sm opacity-90">
+                            {language === 'hindi' 
+                              ? 'अब आप एक्सपर्ट हो गए!'
+                              : 'Now you are an expert!'
+                            }
+                          </p>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}
@@ -671,58 +750,57 @@ export default function SarpanchAcademyPage() {
         </main>
 
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
-          <div className="flex justify-center items-center space-x-6 max-w-md mx-auto">
-            <Link 
-              to="/" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
-            >
-              <Home size={18} />
+        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
+          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
+            <Link to="/" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <Home size={14} />
               <span className="text-xs mt-1 font-medium">{t('home')}</span>
             </Link>
             
-            <Link 
-              to="/chat" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
-            >
-              <MessageCircle size={18} />
+            <Link to="/chat" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <MessageCircle size={14} />
               <span className="text-xs mt-1 font-medium">{t('chat')}</span>
             </Link>
             
-            <Link 
-              to="/voice-agent" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
-            >
-              <Mic size={18} />
+            <Link to="/voice-agent" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <Mic size={14} />
               <span className="text-xs mt-1 font-medium">{t('voice')}</span>
             </Link>
 
-            <Link 
-              to="/circulars" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
-            >
-              <LinkIcon size={18} />
+            <Link to="/circulars" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <LinkIcon size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
             </Link>
 
-            <Link 
-              to="/document" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
-            >
-              <FileText size={18} />
+            <Link to="/document" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <FileText size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
             </Link>
 
-            <div className="nav-item active flex flex-col items-center p-2 rounded-xl">
-              <GraduationCap size={18} />
+            <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
+              <GraduationCap size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
               </span>
             </div>
+
+            <Link to="/glossary" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <BookOpen size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+              </span>
+            </Link>
+
+            <Link to="/videos" className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600">
+              <PlayCircle size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'वीडियो' : 'Videos'}
+              </span>
+            </Link>
           </div>
         </nav>
       </div>

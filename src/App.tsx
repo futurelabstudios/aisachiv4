@@ -12,6 +12,7 @@ import DocumentPage from "./pages/DocumentPage";
 import CircularsPage from "./pages/CircularsPage";
 import SarpanchAcademyPage from "./pages/SarpanchAcademyPage";
 import ImportantVideosPage from "./pages/ImportantVideosPage";
+import GlossaryPage from "./pages/GlossaryPage";
 import NotFound from "./pages/NotFound";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -33,6 +34,7 @@ const App = () => {
               <Route path="/circulars" element={<CircularsPage />} />
               <Route path="/document" element={<DocumentPage />} />
               <Route path="/academy" element={<SarpanchAcademyPage />} />
+              <Route path="/glossary" element={<GlossaryPage />} />
               <Route path="/videos" element={<ImportantVideosPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

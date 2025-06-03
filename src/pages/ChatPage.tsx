@@ -6,7 +6,7 @@ import { Message, ChatState, Language } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
 import { openAIService, OpenAIMessage } from "@/services/openai";
-import { Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle } from "lucide-react";
+import { Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -206,6 +206,13 @@ export default function ChatPage() {
                 </span>
               </Link>
 
+              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+                </span>
+              </Link>
+
               <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
                 <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
@@ -357,22 +364,18 @@ export default function ChatPage() {
         </footer>
 
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
-          <div className="flex justify-center items-center space-x-3 max-w-md mx-auto">
+        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
+          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
             <Link 
               to="/" 
-              className={`nav-item flex flex-col items-center p-1 rounded-xl transition-all ${
-                location.pathname === '/' 
-                  ? 'nav-item active text-white' 
-                  : 'text-gray-500 hover:text-emerald-600'
-              }`}
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <Home size={16} />
+              <Home size={14} />
               <span className="text-xs mt-1 font-medium">{t('home')}</span>
             </Link>
             
             <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
-              <MessageCircle size={16} />
+              <MessageCircle size={14} />
               <span className="text-xs mt-1 font-medium">{t('chat')}</span>
             </div>
             
@@ -380,7 +383,7 @@ export default function ChatPage() {
               to="/voice-agent" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <Mic size={16} />
+              <Mic size={14} />
               <span className="text-xs mt-1 font-medium">{t('voice')}</span>
             </Link>
 
@@ -388,7 +391,7 @@ export default function ChatPage() {
               to="/circulars" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <LinkIcon size={16} />
+              <LinkIcon size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
@@ -398,7 +401,7 @@ export default function ChatPage() {
               to="/document" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <FileText size={16} />
+              <FileText size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
@@ -408,9 +411,19 @@ export default function ChatPage() {
               to="/academy" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <GraduationCap size={16} />
+              <GraduationCap size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
+              </span>
+            </Link>
+
+            <Link 
+              to="/glossary" 
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <BookOpen size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
               </span>
             </Link>
 
@@ -418,7 +431,7 @@ export default function ChatPage() {
               to="/videos" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <PlayCircle size={16} />
+              <PlayCircle size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'वीडियो' : 'Videos'}
               </span>
