@@ -6,9 +6,10 @@ import { Message, ChatState, Language } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
 import { openAIService, OpenAIMessage } from "@/services/openai";
-import { Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
+import { MessageCircle, Globe } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import MobileNavigation from "@/components/MobileNavigation";
 import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
