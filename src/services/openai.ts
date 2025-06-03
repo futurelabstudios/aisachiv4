@@ -20,7 +20,8 @@ export class OpenAIService {
 
   constructor() {
     this.apiKey = ENV.OPENAI_API_KEY;
-    this.baseUrl = ENV.API_BASE_URL;
+    // Use proxy in development, direct API in production
+    this.baseUrl = import.meta.env.DEV ? '/api/openai' : ENV.API_BASE_URL;
   }
 
   private detectLanguage(text: string): 'hindi' | 'hinglish' {

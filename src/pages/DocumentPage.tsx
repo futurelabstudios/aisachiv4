@@ -39,6 +39,33 @@ export default function DocumentPage() {
     scrollToBottom();
   }, [messages]);
 
+  // Test function to verify service connectivity
+  const testDocumentService = async () => {
+    console.log('Testing document analysis service...');
+    try {
+      // Test with a simple text file
+      const testText = 'Test document for analysis';
+      const testBlob = new Blob([testText], { type: 'text/plain' });
+      const testFile = new File([testBlob], 'test.txt', { type: 'text/plain' });
+      
+      console.log('Created test file:', testFile);
+      const result = await documentAnalysisService.analyzeDocument(testFile, language);
+      console.log('Service test successful:', result);
+      
+      toast({
+        title: 'Service Test',
+        description: 'Document analysis service is working correctly.',
+      });
+    } catch (error) {
+      console.error('Service test failed:', error);
+      toast({
+        title: 'Service Test Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const toggleLanguage = () => {
     if (language === 'hindi') setLanguage('hinglish');
     else setLanguage('hindi');
@@ -179,11 +206,23 @@ export default function DocumentPage() {
   };
 
   const handleAnalyze = async () => {
-    if (!uploadedFile && !capturedImage && !generatedImageUrl) return;
+    if (!uploadedFile && !capturedImage && !generatedImageUrl) {
+      toast({
+        title: language === 'hindi' ? 'कोई फ़ाइल नहीं' : 'No File Selected',
+        description: language === 'hindi' 
+          ? 'कृपया पहले कोई फ़ाइल अपलोड करें या फोटो लें।'
+          : 'Please upload a file or take a photo first.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     setIsAnalyzing(true);
+    
     try {
       let result: DocumentAnalysisResult;
+      
+      console.log('Starting analysis process...');
       
       if (generatedImageUrl) {
         // For generated images, we'll create a simple analysis
@@ -197,16 +236,22 @@ export default function DocumentPage() {
             language === 'hindi' ? 'प्रस्तुति और प्रशिक्षण में उपयोग करें' : 'Use in presentations and training'
           ]
         };
+        console.log('Generated image analysis completed');
       } else if (uploadedFile) {
+        console.log('Analyzing uploaded file:', uploadedFile.name);
         result = await documentAnalysisService.analyzeDocument(uploadedFile, language);
-      } else {
+      } else if (capturedImage) {
+        console.log('Analyzing captured image');
         // For captured images, convert to blob and analyze
-        const response = await fetch(capturedImage!);
+        const response = await fetch(capturedImage);
         const blob = await response.blob();
         const file = new File([blob], 'captured-document.jpg', { type: 'image/jpeg' });
         result = await documentAnalysisService.analyzeDocument(file, language);
+      } else {
+        throw new Error('No valid input found for analysis');
       }
       
+      console.log('Analysis result:', result);
       setAnalysisResult(result);
       
       // Add analysis as first message
@@ -225,13 +270,44 @@ export default function DocumentPage() {
       });
     } catch (error) {
       console.error('Analysis error:', error);
-      toast({
-        title: language === 'hindi' ? 'विश्लेषण त्रुटि' : 'Analysis Error',
-        description: language === 'hindi' 
+      
+      let errorMessage = '';
+      let errorTitle = '';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        if (error.message.includes('connection') || error.message.includes('network')) {
+          errorTitle = language === 'hindi' ? 'कनेक्शन त्रुटि' : 'Connection Error';
+        } else if (error.message.includes('API') || error.message.includes('service')) {
+          errorTitle = language === 'hindi' ? 'सेवा त्रुटि' : 'Service Error';
+        } else if (error.message.includes('file') || error.message.includes('format')) {
+          errorTitle = language === 'hindi' ? 'फ़ाइल त्रुटि' : 'File Error';
+        } else {
+          errorTitle = language === 'hindi' ? 'विश्लेषण त्रुटि' : 'Analysis Error';
+        }
+      } else {
+        errorTitle = language === 'hindi' ? 'अज्ञात त्रुटि' : 'Unknown Error';
+        errorMessage = language === 'hindi' 
           ? 'दस्तावेज़ विश्लेषण में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-          : 'Error analyzing document. Please try again.',
+          : 'Error analyzing document. Please try again.';
+      }
+      
+      toast({
+        title: errorTitle,
+        description: errorMessage,
         variant: 'destructive'
       });
+
+      // Add error message to chat
+      const errorChatMessage: Message = {
+        id: uuidv4(),
+        content: language === 'hindi' 
+          ? `क्षमा करें, दस्तावेज़ विश्लेषण में समस्या हुई: ${errorMessage}\n\nकृपया:\n• अपना इंटरनेट कनेक्शन जांचें\n• फ़ाइल का साइज़ और फॉर्मेट जांचें\n• थोड़ी देर बाद पुनः प्रयास करें`
+          : `Sorry, there was an issue with document analysis: ${errorMessage}\n\nPlease:\n• Check your internet connection\n• Verify file size and format\n• Try again after some time`,
+        role: 'assistant'
+      };
+      setMessages([errorChatMessage]);
     } finally {
       setIsAnalyzing(false);
     }
@@ -315,12 +391,26 @@ export default function DocumentPage() {
   };
 
   const handleGenerateImage = async () => {
-    if (!imagePrompt.trim()) return;
+    if (!imagePrompt.trim()) {
+      toast({
+        title: language === 'hindi' ? 'प्रॉम्प्ट खाली है' : 'Empty Prompt',
+        description: language === 'hindi' 
+          ? 'कृपया छवि का विस्तृत विवरण लिखें।'
+          : 'Please provide a detailed description of the image.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     setIsGeneratingImage(true);
+    
     try {
+      console.log('Generating image with prompt:', imagePrompt);
       const imageUrl = await documentAnalysisService.generateImage(imagePrompt, language);
+      
+      console.log('Image generated successfully:', imageUrl);
       setGeneratedImageUrl(imageUrl);
+      setImagePrompt(''); // Clear the prompt after successful generation
       
       toast({
         title: language === 'hindi' ? 'छवि तैयार हुई' : 'Image Generated',
@@ -330,11 +420,38 @@ export default function DocumentPage() {
       });
     } catch (error) {
       console.error('Image generation error:', error);
-      toast({
-        title: language === 'hindi' ? 'छवि त्रुटि' : 'Image Error',
-        description: error instanceof Error ? error.message : (language === 'hindi' 
+      
+      let errorMessage = '';
+      let errorTitle = '';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        if (error.message.includes('appropriate') || error.message.includes('suitable')) {
+          errorTitle = language === 'hindi' ? 'अनुचित सामग्री' : 'Inappropriate Content';
+        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+          errorTitle = language === 'hindi' ? 'सीमा पार' : 'Limit Exceeded';
+          errorMessage = language === 'hindi' 
+            ? 'दैनिक छवि बनाने की सीमा पार हो गई। कल पुनः कोशिश करें।'
+            : 'Daily image generation limit exceeded. Please try again tomorrow.';
+        } else if (error.message.includes('network') || error.message.includes('connection')) {
+          errorTitle = language === 'hindi' ? 'कनेक्शन त्रुटि' : 'Connection Error';
+          errorMessage = language === 'hindi' 
+            ? 'इंटरनेट कनेक्शन में समस्या। कृपया पुनः प्रयास करें।'
+            : 'Internet connection issue. Please try again.';
+        } else {
+          errorTitle = language === 'hindi' ? 'छवि त्रुटि' : 'Image Error';
+        }
+      } else {
+        errorTitle = language === 'hindi' ? 'छवि त्रुटि' : 'Image Error';
+        errorMessage = language === 'hindi' 
           ? 'छवि बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-          : 'Error generating image. Please try again.'),
+          : 'Error generating image. Please try again.';
+      }
+      
+      toast({
+        title: errorTitle,
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -444,7 +561,7 @@ export default function DocumentPage() {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.csv,.rtf"
                         onChange={handleFileSelect}
                         className="hidden"
                       />
@@ -461,8 +578,14 @@ export default function DocumentPage() {
                             </p>
                             <p className="text-sm text-gray-500">
                               {language === 'hindi' 
-                                ? 'PDF, Word, PPT, छवि फ़ाइलें'
-                                : 'PDF, Word, PPT, Image files'
+                                ? 'PDF ✓, Word, PPT, छवि फ़ाइलें'
+                                : 'PDF ✓, Word, PPT, Image files'
+                              }
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-1">
+                              {language === 'hindi' 
+                                ? '• PDF फ़ाइलें अब समर्थित हैं!'
+                                : '• PDF files now supported!'
                               }
                             </p>
                           </div>
@@ -523,20 +646,31 @@ export default function DocumentPage() {
                             </div>
                           </div>
                           <div className="flex gap-2">
+                                                      <Button
+                            onClick={handleAnalyze}
+                            disabled={isAnalyzing || (!uploadedFile && !capturedImage && !generatedImageUrl)}
+                            className="primary-button"
+                          >
+                            {isAnalyzing ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                {t('analyzingDocument')}
+                              </>
+                            ) : (
+                              t('analyzeDocument')
+                            )}
+                          </Button>
+                          {/* Debug button - remove in production */}
+                          {import.meta.env.DEV && (
                             <Button
-                              onClick={handleAnalyze}
-                              disabled={isAnalyzing || (!uploadedFile && !capturedImage && !generatedImageUrl)}
-                              className="primary-button"
+                              onClick={testDocumentService}
+                              variant="outline"
+                              size="sm"
+                              disabled={isAnalyzing}
                             >
-                              {isAnalyzing ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  {t('analyzingDocument')}
-                                </>
-                              ) : (
-                                t('analyzeDocument')
-                              )}
+                              Test Service
                             </Button>
+                          )}
                             <Button
                               onClick={resetDocument}
                               variant="outline"
@@ -756,7 +890,7 @@ export default function DocumentPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.csv,.rtf"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
@@ -772,7 +906,10 @@ export default function DocumentPage() {
                           {language === 'hindi' ? 'फ़ाइल अपलोड करें' : 'Upload File'}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {language === 'hindi' ? 'PDF, Word, PPT, छवि' : 'PDF, Word, PPT, Image'}
+                          {language === 'hindi' ? 'PDF ✓, Word, PPT, छवि' : 'PDF ✓, Word, PPT, Image'}
+                        </p>
+                        <p className="text-xs text-emerald-600">
+                          {language === 'hindi' ? 'PDF अब समर्थित!' : 'PDF now supported!'}
                         </p>
                       </div>
                       
@@ -836,6 +973,17 @@ export default function DocumentPage() {
                             language === 'hindi' ? 'विश्लेषण करें' : 'Analyze'
                           )}
                         </Button>
+                        {/* Debug button - remove in production */}
+                        {import.meta.env.DEV && (
+                          <Button
+                            onClick={testDocumentService}
+                            variant="outline"
+                            size="sm"
+                            disabled={isAnalyzing}
+                          >
+                            Test
+                          </Button>
+                        )}
                         <Button
                           onClick={resetDocument}
                           variant="outline"
