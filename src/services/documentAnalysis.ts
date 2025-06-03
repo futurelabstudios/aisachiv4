@@ -76,6 +76,23 @@ export class DocumentAnalysisService {
       return await this.analyzeImageDocument(file);
     }
     
+    // For PDF, Word, PPT files, we'll use vision API to analyze them as images
+    if (file.type === 'application/pdf' || 
+        file.type.includes('word') || 
+        file.type.includes('presentation') ||
+        file.type.includes('powerpoint') ||
+        file.name.endsWith('.pdf') ||
+        file.name.endsWith('.doc') ||
+        file.name.endsWith('.docx') ||
+        file.name.endsWith('.ppt') ||
+        file.name.endsWith('.pptx')) {
+      
+      // For now, suggest taking a photo or using vision API
+      throw new Error(
+        'PDF, Word, and PowerPoint files require special handling. Please take a photo of the document pages for analysis, or convert to image format first.'
+      );
+    }
+    
     // For text files, read directly
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -84,15 +101,11 @@ export class DocumentAnalysisService {
         try {
           const result = event.target?.result as string;
           
-          if (file.type === 'application/pdf') {
-            // For now, we'll show an error message suggesting text files
-            reject(new Error('PDF files are not yet supported. Please use text files or take a photo of the document.'));
-          } else if (file.type.startsWith('text/') || file.name.endsWith('.txt')) {
+          if (file.type.startsWith('text/') || file.name.endsWith('.txt')) {
             resolve(result || '');
-          } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-            reject(new Error('Word documents are not yet supported. Please use text files or take a photo of the document.'));
           } else {
-            reject(new Error('Unsupported file type. Please upload TXT files or take a photo of the document.'));
+            // Fallback: try to read as text
+            resolve(result || '');
           }
         } catch (error) {
           reject(error);
@@ -128,7 +141,7 @@ export class DocumentAnalysisService {
                   content: [
                     {
                       type: 'text',
-                      text: 'Please extract and transcribe all the text from this document image. Provide the exact text content as it appears in the document.'
+                      text: 'Please analyze this image/document. Extract all text content and provide a summary of what you see. If it contains text, transcribe it. If it\'s a visual document (chart, diagram, etc.), describe its content in detail.'
                     },
                     {
                       type: 'image_url',
@@ -202,25 +215,25 @@ export class DocumentAnalysisService {
 
   private getAnalysisPrompt(language: Language): string {
     return language === 'hindi' 
-      ? `आप एक विशेषज्ञ दस्तावेज़ विश्लेषक हैं जो सरकारी दस्तावेज़ों, नीतियों, और प्रशासनिक पत्रों का विश्लेषण करते हैं। 
+      ? `आप एक विशेषज्ञ दस्तावेज़ विश्लेषक हैं जो ELI10 (Explain Like I'm 10) शैली में सरकारी दस्तावेज़ों का विश्लेषण करते हैं। 
 
 आपको निम्नलिखित कार्य करने हैं:
-1. दस्तावेज़ का संक्षिप्त सारांश दें (2-3 वाक्यों में)
-2. मुख्य बिंदुओं की सूची बनाएं (5-7 बिंदु)
-3. यदि दस्तावेज़ अंग्रेजी में है तो उसका हिंदी अनुवाद दें
-4. व्यावहारिक सुझाव दें कि ग्राम पंचायत अधिकारी इस जानकारी का उपयोग कैसे कर सकते हैं
+1. दस्तावेज़ का सारांश बहुत सरल हिंदी में दें (जैसे 10 साल के बच्चे को समझाते हों)
+2. मुख्य बिंदुओं की सूची सरल भाषा में बनाएं (5-7 बिंदु)
+3. यदि दस्तावेज़ अंग्रेजी में है तो आसान हिंदी में अनुवाद दें
+4. व्यावहारिक सुझाव दें कि सरपंच और पंचायत सदस्य इसका उपयोग कैसे करें
 
-हमेशा शुद्ध हिंदी में उत्तर दें और स्पष्ट, संरचित तरीके से जानकारी प्रस्तुत करें।`
+हमेशा सरल, साफ हिंदी में उत्तर दें। कठिन शब्दों का प्रयोग न करें। ऐसे समझाएं जैसे गांव के किसी व्यक्ति को समझा रहे हों।`
       
-      : `You are an expert document analyst specializing in government documents, policies, and administrative communications.
+      : `You are an expert document analyst who explains government documents in ELI10 (Explain Like I'm 10) style using simple Hinglish.
 
 Your tasks:
-1. Provide a brief summary of the document (2-3 sentences)
-2. List key points (5-7 points)
-3. If the document is in Hindi, provide English translation
-4. Provide practical recommendations on how Gram Panchayat officials can use this information
+1. Provide a summary in very simple Hinglish (as if explaining to a 10-year-old)
+2. List key points in easy language (5-7 points)
+3. If the document is in Hindi, provide simple Hinglish translation
+4. Give practical tips on how Sarpanch and Panchayat members can use this
 
-Always respond in simple Hinglish (Roman script Hindi) and present information in a clear, structured manner.`;
+Always respond in simple Hinglish (mix of Hindi and English). Use everyday words that village people understand. Avoid complex terms. Explain like you're talking to a friend in the village.`;
   }
 
   private parseAnalysisResponse(response: string, language: Language): DocumentAnalysisResult {
@@ -295,6 +308,152 @@ Always respond in simple Hinglish (Roman script Hindi) and present information i
       keyPoints: keyPoints.length > 0 ? keyPoints : [response.substring(0, 100) + '...'],
       translation: translation.trim() || undefined,
       recommendations: recommendations.length > 0 ? recommendations : undefined
+    };
+  }
+
+  async generateImage(prompt: string, language: Language): Promise<string> {
+    try {
+      // First, check if the prompt is appropriate for formal/work purposes
+      const contentCheck = await this.checkImagePromptContent(prompt, language);
+      
+      if (!contentCheck.isAppropriate) {
+        throw new Error(contentCheck.reason);
+      }
+
+      // Generate image using DALL-E 3 with enhanced settings
+      const enhancedPrompt = `Professional government infographic: ${contentCheck.refinedPrompt}. Clean design, clear typography, official color scheme (blues, greens), modern layout, readable text, chart-style visualization, suitable for official presentations and training materials.`;
+      
+      const response = await fetch(`${this.baseUrl}/images/generations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'dall-e-3',
+          prompt: enhancedPrompt,
+          size: '1024x1024',
+          quality: 'hd', // Use HD quality for better professional images
+          style: 'natural', // More realistic style for professional documents
+          n: 1
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Image generation failed: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data.data[0].url;
+    } catch (error) {
+      console.error('Image generation error:', error);
+      throw error;
+    }
+  }
+
+  private async checkImagePromptContent(prompt: string, language: Language): Promise<{isAppropriate: boolean, reason?: string, refinedPrompt: string}> {
+    const systemPrompt = language === 'hindi' 
+      ? `आप एक content moderator और professional prompt enhancer हैं। आपका काम है:
+
+1. चेक करना कि request सरकारी कार्य के लिए है या entertainment के लिए
+2. अगर appropriate है तो एक बेहतर professional prompt बनाना
+
+ALLOW करें: 
+- Government charts, infographics, flowcharts
+- Educational diagrams और training materials  
+- Official presentations और policy graphics
+- Administrative process diagrams
+- Budget charts और statistical visualizations
+- Scheme illustrations और program explanations
+
+REFUSE करें:
+- Entertainment images
+- Personal fun images
+- Inappropriate content
+- Non-work related images
+
+अगर appropriate है तो एक detailed, professional prompt दें जो clear visualization के लिए हो।`
+      
+      : `You are a content moderator and professional prompt enhancer. Your job is to:
+
+1. Check if the request is for government work or entertainment
+2. If appropriate, create a better professional prompt
+
+ALLOW:
+- Government charts, infographics, flowcharts
+- Educational diagrams and training materials  
+- Official presentations and policy graphics
+- Administrative process diagrams
+- Budget charts and statistical visualizations
+- Scheme illustrations and program explanations
+
+REFUSE:
+- Entertainment images
+- Personal fun images
+- Inappropriate content
+- Non-work related images
+
+If appropriate, provide a detailed, professional prompt for clear visualization.`;
+
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify({
+        model: ENV.DEFAULT_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: language === 'hindi' 
+              ? `कृपया इस image request को check करें: "${prompt}"`
+              : `Please check this image request: "${prompt}"`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 500
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Content check failed');
+    }
+
+    const data = await response.json();
+    const result = data.choices[0].message.content.toLowerCase();
+    
+    if (result.includes('refuse') || result.includes('entertainment') || result.includes('inappropriate')) {
+      return {
+        isAppropriate: false,
+        reason: language === 'hindi' 
+          ? 'क्षमा करें, यह सेवा केवल सरकारी कार्य, infographics और formal presentations के लिए है। Entertainment के लिए images नहीं बना सकते।'
+          : 'Sorry, this service is only for government work, infographics and formal presentations. Cannot create images for entertainment purposes.',
+        refinedPrompt: prompt
+      };
+    }
+
+    // Extract improved prompt from the response
+    let refinedPrompt = prompt;
+    const lines = data.choices[0].message.content.split('\n');
+    for (const line of lines) {
+      if (line.toLowerCase().includes('improved') || line.toLowerCase().includes('refined') || line.toLowerCase().includes('better')) {
+        const promptMatch = line.match(/"([^"]+)"/);
+        if (promptMatch) {
+          refinedPrompt = promptMatch[1];
+          break;
+        }
+      }
+    }
+
+    return {
+      isAppropriate: true,
+      refinedPrompt: refinedPrompt
     };
   }
 }

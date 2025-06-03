@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ExternalLink, FileText, Home, MessageCircle, Mic, Globe, Link as LinkIcon, GraduationCap } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, Home, MessageCircle, Mic, Globe, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
 
@@ -35,12 +35,12 @@ const statesData: StateData[] = [
     schemes: [
       {
         title: {
-          hindi: 'झारखंड पंचायती राज विभाग',
-          hinglish: 'Jharkhand Panchayati Raj Department'
+          hindi: 'झारखंड पंचायती राज विभाग - आधिकारिक पोर्टल',
+          hinglish: 'Jharkhand Panchayati Raj Department - Official Portal'
         },
         description: {
-          hindi: 'अधिसूचनाएं, योजनाएं, प्रशिक्षण और अनुदान',
-          hinglish: 'Notifications, schemes, training aur grants'
+          hindi: 'अधिसूचनाएं, योजनाएं, प्रशिक्षण और अनुदान की संपूर्ण जानकारी',
+          hinglish: 'Complete information on notifications, schemes, training aur grants'
         },
         url: 'https://www.jharkhand.gov.in/panchayatiraj',
         category: 'policy'
@@ -51,28 +51,28 @@ const statesData: StateData[] = [
           hinglish: 'Jharkhand Gram Panchayat Vacancy 2025'
         },
         description: {
-          hindi: 'पंचायत सचिव और संबंधित पदों की भर्ती',
-          hinglish: 'Panchayat Secretary aur related posts recruitment'
+          hindi: 'पंचायत सचिव और संबंधित पदों की भर्ती अधिसूचना',
+          hinglish: 'Panchayat Secretary aur related posts recruitment notification'
         },
         url: 'https://jharnet.in/jharkhand-gram-panchayat-vacancy/',
         category: 'circular'
       },
       {
         title: {
-          hindi: 'झारखंड राज्य कृषि योजनाएं',
-          hinglish: 'Jharkhand State Agricultural Schemes'
+          hindi: 'मुख्यमंत्री कृषि आशीर्वाद योजना 2025',
+          hinglish: 'Mukhyamantri Krishi Ashirwad Yojana 2025'
         },
         description: {
-          hindi: 'कृषि आशीर्वाद योजना, कृषि ऋण माफी, फसल राहत',
-          hinglish: 'Krishi Ashirwad, Rin Mafi, Fasal Rahat schemes'
+          hindi: '₹5000 प्रति एकड़ वार्षिक सहायता, 5 एकड़ तक कृषि भूमि',
+          hinglish: '₹5000 per acre annual assistance, up to 5 acre agricultural land'
         },
-        url: 'https://www.manage.gov.in/fpoacademy/SGSchemes/Jharkhand.pdf',
+        url: 'https://www.jharkhand.gov.in/agriculture',
         category: 'scheme'
       },
       {
         title: {
           hindi: 'झारखंड में PESA अधिनियम सुदृढ़ीकरण',
-          hinglish: 'Strengthening PESA in Jharkhand'
+          hinglish: 'Strengthening PESA Act in Jharkhand'
         },
         description: {
           hindi: 'आदिवासी क्षेत्र परिपत्र और कार्यान्वयन दिशा-निर्देश',
@@ -83,88 +83,66 @@ const statesData: StateData[] = [
       },
       {
         title: {
-          hindi: 'झारखंड इंटर्नशिप योजना 2025',
-          hinglish: 'Jharkhand Internship Scheme 2025'
+          hindi: 'झारखंड ग्रामीण रोजगार गारंटी योजना (MGNREGA)',
+          hinglish: 'Jharkhand Rural Employment Guarantee Scheme (MGNREGA)'
         },
         description: {
-          hindi: 'छात्रों के लिए ग्रामीण विकास इंटर्नशिप',
-          hinglish: 'Students ke liye rural development internship'
+          hindi: 'मजदूरी दरें, जॉब कार्ड अपडेट, कार्य योजना',
+          hinglish: 'Wage rates, job card updates, work plan'
         },
-        url: 'https://harichandguruchanduniversity.com/jharkhand-internship-scheme-2025/',
-        category: 'scheme'
-      }
-    ]
-  },
-  {
-    id: 'haryana',
-    name: {
-      hindi: 'हरियाणा',
-      hinglish: 'Haryana'
-    },
-    schemes: [
-      {
-        title: {
-          hindi: 'हरियाणा राज्य चुनाव आयोग',
-          hinglish: 'State Election Commission Haryana'
-        },
-        description: {
-          hindi: '2025 के सभी आदेश, अधिसूचनाएं और परिपत्र',
-          hinglish: 'All 2025 orders, notifications aur circulars'
-        },
-        url: 'https://secharyana.gov.in/orders-notifications-and-circulars-2025/',
+        url: 'https://nrega.jharkhand.gov.in/',
         category: 'circular'
       },
       {
         title: {
-          hindi: 'हरियाणा बजट 2025-26',
-          hinglish: 'Haryana Budget 2025-26'
+          hindi: 'झारखंड मुख्यमंत्री ग्राम गाड़ी योजना',
+          hinglish: 'Jharkhand CM Gram Gadi Yojana'
         },
         description: {
-          hindi: 'ग्रामीण, कृषि, जल और किसान योजनाओं की पूरी सूची',
-          hinglish: 'Rural, agriculture, water aur kisan schemes ki list'
+          hindi: 'ग्रामीण परिवहन सुविधा, ऑटो रिक्शा सब्सिडी योजना',
+          hinglish: 'Rural transport facility, auto rickshaw subsidy scheme'
         },
-        url: 'https://cdnbbsr.s3waas.gov.in/s386e78499eeb33fb9cac16b7555b50767/uploads/2025/03/202503171028223073.pdf',
+        url: 'https://transport.jharkhand.gov.in/',
         category: 'scheme'
       },
       {
         title: {
-          hindi: 'हरियाणा पंचायती राज (संशोधन) विधेयक 2025',
-          hinglish: 'Haryana Panchayati Raj Amendment Bill 2025'
+          hindi: 'झारखंड अबुआ आवास योजना 2025',
+          hinglish: 'Jharkhand Abua Awas Yojana 2025'
         },
         description: {
-          hindi: 'पंचायत शासन के लिए नवीन कानून',
-          hinglish: 'Latest law for panchayat governance'
+          hindi: 'ग्रामीण आवास योजना, PM आवास योजना का राज्य घटक',
+          hinglish: 'Rural housing scheme, state component of PM Awas Yojana'
         },
-        url: 'https://prsindia.org/files/bills_acts/bills_states/haryana/2025/Bill5of2025HR.pdf',
-        category: 'policy'
+        url: 'https://www.jharkhand.gov.in/housing',
+        category: 'scheme'
       },
       {
         title: {
-          hindi: 'सरपंच और पंचायत समिति उप-चुनाव',
-          hinglish: 'Sarpanch aur Panchayat Samiti Bye-elections'
+          hindi: 'झारखंड जल जीवन मिशन प्रगति रिपोर्ट',
+          hinglish: 'Jharkhand Jal Jeevan Mission Progress Report'
         },
         description: {
-          hindi: 'मई 2025 उप-चुनाव अधिसूचना',
-          hinglish: 'May 2025 bye-election notification'
+          hindi: 'नल जल कनेक्शन, ग्रामीण जल आपूर्ति, पानी की गुणवत्ता',
+          hinglish: 'Nal jal connections, rural water supply, water quality'
         },
-        url: 'https://cdnbbsr.s3waas.gov.in/s31c6a0198177bfcc9bd93f6aab94aad3c/uploads/2025/05/20250515677007789.pdf',
-        category: 'circular'
+        url: 'https://jaljeevanmission.jharkhand.gov.in/',
+        category: 'scheme'
       },
       {
         title: {
-          hindi: 'मेरी फसल मेरा ब्यौरा',
-          hinglish: 'Meri Fasal Mera Byora'
+          hindi: 'झारखंड फसल राहत योजना 2025',
+          hinglish: 'Jharkhand Fasal Rahat Yojana 2025'
         },
         description: {
-          hindi: 'किसानों के लिए फसल पंजीकरण योजना',
-          hinglish: 'Crop registration scheme for farmers'
+          hindi: 'प्राकृतिक आपदा से फसल नुकसान की भरपाई, किसान सहायता',
+          hinglish: 'Crop damage compensation from natural disasters, farmer assistance'
         },
-        url: 'https://fasal.haryana.gov.in',
+        url: 'https://agriculture.jharkhand.gov.in/',
         category: 'scheme'
       }
     ]
   },
- 
   {
     id: 'bihar',
     name: {
@@ -174,14 +152,26 @@ const statesData: StateData[] = [
     schemes: [
       {
         title: {
-          hindi: 'बिहार पंचायती राज विभाग',
-          hinglish: 'Bihar Panchayati Raj Department'
+          hindi: 'बिहार पंचायती राज विभाग - आधिकारिक पोर्टल',
+          hinglish: 'Bihar Panchayati Raj Department - Official Portal'
         },
         description: {
-          hindi: 'आधिकारिक साइट: अधिसूचनाएं, भर्ती, परिपत्र',
-          hinglish: 'Official site: notifications, recruitment, circulars'
+          hindi: 'नवीनतम सरकारी आदेश, भर्ती अधिसूचनाएं, योजना अपडेट्स',
+          hinglish: 'Latest government orders, recruitment notifications, scheme updates'
         },
-        url: 'https://state.bihar.gov.in/planning/',
+        url: 'https://state.bihar.gov.in/panchayatiraj/',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'बिहार मखाना बोर्ड स्थापना 2025',
+          hinglish: 'Bihar Makhana Board Establishment 2025'
+        },
+        description: {
+          hindi: 'मखाना उत्पादन, प्रसंस्करण, मूल्य संवर्धन और विपणन बोर्ड',
+          hinglish: 'Makhana production, processing, value addition aur marketing board'
+        },
+        url: 'https://state.bihar.gov.in/',
         category: 'policy'
       },
       {
@@ -198,112 +188,454 @@ const statesData: StateData[] = [
       },
       {
         title: {
-          hindi: 'प्रधानमंत्री आवास योजना ग्रामीण बिहार',
-          hinglish: 'PM Awas Yojana Gramin Bihar'
+          hindi: 'बिहार में नेशनल इंस्टीट्यूट ऑफ फूड टेक्नोलॉजी',
+          hinglish: 'National Institute of Food Technology in Bihar'
         },
         description: {
-          hindi: 'पात्रता, सूची और प्रक्रिया की जानकारी',
-          hinglish: 'Eligibility, list aur process information'
+          hindi: 'खाद्य प्रसंस्करण, उद्यमिता और प्रबंधन संस्थान',
+          hinglish: 'Food processing, entrepreneurship aur management institute'
         },
-        url: 'https://www.bajajfinserv.in/pradhan-mantri-awas-yojana-gramin-bihar-list',
+        url: 'https://www.indiabudget.gov.in/',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'बिहार ग्रीनफील्ड एयरपोर्ट प्रोजेक्ट 2025',
+          hinglish: 'Bihar Greenfield Airport Project 2025'
+        },
+        description: {
+          hindi: 'नया हवाई अड्डा, पटना विस्तार, बिहटा ब्राउनफील्ड एयरपोर्ट',
+          hinglish: 'New airport, Patna expansion, Bihta brownfield airport'
+        },
+        url: 'https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/feb/doc202521492701.pdf',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'वेस्टर्न कोसी कैनाल प्रोजेक्ट मिथिलांचल',
+          hinglish: 'Western Koshi Canal Project Mithilanchal'
+        },
+        description: {
+          hindi: 'बिहार में सिंचाई परियोजना, केंद्रीय वित्तीय सहायता',
+          hinglish: 'Irrigation project in Bihar, central financial assistance'
+        },
+        url: 'https://state.bihar.gov.in/waterresources/',
         category: 'scheme'
       },
       {
         title: {
-          hindi: 'बिहार की शीर्ष 10 सरकारी योजनाएं 2025',
-          hinglish: 'Top 10 Government Schemes Bihar 2025'
+          hindi: 'बिहार MGNREGA नवीन दिशा-निर्देश 2025',
+          hinglish: 'Bihar MGNREGA New Guidelines 2025'
         },
         description: {
-          hindi: 'फसल सहायता, सौर क्रांति सिंचाई, स्टूडेंट क्रेडिट कार्ड',
-          hinglish: 'Fasal Sahayata, Saur Kranti Sinchai, Student Credit Card'
+          hindi: 'मजदूरी दरें, कार्य योजना, जॉब कार्ड अपडेट',
+          hinglish: 'Wage rates, work plan, job card updates'
         },
-        url: 'https://www.jaagrukbharat.com/top-government-schemes-in-bihar-2025-4855771',
-        category: 'scheme'
+        url: 'https://nrega.bihar.gov.in/',
+        category: 'circular'
       },
       {
         title: {
-          hindi: 'मुख्यमंत्री निश्चय स्वयं सहायता भत्ता योजना',
-          hinglish: 'CM Nischay Swayam Sahayata Bhatta Yojana'
+          hindi: 'मुख्यमंत्री सात निश्चय योजना 2025',
+          hinglish: 'Mukhyamantri Saat Nischay Yojana 2025'
         },
         description: {
-          hindi: 'युवाओं के लिए स्वयं सहायता भत्ता',
-          hinglish: 'Self-help allowance for youth'
+          hindi: 'शिक्षा, स्वास्थ्य, रोजगार, सिंचाई, सड़क, बिजली, ब्रॉडबैंड',
+          hinglish: 'Education, health, employment, irrigation, roads, electricity, broadband'
         },
         url: 'https://www.7nishchay-yuvaupmission.bihar.gov.in',
         category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'बिहार जल जीवन मिशन अपडेट्स',
+          hinglish: 'Bihar Jal Jeevan Mission Updates'
+        },
+        description: {
+          hindi: 'ग्रामीण जल आपूर्ति, नल कनेक्शन योजना, जल गुणवत्ता',
+          hinglish: 'Rural water supply, nal connection scheme, water quality'
+        },
+        url: 'https://jaljeevanmission.bihar.gov.in/',
+        category: 'scheme'
+      }
+    ]
+  },
+  {
+    id: 'haryana',
+    name: {
+      hindi: 'हरियाणा',
+      hinglish: 'Haryana'
+    },
+    schemes: [
+      {
+        title: {
+          hindi: 'हरियाणा राज्य चुनाव आयोग - पंचायत चुनाव 2025',
+          hinglish: 'Haryana State Election Commission - Panchayat Elections 2025'
+        },
+        description: {
+          hindi: 'सरपंच उप-चुनाव मई 2025, चुनाव कार्यक्रम, मतदाता सूची',
+          hinglish: 'Sarpanch bye-elections May 2025, election schedule, voter list'
+        },
+        url: 'https://secharyana.gov.in/orders-notifications-and-circulars-2025/',
+        category: 'circular'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा पंचायती राज (संशोधन) अधिनियम 2025',
+          hinglish: 'Haryana Panchayati Raj (Amendment) Act 2025'
+        },
+        description: {
+          hindi: 'पंचायत गवर्नेंस में नए कानूनी प्रावधान, अधिकार और दायित्व',
+          hinglish: 'New legal provisions in panchayat governance, powers aur responsibilities'
+        },
+        url: 'https://prsindia.org/files/bills_acts/bills_states/haryana/2025/Bill5of2025HR.pdf',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'मेरी फसल मेरा ब्यौरा पोर्टल',
+          hinglish: 'Meri Fasal Mera Byora Portal'
+        },
+        description: {
+          hindi: 'फसल पंजीकरण, MSP भुगतान, कृषक डेटाबेस, बीमा सुविधा',
+          hinglish: 'Crop registration, MSP payment, farmer database, insurance facility'
+        },
+        url: 'https://fasal.haryana.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा ग्रामीण विकास योजनाएं 2025',
+          hinglish: 'Haryana Rural Development Schemes 2025'
+        },
+        description: {
+          hindi: 'MGNREGA, IAY, स्वच्छ भारत ग्रामीण, कौशल विकास',
+          hinglish: 'MGNREGA, IAY, Swachh Bharat Gramin, skill development'
+        },
+        url: 'https://panchayatiraj.haryana.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा मुख्यमंत्री परिवार समृद्धि योजना',
+          hinglish: 'Haryana CM Parivar Samridhi Yojana'
+        },
+        description: {
+          hindi: '₹6000 वार्षिक सहायता, सामाजिक सुरक्षा, जीवन बीमा',
+          hinglish: '₹6000 annual assistance, social security, life insurance'
+        },
+        url: 'https://cm-psy.haryana.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा किसान मित्र ऊर्जा योजना',
+          hinglish: 'Haryana Kisan Mitra Urja Yojana'
+        },
+        description: {
+          hindi: 'बिजली बिल सब्सिडी, कृषि कनेक्शन, मीटर इंस्टॉलेशन',
+          hinglish: 'Electricity bill subsidy, agriculture connection, meter installation'
+        },
+        url: 'https://energy.haryana.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा MGNREGA मास्टर सर्कुलर 2024-25',
+          hinglish: 'Haryana MGNREGA Master Circular 2024-25'
+        },
+        description: {
+          hindi: 'मजदूरी दरें, कार्य श्रेणियां, भुगतान प्रक्रिया',
+          hinglish: 'Wage rates, work categories, payment process'
+        },
+        url: 'https://nrega.haryana.gov.in/',
+        category: 'circular'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा जल जीवन मिशन प्रगति रिपोर्ट',
+          hinglish: 'Haryana Jal Jeevan Mission Progress Report'
+        },
+        description: {
+          hindi: 'हर घर जल कनेक्शन, ग्रामीण जल आपूर्ति, वॉटर क्वालिटी',
+          hinglish: 'Har ghar jal connection, rural water supply, water quality'
+        },
+        url: 'https://jaljeevanmission.haryana.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'हरियाणा ग्राम पंचायत डेवलपमेंट प्लान (GPDP)',
+          hinglish: 'Haryana Gram Panchayat Development Plan (GPDP)'
+        },
+        description: {
+          hindi: 'योजना निर्माण, बजट आवंटन, कार्यान्वयन गाइडलाइन्स',
+          hinglish: 'Plan formulation, budget allocation, implementation guidelines'
+        },
+        url: 'https://gpdp.haryana.gov.in/',
+        category: 'circular'
       }
     ]
   },
   {
     id: 'central',
     name: {
-      hindi: 'केंद्रीय योजनाएं',
+      hindi: 'केंद्र सरकार',
       hinglish: 'Central Government'
     },
     schemes: [
       {
         title: {
-          hindi: 'महात्मा गांधी नरेगा वार्षिक मास्टर परिपत्र 2024-25',
-          hinglish: 'MGNREGA Annual Master Circular 2024-25'
+          hindi: 'केंद्रीय बजट 2025-26: ग्रामीण विकास हाइलाइट्स',
+          hinglish: 'Union Budget 2025-26: Rural Development Highlights'
         },
         description: {
-          hindi: 'जॉब कार्ड, कन्वर्जेंस, नई दिशा-निर्देश',
-          hinglish: 'Job card, convergence, new guidelines'
+          hindi: 'PM धन-धान्य कृषि योजना (100 जिले), दलहन आत्मनिर्भरता मिशन, ₹1.80 लाख करोड़ आवंटन',
+          hinglish: 'PM Dhan-Dhanya Krishi Yojana (100 districts), Pulses Atmanirbharta Mission, ₹1.80 lakh crore allocation'
         },
-        url: 'https://nregaplus.nic.in/netnrega/writereaddata/Circulars/AMC_2024-25-English.pdf',
-        category: 'circular'
-      },
-      {
-        title: {
-          hindi: 'पंचायत विकास योजना (GPDP) अभियान',
-          hinglish: 'Panchayat Development Plan Campaign'
-        },
-        description: {
-          hindi: 'ग्राम पंचायत विकास योजना के विवरण और दिशा-निर्देश',
-          hinglish: 'GPDP campaign details aur guidelines'
-        },
-        url: 'https://gpdp.nic.in',
+        url: 'https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/feb/doc202521492701.pdf',
         category: 'policy'
       },
       {
         title: {
-          hindi: 'राष्ट्रीय ग्राम स्वराज अभियान (RGSA)',
-          hinglish: 'Rashtriya Gram Swaraj Abhiyan'
+          hindi: 'PM-KISAN 20वीं किस्त 2025 - नवीनतम अपडेट',
+          hinglish: 'PM-KISAN 20th Installment 2025 - Latest Updates'
         },
         description: {
-          hindi: 'पंचायतों के लिए प्रशिक्षण और क्षमता निर्माण',
-          hinglish: 'Training aur capacity building for panchayats'
+          hindi: 'जून 2025 में रिलीज़ की उम्मीद, e-KYC अनिवार्य, 9.8 करोड़ लाभार्थी',
+          hinglish: 'Expected release June 2025, e-KYC mandatory, 9.8 crore beneficiaries'
         },
-        url: 'https://rgsa.gov.in',
+        url: 'https://pmkisan.gov.in/',
         category: 'scheme'
       },
       {
         title: {
-          hindi: 'केंद्रीय बजट 2025-26',
-          hinglish: 'Union Budget 2025-26'
+          hindi: 'PMAY-G नया लक्ष्य: 3 करोड़ घर (2025-26)',
+          hinglish: 'PMAY-G New Target: 3 Crore Houses (2025-26)'
         },
         description: {
-          hindi: 'ग्रामीण योजनाएं, जल जीवन मिशन, अमृत सरोवर',
-          hinglish: 'Rural schemes, Jal Jeevan Mission, Amrit Sarovar'
+          hindi: 'शहरी+ग्रामीण आवास, Urban 2.0 शुरुआत, ₹10 लाख करोड़ निवेश',
+          hinglish: 'Urban+rural housing, Urban 2.0 launch, ₹10 lakh crore investment'
         },
-        url: 'https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2100410',
+        url: 'https://pmayg.nic.in/',
         category: 'scheme'
       },
       {
         title: {
-          hindi: 'मॉडल महिला-अनुकूल ग्राम पंचायत पहल',
-          hinglish: 'Model Women-Friendly Gram Panchayats'
+          hindi: 'पीपल्स प्लान कैंपेन 2025-26 (GPDP कैंपेन)',
+          hinglish: 'People\'s Plan Campaign 2025-26 (GPDP Campaign)'
         },
         description: {
-          hindi: 'महिला नेतृत्व, स्वास्थ्य, निगरानी डैशबोर्ड',
-          hinglish: 'Women leadership, health, monitoring dashboard'
+          hindi: 'पंचायत विकास योजना तैयारी, 29 विषयों का अभिसरण, ग्राम सभा कैलेंडर',
+          hinglish: 'Panchayat Development Plan preparation, 29 subjects convergence, Gram Sabha calendar'
         },
-        url: 'https://www.pib.gov.in/PressReleasePage.aspx?PRID=2108572',
+        url: 'https://gpdp.nic.in/',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'MGNREGA मास्टर सर्कुलर 2024-25',
+          hinglish: 'MGNREGA Master Circular 2024-25'
+        },
+        description: {
+          hindi: 'राज्य-वार वेतन दरें, ओम्बड्समैन चयन पैनल, कार्य श्रेणियां',
+          hinglish: 'State-wise wage rates, Ombudsman selection panel, work categories'
+        },
+        url: 'https://nrega.nic.in/',
+        category: 'circular'
+      },
+      {
+        title: {
+          hindi: 'जल जीवन मिशन विस्तार - 2028 तक',
+          hinglish: 'Jal Jeevan Mission Extension - Till 2028'
+        },
+        description: {
+          hindi: 'बढ़ा आवंटन, हर घर नल कनेक्शन, ग्रामीण जल आपूर्ति सुधार',
+          hinglish: 'Increased allocation, har ghar nal connection, rural water supply improvement'
+        },
+        url: 'https://jaljeevanmission.gov.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'KCC संशोधित ब्याज सब्सिडी योजना 2025',
+          hinglish: 'KCC Modified Interest Subvention Scheme 2025'
+        },
+        description: {
+          hindi: 'ऋण सीमा ₹3 लाख से बढ़कर ₹5 लाख, बेहतर शर्तें',
+          hinglish: 'Loan limit increased from ₹3 lakh to ₹5 lakh, better terms'
+        },
+        url: 'https://www.nabard.org/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'SVAMITVA योजना प्रॉपर्टी कार्ड वितरण 2025',
+          hinglish: 'SVAMITVA Scheme Property Card Distribution 2025'
+        },
+        description: {
+          hindi: 'ड्रोन सर्वे, संपत्ति कार्ड ई-वितरण, भूमि रिकॉर्ड डिजिटलीकरण',
+          hinglish: 'Drone survey, property card e-distribution, land records digitization'
+        },
+        url: 'https://svamitva.nic.in/',
+        category: 'scheme'
+      },
+      {
+        title: {
+          hindi: 'राष्ट्रीय पंचायत पुरस्कार 2024-25',
+          hinglish: 'National Panchayat Awards 2024-25'
+        },
+        description: {
+          hindi: 'सर्वश्रेष्ठ पंचायतों को पुरस्कार, आवेदन प्रक्रिया, मानदंड',
+          hinglish: 'Awards for best panchayats, application process, criteria'
+        },
+        url: 'https://panchayat.gov.in/en/',
+        category: 'policy'
+      },
+      {
+        title: {
+          hindi: 'आत्मनिर्भर कृषि पैकेज 2025 - विस्तृत दिशा-निर्देश',
+          hinglish: 'Atmanirbhar Agriculture Package 2025 - Detailed Guidelines'
+        },
+        description: {
+          hindi: '6-वर्षीय दलहन मिशन, 5-वर्षीय कपास मिशन, सब्जी-फल कार्यक्रम',
+          hinglish: '6-year Pulses Mission, 5-year Cotton Mission, vegetables-fruits program'
+        },
+        url: 'https://agricoop.gov.in/',
         category: 'policy'
       }
     ]
   }
 ];
+
+const centralData = {
+  name: {
+    hindi: 'केंद्र सरकार',
+    hinglish: 'Central Government'
+  },
+  schemes: [
+    {
+      title: {
+        hindi: 'पंचायती राज मंत्रालय - आधिकारिक अधिसूचनाएं 2024-25',
+        hinglish: 'Ministry of Panchayati Raj - Official Notifications 2024-25'
+      },
+      description: {
+        hindi: 'राष्ट्रीय पंचायत पुरस्कार 2024, RGSA संशोधन, eGramSwaraj नवीन फीचर्स',
+        hinglish: 'National Panchayat Awards 2024, RGSA revisions, eGramSwaraj new features'
+      },
+      url: 'https://panchayat.gov.in/en/',
+      category: 'policy' as const
+    },
+    {
+      title: {
+        hindi: 'केंद्रीय बजट 2025-26: ग्रामीण विकास हाइलाइट्स',
+        hinglish: 'Union Budget 2025-26: Rural Development Highlights'
+      },
+      description: {
+        hindi: 'PM धन-धान्य कृषि योजना (100 जिले), दलहन आत्मनिर्भरता मिशन, ₹1.80 लाख करोड़ आवंटन',
+        hinglish: 'PM Dhan-Dhanya Krishi Yojana (100 districts), Pulses Atmanirbharta Mission, ₹1.80 lakh crore allocation'
+      },
+      url: 'https://www.indiabudget.gov.in/',
+      category: 'policy' as const
+    },
+    {
+      title: {
+        hindi: 'PM-KISAN 20वीं किस्त 2025 - नवीनतम अपडेट',
+        hinglish: 'PM-KISAN 20th Installment 2025 - Latest Updates'
+      },
+      description: {
+        hindi: 'जून 2025 में रिलीज़ की उम्मीद, e-KYC अनिवार्य, 9.8 करोड़ लाभार्थी, मोबाइल ऐप eKYC',
+        hinglish: 'Expected release June 2025, e-KYC mandatory, 9.8 crore beneficiaries, mobile app eKYC'
+      },
+      url: 'https://pmkisan.gov.in/',
+      category: 'scheme' as const
+    },
+    {
+      title: {
+        hindi: 'PMAY-G (प्रधानमंत्री आवास योजना ग्रामीण) 2025-26',
+        hinglish: 'PMAY-G (Pradhan Mantri Awas Yojana Gramin) 2025-26'
+      },
+      description: {
+        hindi: 'नया लक्ष्य: 3 करोड़ घर (शहरी+ग्रामीण), Urban 2.0 शुरुआत, ₹10 लाख करोड़ निवेश',
+        hinglish: 'New target: 3 crore houses (urban+rural), Urban 2.0 launch, ₹10 lakh crore investment'
+      },
+      url: 'https://pmayg.nic.in/',
+      category: 'scheme' as const
+    },
+    {
+      title: {
+        hindi: 'MGNREGA मास्टर सर्कुलर 2024-25',
+        hinglish: 'MGNREGA Master Circular 2024-25'
+      },
+      description: {
+        hindi: 'राज्य-वार वेतन दरें, ओम्बड्समैन चयन पैनल, कार्य श्रेणियां, डिजिटल पेमेंट',
+        hinglish: 'State-wise wage rates, Ombudsman selection panel, work categories, digital payments'
+      },
+      url: 'https://nrega.nic.in/',
+      category: 'circular' as const
+    },
+    {
+      title: {
+        hindi: 'पीपल्स प्लान कैंपेन 2025-26 (GPDP कैंपेन)',
+        hinglish: 'People\'s Plan Campaign 2025-26 (GPDP Campaign)'
+      },
+      description: {
+        hindi: 'पंचायत विकास योजना तैयारी, 29 विषयों का अभिसरण, ग्राम सभा कैलेंडर',
+        hinglish: 'Panchayat Development Plan preparation, 29 subjects convergence, Gram Sabha calendar'
+      },
+      url: 'https://gpdp.nic.in/',
+      category: 'policy' as const
+    },
+    {
+      title: {
+        hindi: 'जल जीवन मिशन अपडेट्स 2025',
+        hinglish: 'Jal Jeevan Mission Updates 2025'
+      },
+      description: {
+        hindi: '2028 तक विस्तार, बढ़ा आवंटन, हर घर नल कनेक्शन, ग्रामीण जल आपूर्ति',
+        hinglish: 'Extended till 2028, increased allocation, har ghar nal connection, rural water supply'
+      },
+      url: 'https://jaljeevanmission.gov.in/',
+      category: 'scheme' as const
+    },
+    {
+      title: {
+        hindi: 'SVAMITVA योजना प्रॉपर्टी कार्ड वितरण 2025',
+        hinglish: 'SVAMITVA Scheme Property Card Distribution 2025'
+      },
+      description: {
+        hindi: 'ड्रोन सर्वे, संपत्ति कार्ड ई-वितरण, भूमि रिकॉर्ड डिजिटलीकरण',
+        hinglish: 'Drone survey, property card e-distribution, land records digitization'
+      },
+      url: 'https://svamitva.nic.in/',
+      category: 'scheme' as const
+    },
+    {
+      title: {
+        hindi: 'कृषि आत्मनिर्भरता पैकेज 2025 - विस्तृत दिशा-निर्देश',
+        hinglish: 'Agriculture Atmanirbharta Package 2025 - Detailed Guidelines'
+      },
+      description: {
+        hindi: '6-वर्षीय दलहन मिशन, 5-वर्षीय कपास मिशन, सब्जी-फल कार्यक्रम, बीज मिशन',
+        hinglish: '6-year Pulses Mission, 5-year Cotton Mission, vegetables-fruits program, seeds mission'
+      },
+      url: 'https://agricoop.gov.in/',
+      category: 'policy' as const
+    },
+    {
+      title: {
+        hindi: 'KCC संशोधित ब्याज सब्सिडी योजना 2025',
+        hinglish: 'KCC Modified Interest Subvention Scheme 2025'
+      },
+      description: {
+        hindi: 'ऋण सीमा ₹3 लाख से बढ़कर ₹5 लाख, बेहतर शर्तें, सरल प्रक्रिया',
+        hinglish: 'Loan limit increased from ₹3 lakh to ₹5 lakh, better terms, simple process'
+      },
+      url: 'https://www.nabard.org/',
+      category: 'scheme' as const
+    }
+  ]
+};
 
 export default function CircularsPage() {
   const location = useLocation();
@@ -401,6 +733,20 @@ export default function CircularsPage() {
                 <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
                   {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
+                </span>
+              </Link>
+
+              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+                </span>
+              </Link>
+
+              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">
+                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
                 </span>
               </Link>
             </div>
@@ -524,6 +870,13 @@ export default function CircularsPage() {
                   )}
                 </div>
               )}
+            </div>
+            
+            {/* Desktop Footer */}
+            <div className="mt-8 pt-4 border-t border-gray-200 text-center">
+              <p className="text-xs text-gray-500">
+                Built by Futurelab Ikigai and Piramal Foundation
+              </p>
             </div>
           </div>
         </div>
@@ -678,34 +1031,34 @@ export default function CircularsPage() {
         </main>
 
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
-          <div className="flex justify-center items-center space-x-6 max-w-md mx-auto">
+        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
+          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
             <Link 
               to="/" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <Home size={18} />
+              <Home size={14} />
               <span className="text-xs mt-1 font-medium">{t('home')}</span>
             </Link>
             
             <Link 
               to="/chat" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <MessageCircle size={18} />
+              <MessageCircle size={14} />
               <span className="text-xs mt-1 font-medium">{t('chat')}</span>
             </Link>
             
             <Link 
               to="/voice-agent" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <Mic size={18} />
+              <Mic size={14} />
               <span className="text-xs mt-1 font-medium">{t('voice')}</span>
             </Link>
 
-            <div className="nav-item active flex flex-col items-center p-2 rounded-xl">
-              <LinkIcon size={18} />
+            <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
+              <LinkIcon size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
@@ -713,9 +1066,9 @@ export default function CircularsPage() {
 
             <Link 
               to="/document" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <FileText size={18} />
+              <FileText size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
@@ -723,15 +1076,42 @@ export default function CircularsPage() {
 
             <Link 
               to="/academy" 
-              className="nav-item flex flex-col items-center p-2 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <GraduationCap size={18} />
+              <GraduationCap size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
               </span>
             </Link>
+
+            <Link 
+              to="/glossary" 
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <BookOpen size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+              </span>
+            </Link>
+
+            <Link 
+              to="/videos" 
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <PlayCircle size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'वीडियो' : 'Videos'}
+              </span>
+            </Link>
           </div>
         </nav>
+
+        {/* Footer */}
+        <div className="bg-gray-50 border-t border-gray-200 px-4 py-2 text-center mb-16">
+          <p className="text-xs text-gray-500">
+            Built by Futurelab Ikigai and Piramal Foundation
+          </p>
+        </div>
       </div>
     </div>
   );

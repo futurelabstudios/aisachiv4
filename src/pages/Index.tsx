@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { MessageCircle, Mic, Globe, Home, FileText, Link as LinkIcon, GraduationCap, PlayCircle } from "lucide-react";
+import { MessageCircle, Mic, Globe, Home, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Index() {
@@ -124,10 +124,10 @@ export default function Index() {
         </main>
 
         {/* Mobile Navigation */}
-        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50">
-          <div className="flex justify-center items-center space-x-3 max-w-md mx-auto">
+        <nav className="nav-item fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-2 py-3 z-50">
+          <div className="flex justify-center items-center space-x-1 max-w-md mx-auto">
             <div className="nav-item active flex flex-col items-center p-1 rounded-xl">
-              <Home size={16} />
+              <Home size={14} />
               <span className="text-xs mt-1 font-medium">{t('home')}</span>
             </div>
             
@@ -135,7 +135,7 @@ export default function Index() {
               to="/chat" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <MessageCircle size={16} />
+              <MessageCircle size={14} />
               <span className="text-xs mt-1 font-medium">{t('chat')}</span>
             </Link>
             
@@ -143,7 +143,7 @@ export default function Index() {
               to="/voice-agent" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <Mic size={16} />
+              <Mic size={14} />
               <span className="text-xs mt-1 font-medium">{t('voice')}</span>
             </Link>
 
@@ -151,7 +151,7 @@ export default function Index() {
               to="/circulars" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <LinkIcon size={16} />
+              <LinkIcon size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
               </span>
@@ -161,7 +161,7 @@ export default function Index() {
               to="/document" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <FileText size={16} />
+              <FileText size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
               </span>
@@ -171,9 +171,19 @@ export default function Index() {
               to="/academy" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <GraduationCap size={16} />
+              <GraduationCap size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'अकादमी' : 'Academy'}
+              </span>
+            </Link>
+
+            <Link 
+              to="/glossary" 
+              className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
+            >
+              <BookOpen size={14} />
+              <span className="text-xs mt-1 font-medium">
+                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
               </span>
             </Link>
 
@@ -181,7 +191,7 @@ export default function Index() {
               to="/videos" 
               className="nav-item flex flex-col items-center p-1 rounded-xl transition-all text-gray-500 hover:text-emerald-600"
             >
-              <PlayCircle size={16} />
+              <PlayCircle size={14} />
               <span className="text-xs mt-1 font-medium">
                 {language === 'hindi' ? 'वीडियो' : 'Videos'}
               </span>
