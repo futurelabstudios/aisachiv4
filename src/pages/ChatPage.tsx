@@ -6,7 +6,7 @@ import { Message, ChatState, Language } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
 import { openAIService, OpenAIMessage } from "@/services/openai";
-import { MessageCircle, Globe } from "lucide-react";
+import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -57,6 +57,9 @@ export default function ChatPage() {
   };
 
   const handleSendMessage = async (content: string) => {
+    console.log('📤 Sending message:', content);
+    console.log('🌍 Current language:', chatState.language);
+    
     // Add user message
     addMessage(content, 'user');
     
@@ -72,8 +75,12 @@ export default function ChatPage() {
           content: msg.content
         }));
 
+      console.log('📚 Conversation history:', conversationHistory.length, 'messages');
+
       // Call OpenAI API
       const response = await openAIService.sendMessage(content, chatState.language, conversationHistory);
+      
+      console.log('✅ Received response:', response.substring(0, 100) + '...');
       
       // Add assistant message
       addMessage(response, 'assistant');
@@ -81,14 +88,37 @@ export default function ChatPage() {
       // Set loading state to false
       setChatState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('❌ Error sending message:', error);
       
-      // Add error message in user's language
-      const errorMessage = chatState.language === 'hindi'
-        ? "मुझे अभी कनेक्ट करने में समस्या हो रही है। कृपया एक क्षण में पुनः प्रयास करें।"
-        : "Mujhe abhi connect karne mein problem ho rahi hai. Kripya ek moment mein phir try kariye.";
+      // Add detailed error message based on error type
+      let errorMessage = '';
       
-      addMessage(errorMessage, 'assistant');
+      if (error instanceof Error) {
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMessage = chatState.language === 'hindi'
+            ? "🌐 इंटरनेट कनेक्शन की समस्या है। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
+            : "🌐 Internet connection problem hai. Kripya apna connection check kariye aur phir try kariye.";
+        } else if (error.message.includes('401') || error.message.includes('API')) {
+          errorMessage = chatState.language === 'hindi'
+            ? "🔑 सर्विस में अस्थायी समस्या है। कृपया बाद में पुनः प्रयास करें।"
+            : "🔑 Service mein temporary problem hai. Kripya baad mein phir try kariye.";
+        } else {
+          errorMessage = chatState.language === 'hindi'
+            ? "⚠️ कुछ गलत हुआ है। कृपया पुनः प्रयास करें।"
+            : "⚠️ Kuch galat hua hai. Kripya phir try kariye.";
+        }
+      } else {
+        errorMessage = chatState.language === 'hindi'
+          ? "❓ अज्ञात त्रुटि हुई है। कृपया पुनः प्रयास करें।"
+          : "❓ Unknown error hui hai. Kripya phir try kariye.";
+      }
+      
+      // Add helpful troubleshooting tips
+      const helpMessage = chatState.language === 'hindi'
+        ? "\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें"
+        : "\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye";
+      
+      addMessage(errorMessage + helpMessage, 'assistant');
       setChatState(prev => ({ ...prev, isLoading: false }));
     }
   };
@@ -134,6 +164,21 @@ export default function ChatPage() {
       addMessage(welcomeMessage, 'assistant');
     }
   }, []);
+
+  // Test function for debugging
+  const testChatService = async () => {
+    console.log('🧪 Testing chat service...');
+    try {
+      const testResponse = await openAIService.sendMessage('Hello', language, []);
+      console.log('✅ Chat service test successful:', testResponse);
+      addMessage('🧪 Test message: Hello', 'user');
+      addMessage('✅ Test response: ' + testResponse, 'assistant');
+    } catch (error) {
+      console.error('❌ Chat service test failed:', error);
+      addMessage('🧪 Test message: Hello', 'user');
+      addMessage('❌ Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'assistant');
+    }
+  };
 
   // Language toggle function
   const toggleLanguage = () => {
@@ -349,11 +394,18 @@ export default function ChatPage() {
         </main>
         
         {/* Mobile Footer */}
-        <footer className="bg-white border-t border-gray-200 p-4 pb-20">
+        <footer className="bg-white border-t border-gray-200 p-4 pb-24">
           <div className="max-w-md mx-auto">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <p className="text-gray-500 text-sm">{t('tapToSpeak')}</p>
+                {/* Test button for debugging */}
+                <button 
+                  onClick={testChatService}
+                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                >
+                  Test
+                </button>
               </div>
               <VoiceButton 
                 isListening={isListening}
@@ -374,7 +426,7 @@ export default function ChatPage() {
         </footer>
 
         {/* Mobile Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-20">
           <div className="bg-white rounded-lg shadow-sm p-4">
             <p className="text-xs text-gray-600 font-medium tracking-wide">
               Built by Futurelab Ikigai and Piramal Foundation © 2025
@@ -383,80 +435,7 @@ export default function ChatPage() {
         </div>
 
         {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
-            <Link 
-              to="/" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <Home size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
-            </Link>
-            
-            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
-              <MessageCircle size={18} className="text-emerald-600" />
-              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">{t('chat')}</span>
-            </div>
-            
-            <Link 
-              to="/voice-agent" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <Mic size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('voice')}</span>
-            </Link>
-
-            <Link 
-              to="/circulars" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <LinkIcon size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/document" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <FileText size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/academy" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <GraduationCap size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'अकादमी' : 'Academy'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/glossary" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <BookOpen size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/videos" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <PlayCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'वीडियो' : 'Videos'}
-              </span>
-            </Link>
-          </div>
-        </nav>
+        <MobileNavigation />
       </div>
     </div>
   );
