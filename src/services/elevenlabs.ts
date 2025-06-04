@@ -6,7 +6,10 @@ const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 
 // Indian accent voice IDs from ElevenLabs
 const VOICE_IDS = {
-  // Indian English voices
+  // Custom Indian accent voice (primary)
+  custom_indian: 'HBwtuRG9VQfaoE2YVMYf', // User's custom Indian accent voice
+  
+  // Backup Indian English voices
   indian_male: '21m00Tcm4TlvDq8ikWAM', // Rachel (can be configured for Indian accent)
   indian_female: 'AZnzlk1XvdvUeBnXmlld', // Domi (can be configured for Indian accent)
   
@@ -36,6 +39,11 @@ export class ElevenLabsService {
   }
 
   private getVoiceId(language: Language, gender: 'male' | 'female' = 'female'): string {
+    // Always use the custom Indian accent voice as primary choice
+    return VOICE_IDS.custom_indian;
+    
+    // Fallback logic (kept for reference but commented out)
+    /*
     // Select appropriate voice based on language and gender
     if (language === 'hindi') {
       return gender === 'male' ? VOICE_IDS.hindi_male : VOICE_IDS.hindi_female;
@@ -43,6 +51,7 @@ export class ElevenLabsService {
       // For Hinglish and English, use Indian accent voices
       return gender === 'male' ? VOICE_IDS.indian_male : VOICE_IDS.indian_female;
     }
+    */
   }
 
   private getVoiceSettings(language: Language): ElevenLabsVoiceSettings {

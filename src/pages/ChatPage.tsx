@@ -11,11 +11,14 @@ import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, Graduation
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MobileNavigation from "@/components/MobileNavigation";
+import { TTSToggle } from "@/components/TTSToggle";
+import { useTTSToggle } from "@/hooks/useTTSToggle";
 import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const { isTTSEnabled, toggleTTS, isLoading: ttsLoading, setIsLoading: setTTSLoading } = useTTSToggle();
   
   const [chatState, setChatState] = useState<ChatState>(() => {
     return {
@@ -51,17 +54,22 @@ export default function ChatPage() {
       audioUrl
     };
     
-    // Generate audio for assistant messages using ElevenLabs
-    if (role === 'assistant' && !audioUrl) {
+    // Generate audio for assistant messages using ElevenLabs (only if TTS is enabled)
+    if (role === 'assistant' && !audioUrl && isTTSEnabled) {
       try {
-        console.log('🎵 Generating audio for assistant message...');
+        console.log('🎵 Generating audio for assistant message (TTS enabled)...');
+        setTTSLoading(true);
         const generatedAudioUrl = await elevenLabsService.textToSpeech(content, chatState.language);
         newMessage.audioUrl = generatedAudioUrl;
         console.log('✅ Audio generated successfully');
       } catch (error) {
         console.error('❌ Failed to generate audio:', error);
         // Continue without audio if generation fails
+      } finally {
+        setTTSLoading(false);
       }
+    } else if (role === 'assistant' && !isTTSEnabled) {
+      console.log('🔇 TTS disabled, skipping audio generation');
     }
     
     setChatState(prev => ({
@@ -337,8 +345,15 @@ export default function ChatPage() {
             {/* Chat Input */}
             <div className="border-t border-gray-200 p-6 bg-gray-50 rounded-b-xl">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <p className="text-gray-500 text-sm">{t('tapToSpeak')}</p>
+                  <TTSToggle 
+                    isEnabled={isTTSEnabled}
+                    onToggle={toggleTTS}
+                    isLoading={ttsLoading}
+                    variant="compact"
+                    size="sm"
+                  />
                 </div>
                 <VoiceButton 
                   isListening={isListening}
@@ -428,6 +443,17 @@ export default function ChatPage() {
         {/* Mobile Footer */}
         <footer className="bg-white border-t border-gray-200 p-4 pb-24">
           <div className="max-w-md mx-auto">
+            {/* TTS Toggle Row */}
+            <div className="flex items-center justify-center mb-3">
+              <TTSToggle 
+                isEnabled={isTTSEnabled}
+                onToggle={toggleTTS}
+                isLoading={ttsLoading}
+                variant="default"
+                size="md"
+              />
+            </div>
+            
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <p className="text-gray-500 text-sm">{t('tapToSpeak')}</p>
