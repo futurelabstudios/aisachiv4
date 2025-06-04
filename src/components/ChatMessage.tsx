@@ -54,11 +54,11 @@ export default function ChatMessage({ message, language }: ChatMessageProps) {
           dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }}
         />
         
-        {message.role === 'assistant' && message.audioUrl && (
+        {message.role === 'assistant' && message.audioUrl && message.audioUrl !== 'browser-tts' && (
           <div className="mt-2 flex items-center">
             <button 
               onClick={handlePlayPause}
-              className="flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-sachiv-primary/10 text-sachiv-primary hover:bg-sachiv-primary/20 transition-colors duration-200"
+              className="flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors duration-200 shadow-sm"
               aria-label={isPlaying ? 
                 language === 'hindi' ? 'रोकें' : 'Ruko' : 
                 language === 'hindi' ? 'चलाएं' : 'Chalao'
@@ -72,8 +72,8 @@ export default function ChatMessage({ message, language }: ChatMessageProps) {
               onEnded={handleAudioEnded}
               className="hidden"
             />
-            <span className="ml-2 text-xs sm:text-sm text-sachiv-gray">
-              {language === 'hindi' ? 'सुनें' : 'Suno'}
+            <span className="ml-2 text-xs sm:text-sm text-emerald-600 font-medium">
+              🎵 {language === 'hindi' ? 'AI Voice (Indian Accent)' : 'AI Voice (Indian Accent)'}
             </span>
           </div>
         )}

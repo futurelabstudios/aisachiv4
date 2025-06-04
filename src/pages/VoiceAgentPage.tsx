@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import { elevenLabsService } from "@/services/elevenlabs";
+import MobileNavigation from "@/components/MobileNavigation";
 
 export default function VoiceAgentPage() {
   const location = useLocation();
@@ -265,7 +267,7 @@ export default function VoiceAgentPage() {
         </main>
 
         {/* Mobile Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-20">
           <div className="bg-white rounded-lg shadow-sm p-4">
             <p className="text-xs text-gray-600 font-medium tracking-wide">
               Built by Futurelab Ikigai and Piramal Foundation © 2025
@@ -274,80 +276,7 @@ export default function VoiceAgentPage() {
         </div>
 
         {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
-            <Link 
-              to="/" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <Home size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
-            </Link>
-            
-            <Link 
-              to="/chat" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <MessageCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('chat')}</span>
-            </Link>
-            
-            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
-              <Mic size={18} className="text-emerald-600" />
-              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">{t('voice')}</span>
-            </div>
-
-            <Link 
-              to="/circulars" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <LinkIcon size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/document" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <FileText size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/academy" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <GraduationCap size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'अकादमी' : 'Academy'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/glossary" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <BookOpen size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/videos" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <PlayCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'वीडियो' : 'Videos'}
-              </span>
-            </Link>
-          </div>
-        </nav>
+        <MobileNavigation />
       </div>
     </div>
   );

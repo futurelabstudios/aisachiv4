@@ -6,6 +6,7 @@ import { Message, ChatState, Language } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
 import { openAIService, OpenAIMessage } from "@/services/openai";
+import { elevenLabsService } from "@/services/elevenlabs";
 import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -42,13 +43,26 @@ export default function ChatPage() {
     setChatState(prev => ({ ...prev, language: newLanguage }));
   };
 
-  const addMessage = (content: string, role: 'user' | 'assistant', audioUrl?: string) => {
+  const addMessage = async (content: string, role: 'user' | 'assistant', audioUrl?: string) => {
     const newMessage: Message = {
       id: uuidv4(),
       content,
       role,
       audioUrl
     };
+    
+    // Generate audio for assistant messages using ElevenLabs
+    if (role === 'assistant' && !audioUrl) {
+      try {
+        console.log('🎵 Generating audio for assistant message...');
+        const generatedAudioUrl = await elevenLabsService.textToSpeech(content, chatState.language);
+        newMessage.audioUrl = generatedAudioUrl;
+        console.log('✅ Audio generated successfully');
+      } catch (error) {
+        console.error('❌ Failed to generate audio:', error);
+        // Continue without audio if generation fails
+      }
+    }
     
     setChatState(prev => ({
       ...prev,
@@ -61,7 +75,7 @@ export default function ChatPage() {
     console.log('🌍 Current language:', chatState.language);
     
     // Add user message
-    addMessage(content, 'user');
+    await addMessage(content, 'user');
     
     // Set loading state
     setChatState(prev => ({ ...prev, isLoading: true }));
@@ -82,8 +96,8 @@ export default function ChatPage() {
       
       console.log('✅ Received response:', response.substring(0, 100) + '...');
       
-      // Add assistant message
-      addMessage(response, 'assistant');
+      // Add assistant message (with ElevenLabs audio generation)
+      await addMessage(response, 'assistant');
       
       // Set loading state to false
       setChatState(prev => ({ ...prev, isLoading: false }));
@@ -118,7 +132,7 @@ export default function ChatPage() {
         ? "\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें"
         : "\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye";
       
-      addMessage(errorMessage + helpMessage, 'assistant');
+      await addMessage(errorMessage + helpMessage, 'assistant');
       setChatState(prev => ({ ...prev, isLoading: false }));
     }
   };
@@ -171,12 +185,30 @@ export default function ChatPage() {
     try {
       const testResponse = await openAIService.sendMessage('Hello', language, []);
       console.log('✅ Chat service test successful:', testResponse);
-      addMessage('🧪 Test message: Hello', 'user');
-      addMessage('✅ Test response: ' + testResponse, 'assistant');
+      await addMessage('🧪 Test message: Hello', 'user');
+      await addMessage('✅ Test response: ' + testResponse, 'assistant');
     } catch (error) {
       console.error('❌ Chat service test failed:', error);
-      addMessage('🧪 Test message: Hello', 'user');
-      addMessage('❌ Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'assistant');
+      await addMessage('🧪 Test message: Hello', 'user');
+      await addMessage('❌ Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'assistant');
+    }
+  };
+
+  // Test ElevenLabs service
+  const testElevenLabsService = async () => {
+    console.log('🎵 Testing ElevenLabs service...');
+    try {
+      const success = await elevenLabsService.testService(language);
+      const message = success 
+        ? '✅ ElevenLabs TTS working with Indian accent!'
+        : '⚠️ ElevenLabs using fallback browser TTS';
+      
+      await addMessage('🎵 Testing voice quality...', 'user');
+      await addMessage(message, 'assistant');
+    } catch (error) {
+      console.error('❌ ElevenLabs test failed:', error);
+      await addMessage('🎵 Testing voice quality...', 'user');
+      await addMessage('❌ Voice test failed: ' + (error instanceof Error ? error.message : 'Unknown error'), 'assistant');
     }
   };
 
@@ -399,13 +431,21 @@ export default function ChatPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <p className="text-gray-500 text-sm">{t('tapToSpeak')}</p>
-                {/* Test button for debugging */}
-                <button 
-                  onClick={testChatService}
-                  className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
-                >
-                  Test
-                </button>
+                {/* Test buttons for debugging */}
+                <div className="flex gap-1">
+                  <button 
+                    onClick={testChatService}
+                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                  >
+                    Test Chat
+                  </button>
+                  <button 
+                    onClick={testElevenLabsService}
+                    className="px-2 py-1 bg-green-500 text-white text-xs rounded"
+                  >
+                    Test Voice
+                  </button>
+                </div>
               </div>
               <VoiceButton 
                 isListening={isListening}
