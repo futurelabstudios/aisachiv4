@@ -73,7 +73,7 @@ export default function ChatMessage({ message, language }: ChatMessageProps) {
               className="hidden"
             />
             <span className="ml-2 text-xs sm:text-sm text-emerald-600 font-medium">
-              🎵 {language === 'hindi' ? 'AI Voice (Indian Accent)' : 'AI Voice (Indian Accent)'}
+              🎵 Suniye
             </span>
           </div>
         )}
