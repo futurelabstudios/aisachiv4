@@ -103,32 +103,77 @@ export default function DocumentPage() {
 
   const startCamera = async () => {
     try {
+      // Check for basic browser support
+      if (!navigator.mediaDevices) {
+        throw new Error('MediaDevices not supported');
+      }
+
+      if (!navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia not supported');
+      }
+      
       // Check if we're on mobile or desktop
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
-      // Check if getUserMedia is supported
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported in this browser');
-      }
-      
-      // Request camera permission and get stream
-      const constraints = { 
-        video: { 
-          facingMode: isMobile ? 'environment' : 'user', // Back camera on mobile, front camera on laptop
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+             // Start with basic constraints and try progressively more specific ones
+       let constraints: MediaStreamConstraints = { 
+         video: true
+       };
+
+       try {
+         // Try with enhanced constraints first
+         constraints = { 
+           video: { 
+             facingMode: isMobile ? 'environment' : 'user',
+             width: { ideal: 1280, max: 1920 },
+             height: { ideal: 720, max: 1080 }
+           }
+         };
+        
+        console.log('Attempting camera access with constraints:', constraints);
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(playError => {
+              console.warn('Video play failed:', playError);
+              // Auto-play might be blocked, that's okay
+            });
+          };
+          setShowCamera(true);
+          
+          toast({
+            title: language === 'hindi' ? 'कैमरा तैयार' : 'Camera Ready',
+            description: language === 'hindi' 
+              ? 'दस्तावेज़ की फोटो लेने के लिए तैयार है।'
+              : 'Ready to capture document photo.',
+          });
         }
-      };
-      
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-        };
-        setShowCamera(true);
+      } catch (constraintError) {
+        console.warn('Enhanced constraints failed, trying basic:', constraintError);
+        
+        // Fallback to basic video constraints
+        const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = basicStream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().catch(playError => {
+              console.warn('Video play failed:', playError);
+            });
+          };
+          setShowCamera(true);
+          
+          toast({
+            title: language === 'hindi' ? 'कैमरा तैयार' : 'Camera Ready',
+            description: language === 'hindi' 
+              ? 'बेसिक कैमरा मोड में तैयार है।'
+              : 'Ready in basic camera mode.',
+          });
+        }
       }
+      
     } catch (error) {
       console.error('Error accessing camera:', error);
       
@@ -139,18 +184,28 @@ export default function DocumentPage() {
         if (error.name === 'NotAllowedError') {
           errorTitle = language === 'hindi' ? 'कैमरा अनुमति चाहिए' : 'Camera Permission Required';
           errorMessage = language === 'hindi' 
-            ? 'कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें।'
-            : 'Please allow camera access in your browser settings.';
+            ? 'कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें। URL बार में कैमरा आइकन पर क्लिक करें।'
+            : 'Please allow camera access in your browser. Click the camera icon in the URL bar.';
         } else if (error.name === 'NotFoundError') {
           errorTitle = language === 'hindi' ? 'कैमरा नहीं मिला' : 'Camera Not Found';
           errorMessage = language === 'hindi' 
-            ? 'कोई कैमरा डिवाइस नहीं मिला।'
-            : 'No camera device found.';
+            ? 'कोई कैमरा डिवाइस नहीं मिला। कृपया कैमरा कनेक्ट करें।'
+            : 'No camera device found. Please connect a camera.';
+        } else if (error.name === 'NotReadableError') {
+          errorTitle = language === 'hindi' ? 'कैमरा उपयोग में है' : 'Camera In Use';
+          errorMessage = language === 'hindi' 
+            ? 'कैमरा दूसरे एप्लिकेशन में उपयोग हो रहा है। कृपया उसे बंद करें।'
+            : 'Camera is being used by another application. Please close it.';
+        } else if (error.message.includes('not supported')) {
+          errorTitle = language === 'hindi' ? 'ब्राउज़र समर्थन नहीं' : 'Browser Not Supported';
+          errorMessage = language === 'hindi' 
+            ? 'यह ब्राउज़र कैमरा का समर्थन नहीं करता। कृपया Chrome, Firefox या Safari का उपयोग करें।'
+            : 'This browser does not support camera. Please use Chrome, Firefox, or Safari.';
         } else {
           errorTitle = language === 'hindi' ? 'कैमरा त्रुटि' : 'Camera Error';
           errorMessage = language === 'hindi' 
-            ? 'कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।'
-            : 'Could not access camera. Please try again.';
+            ? 'कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें या दूसरा ब्राउज़र उपयोग करें।'
+            : 'Could not access camera. Please try again or use a different browser.';
         }
       }
       
@@ -163,36 +218,74 @@ export default function DocumentPage() {
   };
 
   const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
+    try {
+      if (!videoRef.current || !canvasRef.current) {
+        throw new Error('Camera not properly initialized');
+      }
+
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
       
+      if (!context) {
+        throw new Error('Canvas context not available');
+      }
+
+      // Check if video has valid dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        throw new Error('Video not ready');
+      }
+      
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      if (context) {
-        context.drawImage(video, 0, 0);
-        const imageData = canvas.toDataURL('image/jpeg');
-        setCapturedImage(imageData);
-        setShowCamera(false);
-        
-        // Stop camera stream
-        const stream = video.srcObject as MediaStream;
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-        
-        // Convert to file for analysis
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], 'captured-document.jpg', { type: 'image/jpeg' });
-            setUploadedFile(file);
-            setAnalysisResult(null);
-            setMessages([]);
-          }
-        }, 'image/jpeg');
+      // Draw the video frame to canvas
+      context.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/jpeg', 0.9); // Higher quality
+      setCapturedImage(imageData);
+      setShowCamera(false);
+      
+      // Stop camera stream
+      const stream = video.srcObject as MediaStream;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
+      
+      // Convert to file for analysis with better metadata
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const file = new File([blob], `captured-document-${timestamp}.jpg`, { 
+            type: 'image/jpeg',
+            lastModified: Date.now()
+          });
+          setUploadedFile(file);
+          setAnalysisResult(null);
+          setMessages([]);
+          
+          toast({
+            title: language === 'hindi' ? 'फोटो कैप्चर हुई' : 'Photo Captured',
+            description: language === 'hindi' 
+              ? 'दस्तावेज़ की फोटो सफलतापूर्वक ली गई। अब विश्लेषण करें।'
+              : 'Document photo captured successfully. Now analyze it.',
+          });
+        } else {
+          throw new Error('Failed to create image blob');
+        }
+      }, 'image/jpeg', 0.9);
+      
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+      
+      const errorMessage = language === 'hindi' 
+        ? 'फोटो कैप्चर करने में त्रुटि। कृपया पुनः प्रयास करें।'
+        : 'Error capturing photo. Please try again.';
+        
+      toast({
+        title: language === 'hindi' ? 'कैप्चर त्रुटि' : 'Capture Error',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     }
   };
 

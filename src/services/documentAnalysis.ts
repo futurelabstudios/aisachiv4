@@ -18,8 +18,7 @@ export class DocumentAnalysisService {
 
   constructor() {
     this.apiKey = ENV.OPENAI_API_KEY;
-    // Use proxy in development, direct API in production
-    this.baseUrl = import.meta.env.DEV ? '/api/openai' : ENV.API_BASE_URL;
+    this.baseUrl = ENV.API_BASE_URL;
   }
 
   async analyzeDocument(file: File, language: Language): Promise<DocumentAnalysisResult> {
@@ -31,6 +30,12 @@ export class DocumentAnalysisService {
         throw new Error(language === 'hindi' 
           ? 'फ़ाइल का आकार 50MB से अधिक है। कृपया छोटी फ़ाइल का उपयोग करें।'
           : 'File size exceeds 50MB. Please use a smaller file.');
+      }
+
+      // Check if we have API key
+      if (!this.apiKey) {
+        console.warn('No OpenAI API key found, using fallback analysis');
+        return this.generateFallbackAnalysis(file.name, file.name, language);
       }
 
       // Extract text from the document
@@ -45,18 +50,25 @@ export class DocumentAnalysisService {
       console.log('Extracted text length:', documentText.length);
 
       // Analyze the document using OpenAI
-      const analysis = await this.performDocumentAnalysis(documentText, language, file.name);
+      try {
+        const analysis = await this.performDocumentAnalysis(documentText, language, file.name);
+        
+        // Store analysis in local storage for future reference
+        this.saveAnalysisToLocalStorage(file.name, analysis);
+        
+        return analysis;
+      } catch (apiError) {
+        console.warn('API analysis failed, using fallback:', apiError);
+        // Fallback to local analysis if API fails
+        return this.generateFallbackAnalysis(documentText, file.name, language);
+      }
       
-      // Store analysis in local storage for future reference
-      this.saveAnalysisToLocalStorage(file.name, analysis);
-      
-      return analysis;
     } catch (error) {
       console.error('Document analysis error:', error);
       
       // Provide user-friendly error messages
       if (error instanceof Error) {
-        if (error.message.includes('fetch')) {
+        if (error.message.includes('fetch') || error.message.includes('network')) {
           throw new Error(language === 'hindi' 
             ? 'इंटरनेट कनेक्शन की समस्या। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।'
             : 'Network connection issue. Please check your connection and try again.');
@@ -553,6 +565,12 @@ Always provide clear, concise, and practical information.`;
     try {
       console.log('Generating image with prompt:', prompt);
       
+      // Check if we have API key
+      if (!this.apiKey) {
+        console.warn('No OpenAI API key found, using placeholder image');
+        return this.generatePlaceholderImage(prompt, language);
+      }
+      
       // Check if prompt is appropriate for government work
       const contentCheck = await this.checkImagePromptContent(prompt, language);
       
@@ -565,30 +583,41 @@ Always provide clear, concise, and practical information.`;
       // Use refined prompt for better results
       const enhancedPrompt = `${contentCheck.refinedPrompt}. Professional government document style, clean design, appropriate for official presentations and training materials.`;
 
-      const response = await fetch(`${this.baseUrl}/images/generations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: enhancedPrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard',
-          response_format: 'url'
-        })
-      });
+      try {
+        const response = await fetch(`${this.baseUrl}/images/generations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: enhancedPrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'standard',
+            response_format: 'url'
+          })
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Image generation failed: ${errorData.error?.message || response.statusText}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            throw new Error(language === 'hindi' 
+              ? 'API key अमान्य है। कृपया सही OpenAI API key जोड़ें।'
+              : 'Invalid API key. Please add a valid OpenAI API key.');
+          }
+          throw new Error(`Image generation failed: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Successfully generated image');
+        return data.data[0].url;
+      } catch (apiError) {
+        console.warn('DALL-E API failed, using placeholder image:', apiError);
+        return this.generatePlaceholderImage(prompt, language);
       }
-
-      const data = await response.json();
-      console.log('Successfully generated image');
-      return data.data[0].url;
+      
     } catch (error) {
       console.error('Image generation error:', error);
       
@@ -596,10 +625,73 @@ Always provide clear, concise, and practical information.`;
         throw error;
       }
       
-      throw new Error(language === 'hindi' 
-        ? 'छवि बनाने में त्रुटि। कृपया पुनः प्रयास करें।'
-        : 'Error generating image. Please try again.');
+      // Return placeholder instead of failing completely
+      return this.generatePlaceholderImage(prompt, language);
     }
+  }
+
+  private generatePlaceholderImage(prompt: string, language: Language): string {
+    // Create a data URL for a simple placeholder image
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 400, 300);
+      gradient.addColorStop(0, '#34d399');
+      gradient.addColorStop(1, '#059669');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 400, 300);
+      
+      // Add text
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        language === 'hindi' ? 'AI छवि जेनरेटर' : 'AI Image Generator',
+        200, 100
+      );
+      
+      ctx.font = '14px Arial';
+      const promptText = prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
+      ctx.fillText(promptText, 200, 140);
+      
+      ctx.font = '12px Arial';
+      ctx.fillText(
+        language === 'hindi' 
+          ? 'पूर्ण सुविधा के लिए API key आवश्यक' 
+          : 'API key required for full functionality',
+        200, 200
+      );
+      
+      return canvas.toDataURL('image/png');
+    }
+    
+    // Fallback: return a simple SVG data URL
+    const svg = `
+      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="400" height="300" fill="url(#grad)" />
+        <text x="200" y="100" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">
+          ${language === 'hindi' ? 'AI छवि जेनरेटर' : 'AI Image Generator'}
+        </text>
+        <text x="200" y="140" text-anchor="middle" fill="white" font-family="Arial" font-size="14">
+          ${prompt.length > 30 ? prompt.substring(0, 27) + '...' : prompt}
+        </text>
+        <text x="200" y="200" text-anchor="middle" fill="white" font-family="Arial" font-size="12">
+          ${language === 'hindi' ? 'API key आवश्यक' : 'API key required'}
+        </text>
+      </svg>
+    `;
+    
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
   private async checkImagePromptContent(prompt: string, language: Language): Promise<{isAppropriate: boolean, reason?: string, refinedPrompt: string}> {
