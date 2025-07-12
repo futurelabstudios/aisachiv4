@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import StreamingResponse
 from typing import List
+import json
 
 from ..models.schemas import ChatRequest, User, Conversation as ConversationSchema
 from ..services.database_service import database_service
@@ -21,7 +22,7 @@ async def chat(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ):
-    """Main chat endpoint - now user-centric"""
+    """Main chat endpoint - now user-centric and conversation-aware"""
     try:
         start_time = datetime.now()
         
@@ -36,23 +37,28 @@ async def chat(
                 yield error_response
             return StreamingResponse(error_stream(), media_type="text/plain")
         
-        # Get conversation history for context (last 5 conversations)
-        conversation_history = await database_service.get_user_conversations(
-            db, current_user.id, limit=5
-        )
+        # Get conversation history for context
+        if request.conversation_id:
+            conversation_history = await database_service.get_conversation_by_id(
+                db, request.conversation_id, current_user.id
+            )
+        else:
+            conversation_history = []
         
         # Prepare context for OpenAI from previous conversations
         conversation_context = []
-        for conv in reversed(conversation_history):  # Most recent last
+        for conv in conversation_history:
             conversation_context.extend([
-                {"role": "user", "content": conv["user_question"]},
-                {"role": "assistant", "content": conv["assistant_answer"]}
+                {"role": "user", "content": conv.user_question},
+                {"role": "assistant", "content": conv.assistant_answer}
             ])
         
         async def stream_generator():
             full_response = ""
+            new_conversation_id = request.conversation_id
+            is_first_chunk = True
+
             try:
-                # Get OpenAI response stream
                 response_stream = get_openai_response(
                     request.message, 
                     conversation_context,
@@ -61,22 +67,40 @@ async def chat(
                 
                 async for chunk in response_stream:
                     full_response += chunk
-                    yield chunk
+                    if is_first_chunk:
+                        # On the first chunk, save the conversation to get an ID (if new)
+                        # And send the ID back with the first chunk of the response
+                        if not new_conversation_id:
+                            saved_conv = await database_service.save_conversation(
+                                db,
+                                user_id=current_user.id,
+                                user_question=request.message,
+                                assistant_answer="", # Save empty first
+                                response_time=0
+                            )
+                            new_conversation_id = str(saved_conv.id)
+                        
+                        response_data = {
+                            "conversation_id": new_conversation_id,
+                            "response_chunk": chunk
+                        }
+                        yield json.dumps(response_data)
+                        is_first_chunk = False
+                    else:
+                        yield chunk
             
             finally:
-                # This block will run even if the client disconnects
-                processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
-                
-                # Use the same db session
-                await database_service.save_conversation(
-                    db,
-                    user_id=current_user.id,
-                    user_question=request.message,
-                    assistant_answer=full_response,
-                    response_time=processing_time
-                )
+                # Update the conversation with the full response
+                if new_conversation_id:
+                    processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
+                    await database_service.update_conversation(
+                        db,
+                        conversation_id=new_conversation_id,
+                        assistant_answer=full_response,
+                        response_time=processing_time
+                    )
 
-        return StreamingResponse(stream_generator(), media_type="text/plain")
+        return StreamingResponse(stream_generator(), media_type="text/event-stream")
         
     except Exception as e:
         logger.error(f"Chat endpoint error: {e}")

@@ -1,6 +1,7 @@
 import supabase
 from jose import jwt, JWTError
 from app.core.config import settings
+import logging
 
 # Initialize Supabase client
 supabase_client: supabase.Client = supabase.create_client(
@@ -19,5 +20,6 @@ def verify_jwt_token(token: str) -> dict | None:
             audience="authenticated"
         )
         return decoded_token
-    except JWTError:
+    except JWTError as e:
+        logging.error(f"JWT Validation Error: {e}")
         return None 

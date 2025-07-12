@@ -22,7 +22,8 @@ export default function ChatPage() {
     return {
       messages: [],
       isLoading: false,
-      language: language
+      language: language,
+      conversationId: null, // Add conversationId to state
     };
   });
   
@@ -90,27 +91,30 @@ export default function ChatPage() {
 
   const handleSendMessage = async (content: string) => {
     console.log('📤 Sending message:', content);
-    console.log('🌍 Current language:', chatState.language);
     
-    // Add user message
+    // Add user message to local state
     await addMessage(content, 'user');
     
-    // Add empty assistant message
-    const assistantMessageId = await addMessage("", 'assistant');
-
-    // Set loading state
     setChatState(prev => ({ ...prev, isLoading: true }));
     
+    // Create conversation history from state, excluding the latest message
     const conversationHistory = chatState.messages.slice(-10).map(m => ({
-      role: m.role as 'user' | 'assistant',
+      role: m.role,
       content: m.content,
       timestamp: new Date().toISOString()
     }));
 
+    // Add empty assistant message for streaming
+    const assistantMessageId = await addMessage("", 'assistant');
+
     await apiClient.streamChat({
       message: content,
+      conversationId: chatState.conversationId,
       conversationHistory,
-      onChunk: (chunk) => {
+      onChunk: (chunk, conversationId) => {
+        if (conversationId && !chatState.conversationId) {
+          setChatState(prev => ({ ...prev, conversationId }));
+        }
         updateMessage(assistantMessageId, chunk);
       },
       onComplete: () => {

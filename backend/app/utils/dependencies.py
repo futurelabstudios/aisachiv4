@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
 from app.services.auth_service import verify_jwt_token
-from app.models.schemas import User, TokenData
+from app.models.schemas import User
 from app.services.database_service import database_service
 from app.core.database import get_session
 
@@ -28,9 +28,7 @@ async def get_current_user(
     if user_id is None:
         raise credentials_exception
         
-    token_data = TokenData(user_id=UUID(user_id))
-    
-    user = await database_service.get_user_by_id(db, user_id=token_data.user_id)
+    user = await database_service.get_user_by_id(db, user_id=UUID(user_id))
     if user is None:
         raise credentials_exception
         

@@ -15,9 +15,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenData(BaseModel):
-    user_id: Optional[UUID4] = None
-
 class UserLogin(BaseModel):
     email: str
     password: str
@@ -39,6 +36,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     conversation_history: Optional[List[ChatMessage]] = []
+    conversation_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):

@@ -161,9 +161,26 @@ export interface ChatResponse {
 
 class APIClient {
   private baseUrl: string;
+  private getToken: () => string | null;
 
   constructor() {
     this.baseUrl = API_BASE_URL;
+    this.getToken = () => null;
+  }
+
+  setTokenSource(getToken: () => string | null) {
+    this.getToken = getToken;
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const token = this.getToken();
+    if (token) {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+    return { 'Content-Type': 'application/json' };
   }
 
   async getCirculars(
@@ -387,13 +404,15 @@ class APIClient {
   async streamChat({
     message,
     conversationHistory = [],
+    conversationId,
     onChunk,
     onError,
     onComplete
   }: {
     message: string,
     conversationHistory?: ChatMessage[],
-    onChunk: (chunk: string) => void,
+    conversationId?: string | null,
+    onChunk: (chunk: string, conversationId?: string) => void,
     onError: (error: Error) => void,
     onComplete: () => void
   }) {
@@ -402,13 +421,11 @@ class APIClient {
 
       const response = await fetch(`${this.baseUrl}/chat/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-ID': 'your-session-id' // Replace with actual session management
-        },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify({
           message: message,
-          conversation_history: conversationHistory
+          conversation_history: conversationHistory,
+          conversation_id: conversationId
         })
       });
 
@@ -422,14 +439,30 @@ class APIClient {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      let isFirstChunk = true;
+      let receivedConversationId: string | undefined = undefined;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
           break;
         }
-        const chunk = decoder.decode(value);
-        onChunk(chunk);
+        let chunk = decoder.decode(value);
+        
+        if (isFirstChunk) {
+            try {
+                const jsonResponse = JSON.parse(chunk);
+                if(jsonResponse.conversation_id) {
+                    receivedConversationId = jsonResponse.conversation_id;
+                    chunk = jsonResponse.response_chunk || '';
+                }
+            } catch (e) {
+                // Not a JSON chunk, process as text
+            }
+            isFirstChunk = false;
+        }
+        
+        onChunk(chunk, receivedConversationId);
       }
 
       onComplete();

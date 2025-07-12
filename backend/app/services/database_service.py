@@ -1,9 +1,9 @@
 import logging
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 
 from ..models.database import Conversation, User
 from ..core.config import get_settings
@@ -27,79 +27,70 @@ class DatabaseService:
             self.logger.error(f"Error getting user by ID {user_id}: {e}")
             raise
 
+    async def get_user_conversations(self, db: AsyncSession, user_id: UUID, limit: int = 10) -> List[Conversation]:
+        """Get all conversations for a specific user"""
+        result = await db.execute(
+            select(Conversation)
+            .where(Conversation.user_id == user_id)
+            .order_by(Conversation.created_at.desc())
+            .limit(limit)
+        )
+        return result.scalars().all()
+
+    async def get_conversation_by_id(self, db: AsyncSession, conversation_id: str, user_id: UUID) -> List[Conversation]:
+        """Get a specific conversation by its ID"""
+        result = await db.execute(
+            select(Conversation).where(
+                Conversation.id == conversation_id,
+                Conversation.user_id == user_id
+            )
+        )
+        return result.scalars().all()
+
     async def save_conversation(
         self,
-        session: AsyncSession,
+        db: AsyncSession,
         user_id: UUID,
         user_question: str,
         assistant_answer: str,
+        response_time: int,
+    ) -> Conversation:
+        """Save a new conversation to the database"""
+        new_conversation = Conversation(
+            id=uuid4(),
+            user_id=user_id,
+            user_question=user_question,
+            assistant_answer=assistant_answer,
+            response_time_ms=response_time,
+        )
+        db.add(new_conversation)
+        await db.commit()
+        await db.refresh(new_conversation)
+        return new_conversation
+
+    async def update_conversation(
+        self,
+        db: AsyncSession,
+        conversation_id: str,
+        assistant_answer: str,
         response_time: int
-    ) -> Dict[str, Any]:
-        """Save a complete conversation for a user to the database"""
-        try:
-            conversation = Conversation(
-                user_id=user_id,
-                user_question=user_question,
+    ):
+        """Update an existing conversation"""
+        await db.execute(
+            update(Conversation)
+            .where(Conversation.id == conversation_id)
+            .values(
                 assistant_answer=assistant_answer,
-                response_time=response_time
+                response_time_ms=response_time,
+                updated_at=datetime.now(timezone.utc)
             )
-            
-            session.add(conversation)
-            await session.commit()
-            await session.refresh(conversation)
-            
-            self.logger.info(f"Saved conversation {conversation.id} for user {user_id}")
-            
-            return {
-                "id": str(conversation.id),
-                "user_id": str(conversation.user_id),
-                "user_question": conversation.user_question,
-                "assistant_answer": conversation.assistant_answer,
-                "response_time": conversation.response_time,
-                "created_at": conversation.created_at
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error saving conversation for user {user_id}: {e}")
-            await session.rollback()
-            raise
+        )
+        await db.commit()
 
-    async def get_user_conversations(
-        self, 
-        session: AsyncSession,
-        user_id: UUID, 
-        limit: int = 50
-    ) -> List[Dict[str, Any]]:
-        """Get conversation history for a user"""
+    async def get_user_stats(self, db: AsyncSession, user_id: UUID):
+        """Get usage statistics for a user"""
         try:
-            result = await session.execute(
-                select(Conversation)
-                .where(Conversation.user_id == user_id)
-                .order_by(Conversation.created_at.desc())
-                .limit(limit)
-            )
-            conversations = result.scalars().all()
-            
-            return [
-                {
-                    "id": str(conv.id),
-                    "user_id": str(conv.user_id),
-                    "user_question": conv.user_question,
-                    "assistant_answer": conv.assistant_answer,
-                    "response_time": conv.response_time,
-                    "created_at": conv.created_at
-                }
-                for conv in conversations
-            ]
-            
-        except Exception as e:
-            self.logger.error(f"Error getting conversations for user {user_id}: {e}")
-            raise
-
-    async def get_user_stats(self, session: AsyncSession, user_id: UUID) -> Dict[str, Any]:
-        """Get basic stats for a user"""
-        try:
-            result = await session.execute(
+            result = await db.execute(
                 select(Conversation)
                 .where(Conversation.user_id == user_id)
                 .order_by(Conversation.created_at.asc())

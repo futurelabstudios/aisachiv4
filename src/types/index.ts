@@ -11,4 +11,5 @@ export interface ChatState {
   messages: Message[];
   isLoading: boolean;
   language: Language;
+  conversationId?: string | null;
 }
