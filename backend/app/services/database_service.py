@@ -1,10 +1,11 @@
 import logging
+from uuid import UUID
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 
-from ..models.database import Conversation
+from ..models.database import Conversation, User
 from ..core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -12,23 +13,32 @@ settings = get_settings()
 
 
 class DatabaseService:
-    """Simplified database service for AISachi application"""
+    """User-centric database service for AISachi application"""
     
     def __init__(self):
         self.logger = logger
 
+    async def get_user_by_id(self, session: AsyncSession, user_id: UUID) -> Optional[User]:
+        """Get a user by their ID."""
+        try:
+            result = await session.execute(select(User).where(User.id == user_id))
+            return result.scalars().first()
+        except Exception as e:
+            self.logger.error(f"Error getting user by ID {user_id}: {e}")
+            raise
+
     async def save_conversation(
         self,
         session: AsyncSession,
-        session_id: str,
+        user_id: UUID,
         user_question: str,
         assistant_answer: str,
         response_time: int
     ) -> Dict[str, Any]:
-        """Save a complete conversation (question + answer) to database"""
+        """Save a complete conversation for a user to the database"""
         try:
             conversation = Conversation(
-                session_id=session_id,
+                user_id=user_id,
                 user_question=user_question,
                 assistant_answer=assistant_answer,
                 response_time=response_time
@@ -38,11 +48,11 @@ class DatabaseService:
             await session.commit()
             await session.refresh(conversation)
             
-            self.logger.info(f"Saved conversation {conversation.id} for session {session_id}")
+            self.logger.info(f"Saved conversation {conversation.id} for user {user_id}")
             
             return {
                 "id": str(conversation.id),
-                "session_id": conversation.session_id,
+                "user_id": str(conversation.user_id),
                 "user_question": conversation.user_question,
                 "assistant_answer": conversation.assistant_answer,
                 "response_time": conversation.response_time,
@@ -50,21 +60,21 @@ class DatabaseService:
             }
             
         except Exception as e:
-            self.logger.error(f"Error saving conversation: {e}")
+            self.logger.error(f"Error saving conversation for user {user_id}: {e}")
             await session.rollback()
             raise
 
-    async def get_session_conversations(
+    async def get_user_conversations(
         self, 
         session: AsyncSession,
-        session_id: str, 
+        user_id: UUID, 
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """Get conversation history for a session"""
+        """Get conversation history for a user"""
         try:
             result = await session.execute(
                 select(Conversation)
-                .where(Conversation.session_id == session_id)
+                .where(Conversation.user_id == user_id)
                 .order_by(Conversation.created_at.desc())
                 .limit(limit)
             )
@@ -73,7 +83,7 @@ class DatabaseService:
             return [
                 {
                     "id": str(conv.id),
-                    "session_id": conv.session_id,
+                    "user_id": str(conv.user_id),
                     "user_question": conv.user_question,
                     "assistant_answer": conv.assistant_answer,
                     "response_time": conv.response_time,
@@ -83,36 +93,15 @@ class DatabaseService:
             ]
             
         except Exception as e:
-            self.logger.error(f"Error getting session conversations: {e}")
+            self.logger.error(f"Error getting conversations for user {user_id}: {e}")
             raise
 
-    async def cleanup_old_conversations(self, session: AsyncSession, days: int = 30) -> int:
-        """Cleanup old conversations (older than specified days)"""
-        try:
-            from datetime import timedelta
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-            
-            result = await session.execute(
-                delete(Conversation).where(Conversation.created_at < cutoff_date)
-            )
-            
-            deleted_count = result.rowcount
-            await session.commit()
-            
-            self.logger.info(f"Cleaned up {deleted_count} old conversations")
-            return deleted_count
-            
-        except Exception as e:
-            self.logger.error(f"Error cleaning up conversations: {e}")
-            await session.rollback()
-            raise
-
-    async def get_session_stats(self, session: AsyncSession, session_id: str) -> Dict[str, Any]:
-        """Get basic stats for a session"""
+    async def get_user_stats(self, session: AsyncSession, user_id: UUID) -> Dict[str, Any]:
+        """Get basic stats for a user"""
         try:
             result = await session.execute(
                 select(Conversation)
-                .where(Conversation.session_id == session_id)
+                .where(Conversation.user_id == user_id)
                 .order_by(Conversation.created_at.asc())
             )
             conversations = result.scalars().all()
@@ -136,7 +125,7 @@ class DatabaseService:
             }
             
         except Exception as e:
-            self.logger.error(f"Error getting session stats: {e}")
+            self.logger.error(f"Error getting user stats: {e}")
             raise
 
 

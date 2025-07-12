@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     # ElevenLabs TTS settings
     ELEVENLABS_API_KEY: str
     ELEVENLABS_BASE_URL: str = "https://api.elevenlabs.io/v1"
+
+    # Supabase settings
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
+    SUPABASE_JWT_SECRET: str
     
     # Session settings
     SESSION_TIMEOUT_DAYS: int = 30

@@ -1,6 +1,32 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
+
+
+# User and Auth models
+class User(BaseModel):
+    id: UUID4
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    website: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    user_id: Optional[UUID4] = None
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class Conversation(BaseModel):
+    id: UUID4
+    user_question: str
+    assistant_answer: str
+    created_at: datetime
 
 
 # Chat models

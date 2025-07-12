@@ -52,23 +52,40 @@ export default function ChatPage() {
       audioUrl
     };
     
-    // Generate audio for assistant messages using ElevenLabs
-    if (role === 'assistant' && !audioUrl) {
-      try {
-        console.log('🎵 Generating audio for assistant message...');
-        const generatedAudioUrl = await elevenLabsService.textToSpeech(content, chatState.language);
-        newMessage.audioUrl = generatedAudioUrl;
-        console.log('✅ Audio generated successfully');
-      } catch (error) {
-        console.error('❌ Failed to generate audio:', error);
-        // Continue without audio if generation fails
-      }
-    }
-    
     setChatState(prev => ({
       ...prev,
       messages: [...prev.messages, newMessage]
     }));
+
+    return newMessage.id;
+  };
+
+  const updateMessage = (id: string, content: string) => {
+    setChatState(prev => ({
+      ...prev,
+      messages: prev.messages.map(m =>
+        m.id === id ? { ...m, content: m.content + content } : m
+      )
+    }));
+  };
+
+  const finalizeMessage = async (id: string) => {
+    setChatState(prev => {
+      const finalMessage = prev.messages.find(m => m.id === id);
+      if (finalMessage) {
+        elevenLabsService.textToSpeech(finalMessage.content, prev.language)
+          .then(audioUrl => {
+            setChatState(subPrev => ({
+              ...subPrev,
+              messages: subPrev.messages.map(m =>
+                m.id === id ? { ...m, audioUrl } : m
+              )
+            }));
+          })
+          .catch(error => console.error('❌ Failed to generate audio:', error));
+      }
+      return prev;
+    });
   };
 
   const handleSendMessage = async (content: string) => {
@@ -78,65 +95,61 @@ export default function ChatPage() {
     // Add user message
     await addMessage(content, 'user');
     
+    // Add empty assistant message
+    const assistantMessageId = await addMessage("", 'assistant');
+
     // Set loading state
     setChatState(prev => ({ ...prev, isLoading: true }));
     
-    try {
-      // Convert messages to API format for context
-      const conversationHistory: APIChatMessage[] = chatState.messages
-        .slice(-10) // Keep last 10 messages for context
-        .map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-          timestamp: new Date().toISOString()
-        }));
+    const conversationHistory = chatState.messages.slice(-10).map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+      timestamp: new Date().toISOString()
+    }));
 
-      console.log('📚 Conversation history:', conversationHistory.length, 'messages');
-
-      // Call Backend API
-      const response = await apiClient.sendChatMessage(content, conversationHistory);
+    await apiClient.streamChat({
+      message: content,
+      conversationHistory,
+      onChunk: (chunk) => {
+        updateMessage(assistantMessageId, chunk);
+      },
+      onComplete: () => {
+        finalizeMessage(assistantMessageId);
+        setChatState(prev => ({ ...prev, isLoading: false }));
+      },
+      onError: (error) => {
+        console.error('❌ Error sending message:', error);
       
-      console.log('✅ Received response:', response.substring(0, 100) + '...');
-      
-      // Add assistant message (with ElevenLabs audio generation)
-      await addMessage(response, 'assistant');
-      
-      // Set loading state to false
-      setChatState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      console.error('❌ Error sending message:', error);
-      
-      // Add detailed error message based on error type
-      let errorMessage = '';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('fetch') || error.message.includes('network')) {
-          errorMessage = chatState.language === 'hindi'
-            ? "🌐 इंटरनेट कनेक्शन की समस्या है। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
-            : "🌐 Internet connection problem hai. Kripya apna connection check kariye aur phir try kariye.";
-        } else if (error.message.includes('401') || error.message.includes('API')) {
-          errorMessage = chatState.language === 'hindi'
-            ? "🔑 सर्विस में अस्थायी समस्या है। कृपया बाद में पुनः प्रयास करें।"
-            : "🔑 Service mein temporary problem hai. Kripya baad mein phir try kariye.";
+        let errorMessage = '';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('fetch') || error.message.includes('network')) {
+            errorMessage = chatState.language === 'hindi'
+              ? "🌐 इंटरनेट कनेक्शन की समस्या है। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
+              : "🌐 Internet connection problem hai. Kripya apna connection check kariye aur phir try kariye.";
+          } else if (error.message.includes('401') || error.message.includes('API')) {
+            errorMessage = chatState.language === 'hindi'
+              ? "🔑 सर्विस में अस्थायी समस्या है। कृपया बाद में पुनः प्रयास करें।"
+              : "🔑 Service mein temporary problem hai. Kripya baad mein phir try kariye.";
+          } else {
+            errorMessage = chatState.language === 'hindi'
+              ? "⚠️ कुछ गलत हुआ है। कृपया पुनः प्रयास करें।"
+              : "⚠️ Kuch galat hua hai. Kripya phir try kariye.";
+          }
         } else {
           errorMessage = chatState.language === 'hindi'
-            ? "⚠️ कुछ गलत हुआ है। कृपया पुनः प्रयास करें।"
-            : "⚠️ Kuch galat hua hai. Kripya phir try kariye.";
+            ? "❓ अज्ञात त्रुटि हुई है। कृपया पुनः प्रयास करें।"
+            : "❓ Unknown error hui hai. Kripya phir try kariye.";
         }
-      } else {
-        errorMessage = chatState.language === 'hindi'
-          ? "❓ अज्ञात त्रुटि हुई है। कृपया पुनः प्रयास करें।"
-          : "❓ Unknown error hui hai. Kripya phir try kariye.";
+        
+        const helpMessage = chatState.language === 'hindi'
+          ? "\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें"
+          : "\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye";
+        
+        updateMessage(assistantMessageId, errorMessage + helpMessage);
+        setChatState(prev => ({ ...prev, isLoading: false }));
       }
-      
-      // Add helpful troubleshooting tips
-      const helpMessage = chatState.language === 'hindi'
-        ? "\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें"
-        : "\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye";
-      
-      await addMessage(errorMessage + helpMessage, 'assistant');
-      setChatState(prev => ({ ...prev, isLoading: false }));
-    }
+    });
   };
 
   const handleStartListening = () => {

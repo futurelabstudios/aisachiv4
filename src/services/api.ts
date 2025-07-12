@@ -1,7 +1,7 @@
 // API service for backend endpoints
 import { Language } from '@/types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface CircularsResponse {
   success: boolean;
@@ -384,14 +384,27 @@ class APIClient {
     }
   }
 
-  async sendChatMessage(message: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+  async streamChat({
+    message,
+    conversationHistory = [],
+    onChunk,
+    onError,
+    onComplete
+  }: {
+    message: string,
+    conversationHistory?: ChatMessage[],
+    onChunk: (chunk: string) => void,
+    onError: (error: Error) => void,
+    onComplete: () => void
+  }) {
     try {
-      console.log('🚀 Sending message to backend');
-      
+      console.log('🚀 Streaming message to backend');
+
       const response = await fetch(`${this.baseUrl}/chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Session-ID': 'your-session-id' // Replace with actual session management
         },
         body: JSON.stringify({
           message: message,
@@ -400,23 +413,34 @@ class APIClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Backend Error: ${errorData.detail || response.statusText}`);
+        throw new Error(`Backend Error: ${response.statusText}`);
       }
 
-      const data: ChatResponse = await response.json();
-      console.log('✅ Backend response received');
-      
-      return data.response;
-      
-    } catch (error) {
-      console.error('❌ API Error:', error);
-      
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        return "❌ Backend server se connection nahi ho pa raha. Kripya ensure kariye ki FastAPI server http://localhost:8000 par chal raha hai.";
+      if (!response.body) {
+        throw new Error("Response body is null");
       }
-      
-      return "Sorry, kuch technical issue hai. Kripya baad mein try kariye.";
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        const chunk = decoder.decode(value);
+        onChunk(chunk);
+      }
+
+      onComplete();
+
+    } catch (error) {
+      console.error('❌ API Stream Error:', error);
+      if (error instanceof Error) {
+        onError(error);
+      } else {
+        onError(new Error("An unknown error occurred during streaming."));
+      }
     }
   }
 
