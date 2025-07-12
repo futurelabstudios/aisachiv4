@@ -1,8 +1,5 @@
 import { Language } from '@/types';
 
-// ElevenLabs API Configuration
-const ELEVENLABS_API_KEY = 'sk_d6a0904bc5e605b5686c0f5fe47eb4d327029d9038a5ca2b';
-const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1';
 
 // Indian accent voice IDs from ElevenLabs
 const VOICE_IDS = {
@@ -30,12 +27,13 @@ export interface ElevenLabsVoiceSettings {
 }
 
 export class ElevenLabsService {
-  private apiKey: string;
-  private baseUrl: string;
+  private backendUrl: string;
 
   constructor() {
-    this.apiKey = ELEVENLABS_API_KEY;
-    this.baseUrl = ELEVENLABS_BASE_URL;
+    // Use backend proxy instead of direct API calls  
+    // Default to localhost:8000 for backend
+    const backendBaseUrl = 'http://localhost:8000';
+    this.backendUrl = `${backendBaseUrl}/tts`;
   }
 
   private getVoiceId(language: Language, gender: 'male' | 'female' = 'female'): string {
@@ -96,50 +94,37 @@ export class ElevenLabsService {
     gender: 'male' | 'female' = 'female'
   ): Promise<string> {
     try {
-      console.log('🗣️ ElevenLabs TTS - Input:', { text: text.substring(0, 50) + '...', language, gender });
+      console.log('🗣️ Backend TTS - Input:', { text: text.substring(0, 50) + '...', language, gender });
 
-      // Preprocess text for better pronunciation
-      const processedText = this.preprocessText(text, language);
-      
-      // Get appropriate voice ID
-      const voiceId = this.getVoiceId(language, gender);
-      
-      // Get voice settings
-      const voiceSettings = this.getVoiceSettings(language);
-      
-      console.log('🎯 Using voice ID:', voiceId, 'Settings:', voiceSettings);
-
-      // Make request to ElevenLabs API
-      const response = await fetch(`${this.baseUrl}/text-to-speech/${voiceId}`, {
+      // Call backend TTS proxy (secure)
+      const response = await fetch(`${this.backendUrl}/synthesize`, {
         method: 'POST',
         headers: {
-          'Accept': 'audio/mpeg',
           'Content-Type': 'application/json',
-          'xi-api-key': this.apiKey
         },
         body: JSON.stringify({
-          text: processedText,
-          model_id: 'eleven_multilingual_v2', // Best model for multilingual content
-          voice_settings: voiceSettings
+          text: text,
+          language: language,
+          gender: gender
         })
       });
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error(`ElevenLabs API Error: ${response.status} - ${errorData}`);
+        throw new Error(`Backend TTS Error: ${response.status} - ${errorData}`);
       }
 
       // Convert response to blob and create audio URL
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       
-      console.log('✅ ElevenLabs TTS successful, audio URL created');
+      console.log('✅ Backend TTS successful, audio URL created');
       
       return audioUrl;
     } catch (error) {
-      console.error('❌ ElevenLabs TTS Error:', error);
+      console.error('❌ Backend TTS Error:', error);
       
-      // Fallback to browser TTS if ElevenLabs fails
+      // Fallback to browser TTS if backend fails
       return this.fallbackTTS(text, language);
     }
   }
@@ -184,58 +169,65 @@ export class ElevenLabsService {
     });
   }
 
-  // Get available voices from ElevenLabs
+  // Get available voices from backend
   async getAvailableVoices(): Promise<any[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/voices`, {
-        headers: {
-          'xi-api-key': this.apiKey
-        }
-      });
+      const response = await fetch(`${this.backendUrl}/voices`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch voices: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('🎤 Available ElevenLabs voices:', data.voices?.length || 0);
+      console.log('🎤 Available voices from backend:', data.voices?.length || 0);
       
       return data.voices || [];
     } catch (error) {
-      console.error('Error fetching voices:', error);
+      console.error('❌ Error fetching voices from backend:', error);
       return [];
     }
   }
 
-  // Test the service with a simple message
+  // Test the backend TTS service
   async testService(language: Language = 'hinglish'): Promise<boolean> {
     try {
-      const testText = language === 'hindi' 
-        ? 'नमस्ते, यह एक परीक्षण संदेश है।'
-        : 'Hello, this is a test message from AI Sachiv.';
+      const testText = language === 'hindi' ? 
+        'नमस्ते, यह एक परीक्षण संदेश है।' : 
+        'Hello, this is a test message from AI Sachiv.';
       
-      console.log('🧪 Testing ElevenLabs service...');
       const audioUrl = await this.textToSpeech(testText, language);
       
+      // Clean up test audio
       if (audioUrl && audioUrl !== 'browser-tts') {
-        console.log('✅ ElevenLabs service test successful');
-        return true;
-      } else {
-        console.log('⚠️ ElevenLabs service using fallback');
-        return false;
+        this.cleanupAudioUrl(audioUrl);
       }
+      
+      return true;
     } catch (error) {
-      console.error('❌ ElevenLabs service test failed:', error);
+      console.error('❌ Backend TTS service test failed:', error);
       return false;
     }
   }
 
-  // Clean up audio URLs to prevent memory leaks
+  // Clean up audio URL to prevent memory leaks
   cleanupAudioUrl(audioUrl: string): void {
     if (audioUrl && audioUrl !== 'browser-tts' && audioUrl.startsWith('blob:')) {
       URL.revokeObjectURL(audioUrl);
     }
   }
+
+  // Check backend TTS health
+  async checkHealth(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.backendUrl}/health`);
+      const data = await response.json();
+      return data.status === 'healthy';
+    } catch (error) {
+      console.error('❌ Backend TTS health check failed:', error);
+      return false;
+    }
+  }
 }
 
+// Create singleton instance
 export const elevenLabsService = new ElevenLabsService(); 

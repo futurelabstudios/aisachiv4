@@ -2,14 +2,20 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, Camera, MessageCircle, Send, Loader2, Home, Mic, Globe, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen, Image, Palette } from "lucide-react";
-import { documentAnalysisService, DocumentAnalysisResult } from "@/services/documentAnalysis";
-import { openAIService, OpenAIMessage } from "@/services/openai";
+import { apiClient, ChatMessage } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/components/ui/use-toast";
 import { Link, useLocation } from "react-router-dom";
 import { Message } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import MobileNavigation from "@/components/MobileNavigation";
+
+interface DocumentAnalysisResult {
+  summary: string;
+  keyPoints: string[];
+  translation?: string;
+  recommendations?: string[];
+}
 
 export default function DocumentPage() {
   const location = useLocation();
@@ -39,33 +45,6 @@ export default function DocumentPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Test function to verify service connectivity
-  const testDocumentService = async () => {
-    console.log('Testing document analysis service...');
-    try {
-      // Test with a simple text file
-      const testText = 'Test document for analysis';
-      const testBlob = new Blob([testText], { type: 'text/plain' });
-      const testFile = new File([testBlob], 'test.txt', { type: 'text/plain' });
-      
-      console.log('Created test file:', testFile);
-      const result = await documentAnalysisService.analyzeDocument(testFile, language);
-      console.log('Service test successful:', result);
-      
-      toast({
-        title: 'Service Test',
-        description: 'Document analysis service is working correctly.',
-      });
-    } catch (error) {
-      console.error('Service test failed:', error);
-      toast({
-        title: 'Service Test Failed',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive'
-      });
-    }
-  };
 
   const toggleLanguage = () => {
     if (language === 'hindi') setLanguage('hinglish');
@@ -103,77 +82,72 @@ export default function DocumentPage() {
 
   const startCamera = async () => {
     try {
-      // Check for basic browser support
-      if (!navigator.mediaDevices) {
-        throw new Error('MediaDevices not supported');
-      }
-
-      if (!navigator.mediaDevices.getUserMedia) {
-        throw new Error('getUserMedia not supported');
-      }
+      console.log('📸 Starting camera...');
       
       // Check if we're on mobile or desktop
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      console.log('📱 Device type:', isMobile ? 'Mobile' : 'Desktop');
       
-             // Start with basic constraints and try progressively more specific ones
-       let constraints: MediaStreamConstraints = { 
-         video: true
-       };
-
-       try {
-         // Try with enhanced constraints first
-         constraints = { 
-           video: { 
-             facingMode: isMobile ? 'environment' : 'user',
-             width: { ideal: 1280, max: 1920 },
-             height: { ideal: 720, max: 1080 }
-           }
-         };
-        
-        console.log('Attempting camera access with constraints:', constraints);
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(playError => {
-              console.warn('Video play failed:', playError);
-              // Auto-play might be blocked, that's okay
-            });
-          };
-          setShowCamera(true);
-          
-          toast({
-            title: language === 'hindi' ? 'कैमरा तैयार' : 'Camera Ready',
-            description: language === 'hindi' 
-              ? 'दस्तावेज़ की फोटो लेने के लिए तैयार है।'
-              : 'Ready to capture document photo.',
-          });
-        }
-      } catch (constraintError) {
-        console.warn('Enhanced constraints failed, trying basic:', constraintError);
-        
-        // Fallback to basic video constraints
-        const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = basicStream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(playError => {
-              console.warn('Video play failed:', playError);
-            });
-          };
-          setShowCamera(true);
-          
-          toast({
-            title: language === 'hindi' ? 'कैमरा तैयार' : 'Camera Ready',
-            description: language === 'hindi' 
-              ? 'बेसिक कैमरा मोड में तैयार है।'
-              : 'Ready in basic camera mode.',
-          });
-        }
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported in this browser');
       }
       
+      // First show the camera modal
+      setShowCamera(true);
+      
+      // Request camera permission and get stream
+      const constraints = { 
+        video: { 
+          facingMode: isMobile ? 'environment' : 'user', // Back camera on mobile, front camera on laptop
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          aspectRatio: { ideal: 16/9 }
+        }
+      };
+      
+      console.log('🎥 Requesting camera with constraints:', constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('✅ Camera stream obtained');
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        
+        // Wait for video to be ready
+        return new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) {
+            reject(new Error('Video ref not available'));
+            return;
+          }
+          
+          videoRef.current.onloadedmetadata = () => {
+            console.log('📹 Video metadata loaded');
+            if (videoRef.current) {
+              videoRef.current.play()
+                .then(() => {
+                  console.log('▶️ Video started playing');
+                  resolve();
+                })
+                .catch((playError) => {
+                  console.error('❌ Error playing video:', playError);
+                  reject(playError);
+                });
+            }
+          };
+          
+          videoRef.current.onerror = (error) => {
+            console.error('❌ Video error:', error);
+            reject(new Error('Video loading failed'));
+          };
+          
+          // Timeout if video doesn't load within 10 seconds
+          setTimeout(() => {
+            reject(new Error('Camera loading timeout'));
+          }, 10000);
+        });
+      } else {
+        throw new Error('Video element not available');
+      }
     } catch (error) {
       console.error('Error accessing camera:', error);
       
@@ -184,28 +158,18 @@ export default function DocumentPage() {
         if (error.name === 'NotAllowedError') {
           errorTitle = language === 'hindi' ? 'कैमरा अनुमति चाहिए' : 'Camera Permission Required';
           errorMessage = language === 'hindi' 
-            ? 'कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें। URL बार में कैमरा आइकन पर क्लिक करें।'
-            : 'Please allow camera access in your browser. Click the camera icon in the URL bar.';
+            ? 'कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें।'
+            : 'Please allow camera access in your browser settings.';
         } else if (error.name === 'NotFoundError') {
           errorTitle = language === 'hindi' ? 'कैमरा नहीं मिला' : 'Camera Not Found';
           errorMessage = language === 'hindi' 
-            ? 'कोई कैमरा डिवाइस नहीं मिला। कृपया कैमरा कनेक्ट करें।'
-            : 'No camera device found. Please connect a camera.';
-        } else if (error.name === 'NotReadableError') {
-          errorTitle = language === 'hindi' ? 'कैमरा उपयोग में है' : 'Camera In Use';
-          errorMessage = language === 'hindi' 
-            ? 'कैमरा दूसरे एप्लिकेशन में उपयोग हो रहा है। कृपया उसे बंद करें।'
-            : 'Camera is being used by another application. Please close it.';
-        } else if (error.message.includes('not supported')) {
-          errorTitle = language === 'hindi' ? 'ब्राउज़र समर्थन नहीं' : 'Browser Not Supported';
-          errorMessage = language === 'hindi' 
-            ? 'यह ब्राउज़र कैमरा का समर्थन नहीं करता। कृपया Chrome, Firefox या Safari का उपयोग करें।'
-            : 'This browser does not support camera. Please use Chrome, Firefox, or Safari.';
+            ? 'कोई कैमरा डिवाइस नहीं मिला।'
+            : 'No camera device found.';
         } else {
           errorTitle = language === 'hindi' ? 'कैमरा त्रुटि' : 'Camera Error';
           errorMessage = language === 'hindi' 
-            ? 'कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें या दूसरा ब्राउज़र उपयोग करें।'
-            : 'Could not access camera. Please try again or use a different browser.';
+            ? 'कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।'
+            : 'Could not access camera. Please try again.';
         }
       }
       
@@ -217,12 +181,21 @@ export default function DocumentPage() {
     }
   };
 
-  const capturePhoto = () => {
-    try {
-      if (!videoRef.current || !canvasRef.current) {
-        throw new Error('Camera not properly initialized');
-      }
+  const capturePhoto = async () => {
+    console.log('📸 Capturing photo...');
+    
+    if (!videoRef.current || !canvasRef.current) {
+      toast({
+        title: language === 'hindi' ? 'कैमरा त्रुटि' : 'Camera Error',
+        description: language === 'hindi' 
+          ? 'कैमरा उपलब्ध नहीं है।'
+          : 'Camera not available.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
+    try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
@@ -231,17 +204,20 @@ export default function DocumentPage() {
         throw new Error('Canvas context not available');
       }
 
-      // Check if video has valid dimensions
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        throw new Error('Video not ready');
-      }
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
       
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      console.log('📐 Canvas dimensions:', canvas.width, 'x', canvas.height);
       
-      // Draw the video frame to canvas
-      context.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/jpeg', 0.9); // Higher quality
+      // Draw the current frame from video to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Get image data as base64
+      const imageData = canvas.toDataURL('image/jpeg', 0.9);
+      console.log('🖼️ Image captured, size:', imageData.length, 'characters');
+      
+      // Set captured image for preview
       setCapturedImage(imageData);
       setShowCamera(false);
       
@@ -249,41 +225,42 @@ export default function DocumentPage() {
       const stream = video.srcObject as MediaStream;
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        console.log('📷 Camera stream stopped');
       }
       
-      // Convert to file for analysis with better metadata
-      canvas.toBlob((blob) => {
+      // Convert canvas to blob and create file for analysis
+      canvas.toBlob(async (blob) => {
         if (blob) {
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const file = new File([blob], `captured-document-${timestamp}.jpg`, { 
-            type: 'image/jpeg',
-            lastModified: Date.now()
-          });
+          const file = new File([blob], 'captured-document.jpg', { type: 'image/jpeg' });
+          console.log('📁 File created:', file.name, file.size, 'bytes');
+          
+          // Reset previous analysis
           setUploadedFile(file);
           setAnalysisResult(null);
           setMessages([]);
+          setGeneratedImageUrl(null);
           
+          // Show success message
           toast({
             title: language === 'hindi' ? 'फोटो कैप्चर हुई' : 'Photo Captured',
             description: language === 'hindi' 
-              ? 'दस्तावेज़ की फोटो सफलतापूर्वक ली गई। अब विश्लेषण करें।'
-              : 'Document photo captured successfully. Now analyze it.',
+              ? 'फोटो सफलतापूर्वक कैप्चर हुई। अब विश्लेषण करें।'
+              : 'Photo captured successfully. Now analyze it.',
           });
+          
+          console.log('✅ Photo capture complete, ready for analysis');
         } else {
-          throw new Error('Failed to create image blob');
+          throw new Error('Failed to create blob from canvas');
         }
       }, 'image/jpeg', 0.9);
       
     } catch (error) {
-      console.error('Error capturing photo:', error);
-      
-      const errorMessage = language === 'hindi' 
-        ? 'फोटो कैप्चर करने में त्रुटि। कृपया पुनः प्रयास करें।'
-        : 'Error capturing photo. Please try again.';
-        
+      console.error('❌ Error capturing photo:', error);
       toast({
-        title: language === 'hindi' ? 'कैप्चर त्रुटि' : 'Capture Error',
-        description: errorMessage,
+        title: language === 'hindi' ? 'फोटो कैप्चर त्रुटि' : 'Photo Capture Error',
+        description: language === 'hindi' 
+          ? 'फोटो कैप्चर करने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
+          : 'Error capturing photo. Please try again.',
         variant: 'destructive'
       });
     }
@@ -300,7 +277,14 @@ export default function DocumentPage() {
   };
 
   const handleAnalyze = async () => {
+    console.log('🔍 handleAnalyze called');
+    console.log('📁 uploadedFile:', uploadedFile?.name, uploadedFile?.size, 'bytes');
+    console.log('📷 capturedImage:', capturedImage ? 'Present' : 'None');
+    console.log('🎨 generatedImageUrl:', generatedImageUrl ? 'Present' : 'None');
+    
+    // Check if we have any content to analyze
     if (!uploadedFile && !capturedImage && !generatedImageUrl) {
+      console.log('❌ No file/image found, showing error toast');
       toast({
         title: language === 'hindi' ? 'कोई फ़ाइल नहीं' : 'No File Selected',
         description: language === 'hindi' 
@@ -316,31 +300,99 @@ export default function DocumentPage() {
     try {
       let result: DocumentAnalysisResult;
       
-      console.log('Starting analysis process...');
+      console.log('🚀 Starting analysis process...');
       
-      if (generatedImageUrl) {
-        // For generated images, we'll create a simple analysis
-        result = {
-          summary: language === 'hindi' 
-            ? 'यह एक AI द्वारा बनाई गई छवि है जो आपकी आवश्यकताओं के अनुसार तैयार की गई है।'
-            : 'This is an AI-generated image created according to your requirements.',
-          keyPoints: [
-            language === 'hindi' ? 'AI द्वारा बनाई गई छवि' : 'AI-generated image',
-            language === 'hindi' ? 'सरकारी कार्य के लिए उपयुक्त' : 'Suitable for government work',
-            language === 'hindi' ? 'प्रस्तुति और प्रशिक्षण में उपयोग करें' : 'Use in presentations and training'
-          ]
-        };
-        console.log('Generated image analysis completed');
+      // Determine what type of content we're analyzing
+      if (capturedImage && uploadedFile) {
+        console.log('📸 Analyzing captured photo');
+        result = await apiClient.analyzeDocument(uploadedFile, language);
+        console.log('✅ Captured photo analysis complete');
+      } else if (generatedImageUrl) {
+        console.log('Analyzing generated image');
+        console.log('🚀 Generated image URL:', generatedImageUrl);
+        console.log('🚀 About to call apiClient.analyzeDocument with backend /document endpoint for generated image');
+        
+        try {
+          // For generated images, convert URL to blob and analyze
+          console.log('📥 Fetching generated image from URL...');
+          const response = await fetch(generatedImageUrl, {
+            mode: 'cors',
+            headers: {
+              'Accept': 'image/*',
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+          }
+          
+          console.log('✅ Successfully fetched image, converting to blob...');
+          const blob = await response.blob();
+          console.log('✅ Blob created, size:', blob.size, 'bytes, type:', blob.type);
+          
+          const file = new File([blob], 'generated-image.png', { type: blob.type || 'image/png' });
+          console.log('✅ File created, calling analyze API...');
+          
+          result = await apiClient.analyzeDocument(file, language);
+        } catch (fetchError) {
+          console.error('❌ Error fetching generated image:', fetchError);
+          
+          // Fallback: Try to analyze using the image URL directly by sending it to backend
+          console.log('🔄 Trying fallback method - sending URL to backend...');
+          
+          try {
+            const fallbackResponse = await fetch(`http://localhost:8000/document`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                image_url: generatedImageUrl, // Send URL instead of base64
+                document_type: 'image/png',
+                language,
+              }),
+            });
+            
+            if (!fallbackResponse.ok) {
+              throw new Error(`Fallback method failed: ${fallbackResponse.status}`);
+            }
+            
+            const fallbackData = await fallbackResponse.json();
+            
+            if (fallbackData.success && fallbackData.analysis) {
+              result = {
+                summary: fallbackData.analysis.main_information || 'Generated image analyzed successfully',
+                keyPoints: fallbackData.analysis.fields_detected.map((field: any) => `${field.field_name}: ${field.value}`),
+                recommendations: fallbackData.analysis.suggestions,
+              };
+              console.log('✅ Fallback analysis successful');
+            } else {
+              throw new Error('Fallback analysis failed');
+            }
+          } catch (fallbackError) {
+            console.error('❌ Fallback method also failed:', fallbackError);
+            
+            // Final fallback: Use the image prompt for analysis
+            result = {
+              summary: language === 'hindi' 
+                ? `यह एक AI द्वारा बनाई गई छवि है। छवि की सामग्री का विश्लेषण करने में तकनीकी समस्या हुई है। छवि प्रॉम्प्ट के आधार पर: "${imagePrompt}"`
+                : `This is an AI-generated image. There was a technical issue analyzing the image content. Based on the image prompt: "${imagePrompt}"`,
+              keyPoints: [
+                language === 'hindi' ? 'AI द्वारा बनाई गई छवि' : 'AI-generated image',
+                language === 'hindi' ? 'छवि विश्लेषण में तकनीकी समस्या' : 'Technical issue with image analysis',
+                language === 'hindi' ? 'प्रॉम्प्ट आधारित जानकारी उपलब्ध' : 'Prompt-based information available'
+              ],
+              recommendations: [
+                language === 'hindi' ? 'छवि को डाउनलोड करके पुनः अपलोड करें' : 'Download image and re-upload for analysis',
+                language === 'hindi' ? 'छवि का मैन्युअल रूप से उपयोग करें' : 'Use the image manually as needed'
+              ]
+            };
+          }
+        }
       } else if (uploadedFile) {
-        console.log('Analyzing uploaded file:', uploadedFile.name);
-        result = await documentAnalysisService.analyzeDocument(uploadedFile, language);
-      } else if (capturedImage) {
-        console.log('Analyzing captured image');
-        // For captured images, convert to blob and analyze
-        const response = await fetch(capturedImage);
-        const blob = await response.blob();
-        const file = new File([blob], 'captured-document.jpg', { type: 'image/jpeg' });
-        result = await documentAnalysisService.analyzeDocument(file, language);
+        console.log('📁 Analyzing uploaded file:', uploadedFile.name);
+        result = await apiClient.analyzeDocument(uploadedFile, language);
+        console.log('✅ Uploaded file analysis complete');
       } else {
         throw new Error('No valid input found for analysis');
       }
@@ -447,16 +499,17 @@ export default function DocumentPage() {
     setIsLoading(true);
 
     try {
-      const conversationHistory: OpenAIMessage[] = messages.map(msg => ({
+      const conversationHistory: ChatMessage[] = messages.map(msg => ({
         role: msg.role as 'user' | 'assistant',
-        content: msg.content
+        content: msg.content,
+        timestamp: new Date().toISOString()
       }));
 
       const contextPrompt = language === 'hindi' 
         ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${currentQuestion}`
         : `You have analyzed this document. Please answer in the context of this document: ${currentQuestion}`;
 
-      const response = await openAIService.sendMessage(contextPrompt, language, conversationHistory);
+      const response = await apiClient.sendChatMessage(contextPrompt, conversationHistory);
       
       const assistantMessage: Message = {
         id: uuidv4(),
@@ -500,7 +553,7 @@ export default function DocumentPage() {
     
     try {
       console.log('Generating image with prompt:', imagePrompt);
-      const imageUrl = await documentAnalysisService.generateImage(imagePrompt, language);
+      const imageUrl = await apiClient.generateImage(imagePrompt, language);
       
       console.log('Image generated successfully:', imageUrl);
       setGeneratedImageUrl(imageUrl);
@@ -678,8 +731,8 @@ export default function DocumentPage() {
                             </p>
                             <p className="text-xs text-emerald-600 mt-1">
                               {language === 'hindi' 
-                                ? '• PDF फ़ाइलें अब समर्थित हैं!'
-                                : '• PDF files now supported!'
+                                ? '• PDF फ़ाइलें अब समर्थित हैं! • वास्तविक AI विश्लेषण!'
+                                : '• PDF files now supported! • Real AI analysis!'
                               }
                             </p>
                           </div>
@@ -694,8 +747,14 @@ export default function DocumentPage() {
                             </p>
                             <p className="text-sm text-gray-500">
                               {language === 'hindi' 
-                                ? 'दस्तावेज़ की फोटो खींचें'
-                                : 'Capture document photo'
+                                ? 'दस्तावेज़ की फोटो खींचें + AI विश्लेषण'
+                                : 'Capture photo + AI analysis'
+                              }
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-1">
+                              {language === 'hindi' 
+                                ? '• वास्तविक विश्लेषण!'
+                                : '• Real analysis!'
                               }
                             </p>
                           </div>
@@ -712,6 +771,12 @@ export default function DocumentPage() {
                               {language === 'hindi' 
                                 ? 'इन्फोग्राफिक और चार्ट बनाएं'
                                 : 'Create infographics & charts'
+                              }
+                            </p>
+                            <p className="text-xs text-emerald-600 mt-1">
+                              {language === 'hindi' 
+                                ? '• DALL-E AI द्वारा संचालित!'
+                                : '• Powered by DALL-E AI!'
                               }
                             </p>
                           </div>
@@ -754,17 +819,6 @@ export default function DocumentPage() {
                               t('analyzeDocument')
                             )}
                           </Button>
-                          {/* Debug button - remove in production */}
-                          {import.meta.env.DEV && (
-                            <Button
-                              onClick={testDocumentService}
-                              variant="outline"
-                              size="sm"
-                              disabled={isAnalyzing}
-                            >
-                              Test Service
-                            </Button>
-                          )}
                             <Button
                               onClick={resetDocument}
                               variant="outline"
@@ -793,6 +847,7 @@ export default function DocumentPage() {
                         autoPlay 
                         playsInline
                         muted
+                        webkit-playsinline="true"
                         className="w-full h-64 sm:h-80 bg-gray-200 rounded-lg mb-4 object-cover"
                         style={{ transform: 'scaleX(-1)' }} // Mirror effect for front camera
                       />
@@ -1067,17 +1122,6 @@ export default function DocumentPage() {
                             language === 'hindi' ? 'विश्लेषण करें' : 'Analyze'
                           )}
                         </Button>
-                        {/* Debug button - remove in production */}
-                        {import.meta.env.DEV && (
-                          <Button
-                            onClick={testDocumentService}
-                            variant="outline"
-                            size="sm"
-                            disabled={isAnalyzing}
-                          >
-                            Test
-                          </Button>
-                        )}
                         <Button
                           onClick={resetDocument}
                           variant="outline"

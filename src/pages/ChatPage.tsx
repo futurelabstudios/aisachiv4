@@ -4,7 +4,7 @@ import MessageInput from "@/components/MessageInput";
 import { Message, ChatState, Language } from "@/types";
 import { useSpeechRecognition } from "@/utils/speechRecognition";
 import { v4 as uuidv4 } from "uuid";
-import { openAIService, OpenAIMessage } from "@/services/openai";
+import { apiClient, ChatMessage as APIChatMessage } from "@/services/api";
 import { elevenLabsService } from "@/services/elevenlabs";
 import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -82,18 +82,19 @@ export default function ChatPage() {
     setChatState(prev => ({ ...prev, isLoading: true }));
     
     try {
-      // Convert messages to OpenAI format for context
-      const conversationHistory: OpenAIMessage[] = chatState.messages
+      // Convert messages to API format for context
+      const conversationHistory: APIChatMessage[] = chatState.messages
         .slice(-10) // Keep last 10 messages for context
         .map(msg => ({
           role: msg.role as 'user' | 'assistant',
-          content: msg.content
+          content: msg.content,
+          timestamp: new Date().toISOString()
         }));
 
       console.log('📚 Conversation history:', conversationHistory.length, 'messages');
 
-      // Call OpenAI API
-      const response = await openAIService.sendMessage(content, chatState.language, conversationHistory);
+      // Call Backend API
+      const response = await apiClient.sendChatMessage(content, conversationHistory);
       
       console.log('✅ Received response:', response.substring(0, 100) + '...');
       
