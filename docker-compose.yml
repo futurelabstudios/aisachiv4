@@ -1,0 +1,35 @@
+# aisachiv4-main/docker-compose.yml
+version: "3.8"
+
+services:
+  # The Backend Service (FastAPI)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      # --- CRITICAL: Set these in your Railway service's "Variables" tab ---
+      DATABASE_URL: ${DATABASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY} # Use the service_role key here
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+
+      # --- Production Settings ---
+      ENVIRONMENT: production
+      DEBUG: "False"
+      ALLOWED_ORIGINS: "${FRONTEND_URL}"
+      LOG_LEVEL: "INFO"
+
+  # The Frontend Service (React + serve)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # These variables are injected at build time. Set them in Railway.
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY} # Use the anon key here
