@@ -40,7 +40,7 @@ async def chat(
         # Get conversation history for context
         if request.conversation_id:
             conversation_history = await database_service.get_conversation_by_id(
-                db, request.conversation_id, current_user.id
+                db, request.conversation_id, str(current_user.id)
             )
         else:
             conversation_history = []
@@ -73,7 +73,7 @@ async def chat(
                         if not new_conversation_id:
                             saved_conv = await database_service.save_conversation(
                                 db,
-                                user_id=current_user.id,
+                                user_id=str(current_user.id),
                                 user_question=request.message,
                                 assistant_answer="", # Save empty first
                                 response_time=0
@@ -117,7 +117,7 @@ async def get_chat_history(
     """Get chat history for the current user"""
     try:
         conversations = await database_service.get_user_conversations(
-            db, current_user.id, limit=100
+            db, str(current_user.id), limit=100
         )
         return conversations
         
@@ -133,7 +133,7 @@ async def get_user_stats(
 ):
     """Get user statistics"""
     try:
-        stats = await database_service.get_user_stats(db, current_user.id)
+        stats = await database_service.get_user_stats(db, str(current_user.id))
         return stats
         
     except Exception as e:

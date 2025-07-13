@@ -1,19 +1,31 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, Field, EmailStr
+from uuid import UUID
 
 
 # User and Auth models
-class User(BaseModel):
-    id: UUID4
-    username: Optional[str] = None
-    full_name: Optional[str] = None
-    avatar_url: Optional[str] = None
-    website: Optional[str] = None
+class UserBase(BaseModel):
+    email: EmailStr
+
+class UserCreate(UserBase):
+    id: str # Supabase ID is a string in the JWT, not a UUID object initially
+
+class User(UserBase):
+    id: UUID
+    is_active: bool = True
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class TokenData(BaseModel):
+    user_id: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: str

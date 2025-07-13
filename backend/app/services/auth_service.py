@@ -12,6 +12,9 @@ def verify_jwt_token(token: str) -> dict | None:
     """
     Verify the JWT token using the secret key.
     """
+
+    print(settings.SUPABASE_JWT_SECRET)
+    print(token)
     try:
         decoded_token = jwt.decode(
             token,

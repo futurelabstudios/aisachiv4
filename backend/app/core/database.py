@@ -56,8 +56,6 @@ async def init_db():
     """Initialize database tables"""
     try:
         async with engine.begin() as conn:
-            # Import the simplified model to ensure it's registered with Base
-            from ..models.database import Conversation
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables created successfully")
     except Exception as e:
