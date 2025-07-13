@@ -271,25 +271,25 @@
 /* Responsive design */
 @media (min-width: 1024px) {
   .desktop-layout {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 0;
   }
   
   .chat-desktop {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 2rem;
-    height: calc(100vh - 4rem);
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    height: 100vh;
   }
   
   .chat-main-desktop {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: #f9fafb; /* bg-gray-50 */
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 
