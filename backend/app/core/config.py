@@ -1,5 +1,7 @@
 import os
 from typing import List
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -51,6 +53,13 @@ class Settings(BaseSettings):
     
     # Logging
     LOG_LEVEL: str = "INFO"
+
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
+    def split_origins(cls, v):
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",")]
+        return v
     
     class Config:
         env_file = ".env"
