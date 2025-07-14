@@ -71,7 +71,7 @@ async def chat(
                     new_conversation_id = str(saved_conv.id)
                 
                 # Send the conversation_id as the first event
-                yield f"event: conversation_id\ndata: {new_conversation_id}\n\n"
+                yield f"data: {json.dumps({'conversationId': new_conversation_id})}\n\n"
                 
                 response_stream = get_openai_response(
                     request.message, 
@@ -84,7 +84,13 @@ async def chat(
                         full_response += chunk
                         # Send each chunk as a data-only SSE message
                         # Use json.dumps to handle special characters like newlines correctly
-                        yield f"data: {json.dumps(chunk)}\n\n"
+                        yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+
+            except Exception as e:
+                logger.error(f"Error during stream generation: {e}")
+                # --- FIX: Send error as a JSON object ---
+                error_data = {"error": "An unexpected error occurred during streaming."}
+                yield f"data: {json.dumps(error_data)}\n\n"
             
             finally:
                 # Update the conversation with the full response at the end

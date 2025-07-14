@@ -456,20 +456,21 @@ class APIClient {
         const lines = sseChunk.split("\n").filter((line) => line.trim() !== "");
 
         for (const line of lines) {
-          if (line.startsWith("event: conversation_id")) {
-            const idLine = lines.find((l) => l.startsWith("data:"));
-            if (idLine) {
-              receivedConversationId = idLine.substring(5).trim();
-            }
-          } else if (line.startsWith("data:")) {
+          if (line.startsWith("data:")) {
             const data = line.substring(5).trim();
             try {
-              // The data is a JSON string, so we need to parse it
               const parsedData = JSON.parse(data);
-              if (typeof parsedData === "string") {
-                onChunk(parsedData, receivedConversationId);
+
+              if (parsedData.conversationId) {
+                receivedConversationId = parsedData.conversationId;
+                // You might want to pass this to the onChunk callback if needed
+                console.log(
+                  "Received conversation ID:",
+                  receivedConversationId
+                );
+              } else if (parsedData.chunk) {
+                onChunk(parsedData.chunk, receivedConversationId);
               } else if (parsedData.error) {
-                // Handle error messages sent via stream
                 throw new Error(parsedData.error);
               }
             } catch (e) {
