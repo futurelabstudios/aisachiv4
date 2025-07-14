@@ -63,35 +63,17 @@ export interface AcademyResponse {
     id: number;
     emoji: string;
     color: string;
-    title: {
-      hindi: string;
-      hinglish: string;
-    };
-    description: {
-      hindi: string;
-      hinglish: string;
-    };
-    content: {
-      hindi: string[];
-      hinglish: string[];
-    };
+    title: { hindi: string; hinglish: string };
+    description: { hindi: string; hinglish: string };
+    content: { hindi: string[]; hinglish: string[] };
   }>;
   module_content?: {
     id: number;
     emoji: string;
     color: string;
-    title: {
-      hindi: string;
-      hinglish: string;
-    };
-    description: {
-      hindi: string;
-      hinglish: string;
-    };
-    content: {
-      hindi: string[];
-      hinglish: string[];
-    };
+    title: { hindi: string; hinglish: string };
+    description: { hindi: string; hinglish: string };
+    content: { hindi: string[]; hinglish: string[] };
   };
   message?: string;
 }
@@ -99,19 +81,10 @@ export interface AcademyResponse {
 export interface VideosResponse {
   success: boolean;
   videos?: Array<{
-    title: {
-      hindi: string;
-      hinglish: string;
-    };
-    description: {
-      hindi: string;
-      hinglish: string;
-    };
+    title: { hindi: string; hinglish: string };
+    description: { hindi: string; hinglish: string };
     url: string;
-    importance: {
-      hindi: string;
-      hinglish: string;
-    };
+    importance: { hindi: string; hinglish: string };
     duration: string;
   }>;
   message?: string;
@@ -121,24 +94,12 @@ export interface GlossaryResponse {
   success: boolean;
   terms?: Array<{
     id: number;
-    term: {
-      hindi: string;
-      hinglish: string;
-    };
-    meaning: {
-      hindi: string;
-      hinglish: string;
-    };
-    example: {
-      hindi: string;
-      hinglish: string;
-    };
+    term: { hindi: string; hinglish: string };
+    meaning: { hindi: string; hinglish: string };
+    example: { hindi: string; hinglish: string };
     category: string;
   }>;
-  categories?: Array<{
-    id: string;
-    name: string;
-  }>;
+  categories?: Array<{ id: string; name: string }>;
   message?: string;
 }
 
@@ -215,21 +176,13 @@ class APIClient {
   async analyzeDocument(
     file: File,
     language: string = "hinglish"
-  ): Promise<{
-    summary: string;
-    keyPoints: string[];
-    translation?: string;
-    recommendations?: string[];
-  }> {
+  ): Promise<DocumentAnalysisResponse> {
     try {
-      // Convert file to base64 for API call
       const base64Data = await this.fileToBase64(file);
 
       const response = await fetch(`${this.baseUrl}/document`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify({
           image_data: base64Data,
           document_type: file.type,
@@ -238,30 +191,59 @@ class APIClient {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       const data: DocumentAnalysisResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Document analysis failed");
+        throw new Error(
+          data.message || "Document analysis failed on the backend"
+        );
       }
 
-      // Convert backend response to expected format
-      if (data.analysis) {
-        return {
-          summary:
-            data.analysis.main_information || "Document analyzed successfully",
-          keyPoints: data.analysis.fields_detected.map(
-            (field) => `${field.field_name}: ${field.value}`
-          ),
-          recommendations: data.analysis.suggestions,
-        };
-      } else {
-        throw new Error("No analysis data received");
-      }
+      return data; // Return the entire response object as expected by the component
     } catch (error) {
       console.error("Error analyzing document:", error);
+      throw error;
+    }
+  }
+
+  async sendChatMessage(
+    question: string,
+    analysisText: string,
+    language: string = "hinglish"
+  ): Promise<string> {
+    try {
+      const response = await fetch(`${this.baseUrl}/ask`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          question: question,
+          analysis_text: analysisText,
+          language: language,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.detail || `Chat API error: ${response.statusText}`
+        );
+      }
+
+      const data: ChatResponse = await response.json();
+
+      if (data && data.response) {
+        return data.response;
+      } else {
+        throw new Error("Invalid response format from chat API");
+      }
+    } catch (error) {
+      console.error("Error sending chat message:", error);
       throw error;
     }
   }

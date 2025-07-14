@@ -18,18 +18,23 @@ import {
   Image,
   Palette,
 } from "lucide-react";
-import { apiClient, ChatMessage } from "@/services/api";
+import {
+  apiClient,
+  ChatMessage,
+  DocumentAnalysisResponse,
+} from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/components/ui/use-toast";
 import { Link, useLocation } from "react-router-dom";
 import { Message } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import MobileNavigation from "@/components/MobileNavigation";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface DocumentAnalysisResult {
+  documentType: string;
   summary: string;
   keyPoints: string[];
-  translation?: string;
   recommendations?: string[];
 }
 
@@ -57,6 +62,12 @@ export default function DocumentPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!language) {
+      setLanguage("hinglish");
+    }
+  }, [language, setLanguage]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -67,7 +78,7 @@ export default function DocumentPage() {
 
   const toggleLanguage = () => {
     if (language === "hindi") setLanguage("hinglish");
-    else setLanguage("hindi");
+    else setLanguage("hinglish");
   };
 
   const getLanguageButtonText = () => {
@@ -186,14 +197,14 @@ export default function DocumentPage() {
           errorTitle =
             language === "hindi"
               ? "कैमरा अनुमति चाहिए"
-              : "Camera Permission Required";
+              : "Camera Permission Chahiye";
           errorMessage =
             language === "hindi"
               ? "कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें।"
-              : "Please allow camera access in your browser settings.";
+              : "Kripya Camera access dijiye.";
         } else if (error.name === "NotFoundError") {
           errorTitle =
-            language === "hindi" ? "कैमरा नहीं मिला" : "Camera Not Found";
+            language === "hindi" ? "कैमरा नहीं मिला" : "Camera dhund nhi paya.";
           errorMessage =
             language === "hindi"
               ? "कोई कैमरा डिवाइस नहीं मिला।"
@@ -203,7 +214,7 @@ export default function DocumentPage() {
           errorMessage =
             language === "hindi"
               ? "कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।"
-              : "Could not access camera. Please try again.";
+              : "Camera access nahi kar paya. Kripiya phir try karein.";
         }
       }
 
@@ -321,170 +332,44 @@ export default function DocumentPage() {
   };
 
   const handleAnalyze = async () => {
-    console.log("🔍 handleAnalyze called");
-    console.log(
-      "📁 uploadedFile:",
-      uploadedFile?.name,
-      uploadedFile?.size,
-      "bytes"
-    );
-    console.log("📷 capturedImage:", capturedImage ? "Present" : "None");
-    console.log(
-      "🎨 generatedImageUrl:",
-      generatedImageUrl ? "Present" : "None"
-    );
-
-    // Check if we have any content to analyze
     if (!uploadedFile && !capturedImage && !generatedImageUrl) {
-      console.log("❌ No file/image found, showing error toast");
       toast({
-        title: language === "hindi" ? "कोई फ़ाइल नहीं" : "No File Selected",
+        title: language === "hindi" ? "कोई फ़ाइल नहीं" : "Koi file nahi",
         description:
           language === "hindi"
-            ? "कृपया पहले कोई फ़ाइल अपलोड करें या फोटो लें।"
-            : "Please upload a file or take a photo first.",
+            ? "कृपया विश्लेषण के लिए एक फ़ाइल चुनें।"
+            : "Kripya analysis ke liye ek file chunein.",
         variant: "destructive",
       });
       return;
     }
 
     setIsAnalyzing(true);
+    setMessages([]);
 
     try {
-      let result: DocumentAnalysisResult;
-
-      console.log("🚀 Starting analysis process...");
-
-      // Determine what type of content we're analyzing
-      if (capturedImage && uploadedFile) {
-        console.log("📸 Analyzing captured photo");
-        result = await apiClient.analyzeDocument(uploadedFile, language);
-        console.log("✅ Captured photo analysis complete");
-      } else if (generatedImageUrl) {
-        console.log("Analyzing generated image");
-        console.log("🚀 Generated image URL:", generatedImageUrl);
-        console.log(
-          "🚀 About to call apiClient.analyzeDocument with backend /document endpoint for generated image"
-        );
-
-        try {
-          // For generated images, convert URL to blob and analyze
-          console.log("📥 Fetching generated image from URL...");
-          const response = await fetch(generatedImageUrl, {
-            mode: "cors",
-            headers: {
-              Accept: "image/*",
-            },
-          });
-
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch image: ${response.status} ${response.statusText}`
-            );
-          }
-
-          console.log("✅ Successfully fetched image, converting to blob...");
-          const blob = await response.blob();
-          console.log(
-            "✅ Blob created, size:",
-            blob.size,
-            "bytes, type:",
-            blob.type
-          );
-
-          const file = new File([blob], "generated-image.png", {
-            type: blob.type || "image/png",
-          });
-          console.log("✅ File created, calling analyze API...");
-
-          result = await apiClient.analyzeDocument(file, language);
-        } catch (fetchError) {
-          console.error("❌ Error fetching generated image:", fetchError);
-
-          // Fallback: Try to analyze using the image URL directly by sending it to backend
-          console.log("🔄 Trying fallback method - sending URL to backend...");
-
-          try {
-            const fallbackResponse = await fetch(
-              `http://localhost:8000/document`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  image_url: generatedImageUrl, // Send URL instead of base64
-                  document_type: "image/png",
-                  language,
-                }),
-              }
-            );
-
-            if (!fallbackResponse.ok) {
-              throw new Error(
-                `Fallback method failed: ${fallbackResponse.status}`
-              );
-            }
-
-            const fallbackData = await fallbackResponse.json();
-
-            if (fallbackData.success && fallbackData.analysis) {
-              result = {
-                summary:
-                  fallbackData.analysis.main_information ||
-                  "Generated image analyzed successfully",
-                keyPoints: fallbackData.analysis.fields_detected.map(
-                  (field: any) => `${field.field_name}: ${field.value}`
-                ),
-                recommendations: fallbackData.analysis.suggestions,
-              };
-              console.log("✅ Fallback analysis successful");
-            } else {
-              throw new Error("Fallback analysis failed");
-            }
-          } catch (fallbackError) {
-            console.error("❌ Fallback method also failed:", fallbackError);
-
-            // Final fallback: Use the image prompt for analysis
-            result = {
-              summary:
-                language === "hindi"
-                  ? `यह एक AI द्वारा बनाई गई छवि है। छवि की सामग्री का विश्लेषण करने में तकनीकी समस्या हुई है। छवि प्रॉम्प्ट के आधार पर: "${imagePrompt}"`
-                  : `This is an AI-generated image. There was a technical issue analyzing the image content. Based on the image prompt: "${imagePrompt}"`,
-              keyPoints: [
-                language === "hindi"
-                  ? "AI द्वारा बनाई गई छवि"
-                  : "AI-generated image",
-                language === "hindi"
-                  ? "छवि विश्लेषण में तकनीकी समस्या"
-                  : "Technical issue with image analysis",
-                language === "hindi"
-                  ? "प्रॉम्प्ट आधारित जानकारी उपलब्ध"
-                  : "Prompt-based information available",
-              ],
-              recommendations: [
-                language === "hindi"
-                  ? "छवि को डाउनलोड करके पुनः अपलोड करें"
-                  : "Download image and re-upload for analysis",
-                language === "hindi"
-                  ? "छवि का मैन्युअल रूप से उपयोग करें"
-                  : "Use the image manually as needed",
-              ],
-            };
-          }
-        }
-      } else if (uploadedFile) {
-        console.log("📁 Analyzing uploaded file:", uploadedFile.name);
-        result = await apiClient.analyzeDocument(uploadedFile, language);
-        console.log("✅ Uploaded file analysis complete");
-      } else {
-        throw new Error("No valid input found for analysis");
+      const fileToAnalyze = uploadedFile;
+      if (!fileToAnalyze) {
+        throw new Error("No file available for analysis");
       }
 
-      console.log("Analysis result:", result);
+      const response: DocumentAnalysisResponse =
+        await apiClient.analyzeDocument(uploadedFile, language);
+
+      // Map backend response to frontend interface
+      const result: DocumentAnalysisResult = {
+        documentType: response.analysis.document_type || "Unknown Document",
+        summary: response.analysis.main_information,
+        keyPoints: response.analysis.fields_detected.map((field: any) =>
+          field.field_name === "Key Point"
+            ? field.value
+            : `${field.field_name}: ${field.value}`
+        ),
+        recommendations: response.analysis.suggestions,
+      };
+
       setAnalysisResult(result);
 
-      // Add analysis as first message
       const analysisMessage: Message = {
         id: uuidv4(),
         content: formatAnalysisMessage(result),
@@ -497,58 +382,27 @@ export default function DocumentPage() {
         description:
           language === "hindi"
             ? "दस्तावेज़ का विश्लेषण सफलतापूर्वक पूरा हुआ।"
-            : "Document analysis completed successfully.",
+            : "Document ka analysis safaltapoorvak ho gaya hai.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Analysis error:", error);
-
-      let errorMessage = "";
-      let errorTitle = "";
-
-      if (error instanceof Error) {
-        errorMessage = error.message;
-
-        if (
-          error.message.includes("connection") ||
-          error.message.includes("network")
-        ) {
-          errorTitle =
-            language === "hindi" ? "कनेक्शन त्रुटि" : "Connection Error";
-        } else if (
-          error.message.includes("API") ||
-          error.message.includes("service")
-        ) {
-          errorTitle = language === "hindi" ? "सेवा त्रुटि" : "Service Error";
-        } else if (
-          error.message.includes("file") ||
-          error.message.includes("format")
-        ) {
-          errorTitle = language === "hindi" ? "फ़ाइल त्रुटि" : "File Error";
-        } else {
-          errorTitle =
-            language === "hindi" ? "विश्लेषण त्रुटि" : "Analysis Error";
-        }
-      } else {
-        errorTitle = language === "hindi" ? "अज्ञात त्रुटि" : "Unknown Error";
-        errorMessage =
-          language === "hindi"
-            ? "दस्तावेज़ विश्लेषण में त्रुटि हुई। कृपया पुनः प्रयास करें।"
-            : "Error analyzing document. Please try again.";
-      }
-
+      const errorMessage =
+        error.message ||
+        (language === "hindi"
+          ? "एक अज्ञात त्रुटि हुई।"
+          : "An unknown error occurred.");
       toast({
-        title: errorTitle,
+        title: language === "hindi" ? "विश्लेषण त्रुटि" : "Analysis Error",
         description: errorMessage,
         variant: "destructive",
       });
-
       // Add error message to chat
       const errorChatMessage: Message = {
         id: uuidv4(),
         content:
           language === "hindi"
-            ? `क्षमा करें, दस्तावेज़ विश्लेषण में समस्या हुई: ${errorMessage}\n\nकृपया:\n• अपना इंटरनेट कनेक्शन जांचें\n• फ़ाइल का साइज़ और फॉर्मेट जांचें\n• थोड़ी देर बाद पुनः प्रयास करें`
-            : `Sorry, there was an issue with document analysis: ${errorMessage}\n\nPlease:\n• Check your internet connection\n• Verify file size and format\n• Try again after some time`,
+            ? `क्षमा करें, विश्लेषण में समस्या हुई: ${errorMessage}`
+            : `Sorry, analysis mein problem hui: ${errorMessage}`,
         role: "assistant",
       };
       setMessages([errorChatMessage]);
@@ -558,37 +412,28 @@ export default function DocumentPage() {
   };
 
   const formatAnalysisMessage = (result: DocumentAnalysisResult): string => {
-    const header =
-      language === "hindi"
-        ? "📄 दस्तावेज़ विश्लेषण परिणाम:"
-        : "📄 Document Analysis Results:";
-
-    let message = `${header}\n\n`;
-
-    message += `**${language === "hindi" ? "सारांश" : "Summary"}:**\n${
+    const isHindi = language === "hindi";
+    let message = `### **📄 ${
+      isHindi ? "दस्तावेज़ का प्रकार" : "Document Type"
+    }**\n${result.documentType}\n\n`;
+    message += `### **📝 ${isHindi ? "मुख्य जानकारी" : "Main Information"}**\n${
       result.summary
     }\n\n`;
 
-    message += `**${language === "hindi" ? "मुख्य बिंदु" : "Key Points"}:**\n`;
-    result.keyPoints.forEach((point, index) => {
-      message += `${index + 1}. ${point}\n`;
-    });
-
-    if (result.translation) {
-      message += `\n**${language === "hindi" ? "अनुवाद" : "Translation"}:**\n${
-        result.translation
-      }\n`;
+    if (result.keyPoints && result.keyPoints.length > 0) {
+      message += `### **🔍 ${isHindi ? "मुख्य बिंदु" : "Key Points"}**\n`;
+      result.keyPoints.forEach((point) => {
+        message += `* ${point}\n`;
+      });
+      message += "\n";
     }
 
     if (result.recommendations && result.recommendations.length > 0) {
-      message += `\n**${
-        language === "hindi" ? "सुझाव" : "Recommendations"
-      }:**\n`;
-      result.recommendations.forEach((rec, index) => {
-        message += `${index + 1}. ${rec}\n`;
+      message += `### **💡 ${isHindi ? "सुझाव" : "Suggestions"}**\n`;
+      result.recommendations.forEach((rec) => {
+        message += `* ${rec}\n`;
       });
     }
-
     return message;
   };
 
@@ -602,24 +447,18 @@ export default function DocumentPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+
+    const questionToAsk = currentQuestion;
     setCurrentQuestion("");
     setIsLoading(true);
 
     try {
-      const conversationHistory: ChatMessage[] = messages.map((msg) => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-        timestamp: new Date().toISOString(),
-      }));
-
-      const contextPrompt =
-        language === "hindi"
-          ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${currentQuestion}`
-          : `You have analyzed this document. Please answer in the context of this document: ${currentQuestion}`;
+      const analysisContext = analysisResult.summary;
 
       const response = await apiClient.sendChatMessage(
-        contextPrompt,
-        conversationHistory
+        questionToAsk,
+        analysisContext,
+        language
       );
 
       const assistantMessage: Message = {
@@ -629,13 +468,13 @@ export default function DocumentPage() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error sending question:", error);
+    } catch (error: any) {
+      console.error("Error sending question about document:", error);
 
       const errorMessage =
         language === "hindi"
-          ? "क्षमा करें, मैं अभी आपके प्रश्न का उत्तर नहीं दे सका। कृपया पुनः प्रयास करें।"
-          : "Sorry, mai abhi aapke question ka jawab nahi de saka. Kripya phir try kariye.";
+          ? `क्षमा करें, आपके प्रश्न का उत्तर देने में समस्या हुई: ${error.message}`
+          : `Sorry, there was a problem answering your question: ${error.message}`;
 
       const assistantMessage: Message = {
         id: uuidv4(),
@@ -1173,10 +1012,9 @@ export default function DocumentPage() {
                           ? "bg-emerald-600 text-white rounded-tr-none"
                           : "bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200"
                       }`}
-                      dangerouslySetInnerHTML={{
-                        __html: message.content.replace(/\n/g, "<br/>"),
-                      }}
-                    />
+                    >
+                      <MarkdownRenderer content={message.content} />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1417,10 +1255,9 @@ export default function DocumentPage() {
                         ? "bg-emerald-600 text-white rounded-tr-none"
                         : "bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200"
                     }`}
-                    dangerouslySetInnerHTML={{
-                      __html: message.content.replace(/\n/g, "<br/>"),
-                    }}
-                  />
+                  >
+                    <MarkdownRenderer content={message.content} />
+                  </div>
                 </div>
               </div>
             ))}
