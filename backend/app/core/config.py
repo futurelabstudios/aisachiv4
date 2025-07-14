@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -57,8 +57,11 @@ class Settings(BaseSettings):
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
     def split_origins(cls, v):
+        # print(f"DEBUG: Processing ALLOWED_ORIGINS value: {v}, type: {type(v)}")
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            result = [origin.strip() for origin in v.split(",")]
+            # print(f"DEBUG: Split result: {result}")
+            return result
         return v
     
     class Config:
