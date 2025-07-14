@@ -1,7 +1,7 @@
 // API service for backend endpoints
-import { Language } from '@/types';
+import { Language } from "@/types";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export interface CircularsResponse {
   success: boolean;
@@ -21,7 +21,7 @@ export interface CircularsResponse {
         hinglish: string;
       };
       url: string;
-      category: 'scheme' | 'circular' | 'policy';
+      category: "scheme" | "circular" | "policy";
     }>;
   }>;
   schemes?: Array<{
@@ -34,7 +34,7 @@ export interface CircularsResponse {
       hinglish: string;
     };
     url: string;
-    category: 'scheme' | 'circular' | 'policy';
+    category: "scheme" | "circular" | "policy";
   }>;
   message?: string;
 }
@@ -143,7 +143,7 @@ export interface GlossaryResponse {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
 }
@@ -176,23 +176,23 @@ class APIClient {
     const token = this.getToken();
     if (token) {
       return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       };
     }
-    return { 'Content-Type': 'application/json' };
+    return { "Content-Type": "application/json" };
   }
 
   async getCirculars(
-    language: string = 'hinglish',
+    language: string = "hinglish",
     stateId?: string,
-    category: string = 'all'
+    category: string = "all"
   ): Promise<CircularsResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/circulars`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           state_id: stateId,
@@ -207,14 +207,14 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching circulars:', error);
+      console.error("Error fetching circulars:", error);
       throw error;
     }
   }
 
   async analyzeDocument(
     file: File,
-    language: string = 'hinglish'
+    language: string = "hinglish"
   ): Promise<{
     summary: string;
     keyPoints: string[];
@@ -224,11 +224,11 @@ class APIClient {
     try {
       // Convert file to base64 for API call
       const base64Data = await this.fileToBase64(file);
-      
+
       const response = await fetch(`${this.baseUrl}/document`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           image_data: base64Data,
@@ -242,38 +242,41 @@ class APIClient {
       }
 
       const data: DocumentAnalysisResponse = await response.json();
-      
+
       if (!data.success) {
-        throw new Error(data.message || 'Document analysis failed');
+        throw new Error(data.message || "Document analysis failed");
       }
 
       // Convert backend response to expected format
       if (data.analysis) {
         return {
-          summary: data.analysis.main_information || 'Document analyzed successfully',
-          keyPoints: data.analysis.fields_detected.map(field => `${field.field_name}: ${field.value}`),
+          summary:
+            data.analysis.main_information || "Document analyzed successfully",
+          keyPoints: data.analysis.fields_detected.map(
+            (field) => `${field.field_name}: ${field.value}`
+          ),
           recommendations: data.analysis.suggestions,
         };
       } else {
-        throw new Error('No analysis data received');
+        throw new Error("No analysis data received");
       }
     } catch (error) {
-      console.error('Error analyzing document:', error);
+      console.error("Error analyzing document:", error);
       throw error;
     }
   }
 
   async generateImage(
     prompt: string,
-    language: string = 'hinglish'
+    language: string = "hinglish"
   ): Promise<string> {
     try {
-      console.log('🎨 Calling backend to generate image');
-      
+      console.log("🎨 Calling backend to generate image");
+
       const response = await fetch(`${this.baseUrl}/generate-image`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt: prompt,
@@ -283,20 +286,21 @@ class APIClient {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
-        throw new Error(data.message || 'Image generation failed');
+        throw new Error(data.message || "Image generation failed");
       }
 
-      console.log('✅ Image generated successfully');
+      console.log("✅ Image generated successfully");
       return data.image_url;
-      
     } catch (error) {
-      console.error('❌ Error generating image:', error);
+      console.error("❌ Error generating image:", error);
       throw error;
     }
   }
@@ -305,28 +309,28 @@ class APIClient {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        if (typeof reader.result === 'string') {
+        if (typeof reader.result === "string") {
           // Remove data URL prefix (data:image/jpeg;base64,)
-          const base64 = reader.result.split(',')[1];
+          const base64 = reader.result.split(",")[1];
           resolve(base64);
         } else {
-          reject(new Error('Failed to convert file to base64'));
+          reject(new Error("Failed to convert file to base64"));
         }
       };
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsDataURL(file);
     });
   }
 
   async getAcademyContent(
-    language: string = 'hinglish',
+    language: string = "hinglish",
     moduleId?: number
   ): Promise<AcademyResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/academy`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           module_id: moduleId,
@@ -340,20 +344,20 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching academy content:', error);
+      console.error("Error fetching academy content:", error);
       throw error;
     }
   }
 
   async getVideos(
-    language: string = 'hinglish',
-    category: string = 'all'
+    language: string = "hinglish",
+    category: string = "all"
   ): Promise<VideosResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/videos`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           category,
@@ -367,21 +371,21 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching videos:', error);
+      console.error("Error fetching videos:", error);
       throw error;
     }
   }
 
   async getGlossaryTerms(
-    language: string = 'hinglish',
+    language: string = "hinglish",
     searchQuery?: string,
-    category: string = 'all'
+    category: string = "all"
   ): Promise<GlossaryResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/glossary`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           search_query: searchQuery,
@@ -396,7 +400,7 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching glossary terms:', error);
+      console.error("Error fetching glossary terms:", error);
       throw error;
     }
   }
@@ -407,26 +411,26 @@ class APIClient {
     conversationId,
     onChunk,
     onError,
-    onComplete
+    onComplete,
   }: {
-    message: string,
-    conversationHistory?: ChatMessage[],
-    conversationId?: string | null,
-    onChunk: (chunk: string, conversationId?: string) => void,
-    onError: (error: Error) => void,
-    onComplete: () => void
+    message: string;
+    conversationHistory?: ChatMessage[];
+    conversationId?: string | null;
+    onChunk: (chunk: string, conversationId?: string) => void;
+    onError: (error: Error) => void;
+    onComplete: () => void;
   }) {
     try {
-      console.log('🚀 Streaming message to backend');
+      console.log("🚀 Streaming message to backend");
 
       const response = await fetch(`${this.baseUrl}/chat/`, {
-        method: 'POST',
+        method: "POST",
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           message: message,
           conversation_history: conversationHistory,
-          conversation_id: conversationId
-        })
+          conversation_id: conversationId,
+        }),
       });
 
       if (!response.ok) {
@@ -439,36 +443,45 @@ class APIClient {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let isFirstChunk = true;
-      let receivedConversationId: string | undefined = undefined;
+      let receivedConversationId: string | undefined =
+        conversationId || undefined;
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
           break;
         }
-        let chunk = decoder.decode(value);
-        
-        if (isFirstChunk) {
-            try {
-                const jsonResponse = JSON.parse(chunk);
-                if(jsonResponse.conversation_id) {
-                    receivedConversationId = jsonResponse.conversation_id;
-                    chunk = jsonResponse.response_chunk || '';
-                }
-            } catch (e) {
-                // Not a JSON chunk, process as text
+
+        const sseChunk = decoder.decode(value);
+        const lines = sseChunk.split("\n").filter((line) => line.trim() !== "");
+
+        for (const line of lines) {
+          if (line.startsWith("event: conversation_id")) {
+            const idLine = lines.find((l) => l.startsWith("data:"));
+            if (idLine) {
+              receivedConversationId = idLine.substring(5).trim();
             }
-            isFirstChunk = false;
+          } else if (line.startsWith("data:")) {
+            const data = line.substring(5).trim();
+            try {
+              // The data is a JSON string, so we need to parse it
+              const parsedData = JSON.parse(data);
+              if (typeof parsedData === "string") {
+                onChunk(parsedData, receivedConversationId);
+              } else if (parsedData.error) {
+                // Handle error messages sent via stream
+                throw new Error(parsedData.error);
+              }
+            } catch (e) {
+              console.error("Failed to parse SSE data chunk:", data, e);
+            }
+          }
         }
-        
-        onChunk(chunk, receivedConversationId);
       }
 
       onComplete();
-
     } catch (error) {
-      console.error('❌ API Stream Error:', error);
+      console.error("❌ API Stream Error:", error);
       if (error instanceof Error) {
         onError(error);
       } else {
@@ -477,18 +490,21 @@ class APIClient {
     }
   }
 
-  async synthesizeSpeech(text: string, language: Language = 'hinglish'): Promise<string> {
+  async synthesizeSpeech(
+    text: string,
+    language: Language = "hinglish"
+  ): Promise<string> {
     try {
       const response = await fetch(`${this.baseUrl}/tts/synthesize`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: text,
           language: language,
-          gender: 'female'
-        })
+          gender: "female",
+        }),
       });
 
       if (!response.ok) {
@@ -497,9 +513,8 @@ class APIClient {
 
       const audioBlob = await response.blob();
       return URL.createObjectURL(audioBlob);
-      
     } catch (error) {
-      console.error('❌ TTS Error:', error);
+      console.error("❌ TTS Error:", error);
       throw error;
     }
   }
@@ -514,4 +529,4 @@ class APIClient {
   }
 }
 
-export const apiClient = new APIClient(); 
+export const apiClient = new APIClient();

@@ -1,7 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, Camera, MessageCircle, Send, Loader2, Home, Mic, Globe, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen, Image, Palette } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Camera,
+  MessageCircle,
+  Send,
+  Loader2,
+  Home,
+  Mic,
+  Globe,
+  Link as LinkIcon,
+  GraduationCap,
+  PlayCircle,
+  BookOpen,
+  Image,
+  Palette,
+} from "lucide-react";
 import { apiClient, ChatMessage } from "@/services/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "@/components/ui/use-toast";
@@ -21,7 +37,8 @@ export default function DocumentPage() {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<DocumentAnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] =
+    useState<DocumentAnalysisResult | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -31,15 +48,17 @@ export default function DocumentPage() {
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
-  
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  );
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -47,15 +66,18 @@ export default function DocumentPage() {
   }, [messages]);
 
   const toggleLanguage = () => {
-    if (language === 'hindi') setLanguage('hinglish');
-    else setLanguage('hindi');
+    if (language === "hindi") setLanguage("hinglish");
+    else setLanguage("hindi");
   };
 
   const getLanguageButtonText = () => {
-    switch(language) {
-      case 'hindi': return t('switchToHinglish');
-      case 'hinglish': return t('switchToHindi');
-      default: return 'हिंदी';
+    switch (language) {
+      case "hindi":
+        return t("switchToHinglish");
+      case "hinglish":
+        return t("switchToHindi");
+      default:
+        return "हिंदी";
     }
   };
 
@@ -64,11 +86,12 @@ export default function DocumentPage() {
     if (file) {
       if (file.size > 50 * 1024 * 1024) {
         toast({
-          title: language === 'hindi' ? 'फ़ाइल बहुत बड़ी है' : 'File too large',
-          description: language === 'hindi' 
-            ? 'कृपया 50MB से छोटी फ़ाइल अपलोड करें।'
-            : 'Please upload a file smaller than 50MB.',
-          variant: 'destructive'
+          title: language === "hindi" ? "फ़ाइल बहुत बड़ी है" : "File too large",
+          description:
+            language === "hindi"
+              ? "कृपया 50MB से छोटी फ़ाइल अपलोड करें।"
+              : "Please upload a file smaller than 50MB.",
+          variant: "destructive",
         });
         return;
       }
@@ -82,115 +105,127 @@ export default function DocumentPage() {
 
   const startCamera = async () => {
     try {
-      console.log('📸 Starting camera...');
-      
+      console.log("📸 Starting camera...");
+
       // Check if we're on mobile or desktop
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      console.log('📱 Device type:', isMobile ? 'Mobile' : 'Desktop');
-      
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+      console.log("📱 Device type:", isMobile ? "Mobile" : "Desktop");
+
       // Check if getUserMedia is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera not supported in this browser');
+        throw new Error("Camera not supported in this browser");
       }
-      
+
       // First show the camera modal
       setShowCamera(true);
-      
+
       // Request camera permission and get stream
-      const constraints = { 
-        video: { 
-          facingMode: isMobile ? 'environment' : 'user', // Back camera on mobile, front camera on laptop
+      const constraints = {
+        video: {
+          facingMode: isMobile ? "environment" : "user", // Back camera on mobile, front camera on laptop
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
-          aspectRatio: { ideal: 16/9 }
-        }
+          aspectRatio: { ideal: 16 / 9 },
+        },
       };
-      
-      console.log('🎥 Requesting camera with constraints:', constraints);
+
+      console.log("🎥 Requesting camera with constraints:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('✅ Camera stream obtained');
-      
+      console.log("✅ Camera stream obtained");
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
+
         // Wait for video to be ready
         return new Promise<void>((resolve, reject) => {
           if (!videoRef.current) {
-            reject(new Error('Video ref not available'));
+            reject(new Error("Video ref not available"));
             return;
           }
-          
+
           videoRef.current.onloadedmetadata = () => {
-            console.log('📹 Video metadata loaded');
+            console.log("📹 Video metadata loaded");
             if (videoRef.current) {
-              videoRef.current.play()
+              videoRef.current
+                .play()
                 .then(() => {
-                  console.log('▶️ Video started playing');
+                  console.log("▶️ Video started playing");
                   resolve();
                 })
                 .catch((playError) => {
-                  console.error('❌ Error playing video:', playError);
+                  console.error("❌ Error playing video:", playError);
                   reject(playError);
                 });
             }
           };
-          
+
           videoRef.current.onerror = (error) => {
-            console.error('❌ Video error:', error);
-            reject(new Error('Video loading failed'));
+            console.error("❌ Video error:", error);
+            reject(new Error("Video loading failed"));
           };
-          
+
           // Timeout if video doesn't load within 10 seconds
           setTimeout(() => {
-            reject(new Error('Camera loading timeout'));
+            reject(new Error("Camera loading timeout"));
           }, 10000);
         });
       } else {
-        throw new Error('Video element not available');
+        throw new Error("Video element not available");
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
-      
-      let errorMessage = '';
-      let errorTitle = '';
-      
+      console.error("Error accessing camera:", error);
+
+      let errorMessage = "";
+      let errorTitle = "";
+
       if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          errorTitle = language === 'hindi' ? 'कैमरा अनुमति चाहिए' : 'Camera Permission Required';
-          errorMessage = language === 'hindi' 
-            ? 'कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें।'
-            : 'Please allow camera access in your browser settings.';
-        } else if (error.name === 'NotFoundError') {
-          errorTitle = language === 'hindi' ? 'कैमरा नहीं मिला' : 'Camera Not Found';
-          errorMessage = language === 'hindi' 
-            ? 'कोई कैमरा डिवाइस नहीं मिला।'
-            : 'No camera device found.';
+        if (error.name === "NotAllowedError") {
+          errorTitle =
+            language === "hindi"
+              ? "कैमरा अनुमति चाहिए"
+              : "Camera Permission Required";
+          errorMessage =
+            language === "hindi"
+              ? "कृपया ब्राउज़र में कैमरा का उपयोग करने की अनुमति दें।"
+              : "Please allow camera access in your browser settings.";
+        } else if (error.name === "NotFoundError") {
+          errorTitle =
+            language === "hindi" ? "कैमरा नहीं मिला" : "Camera Not Found";
+          errorMessage =
+            language === "hindi"
+              ? "कोई कैमरा डिवाइस नहीं मिला।"
+              : "No camera device found.";
         } else {
-          errorTitle = language === 'hindi' ? 'कैमरा त्रुटि' : 'Camera Error';
-          errorMessage = language === 'hindi' 
-            ? 'कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।'
-            : 'Could not access camera. Please try again.';
+          errorTitle = language === "hindi" ? "कैमरा त्रुटि" : "Camera Error";
+          errorMessage =
+            language === "hindi"
+              ? "कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।"
+              : "Could not access camera. Please try again.";
         }
       }
-      
+
       toast({
         title: errorTitle,
         description: errorMessage,
-        variant: 'destructive'
+        variant: "destructive",
       });
     }
   };
 
   const capturePhoto = async () => {
-    console.log('📸 Capturing photo...');
-    
+    console.log("📸 Capturing photo...");
+
     if (!videoRef.current || !canvasRef.current) {
       toast({
-        title: language === 'hindi' ? 'कैमरा त्रुटि' : 'Camera Error',
-        description: language === 'hindi' 
-          ? 'कैमरा उपलब्ध नहीं है।'
-          : 'Camera not available.',
-        variant: 'destructive'
+        title: language === "hindi" ? "कैमरा त्रुटि" : "Camera Error",
+        description:
+          language === "hindi"
+            ? "कैमरा उपलब्ध नहीं है।"
+            : "Camera not available.",
+        variant: "destructive",
       });
       return;
     }
@@ -198,70 +233,79 @@ export default function DocumentPage() {
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      
+      const context = canvas.getContext("2d");
+
       if (!context) {
-        throw new Error('Canvas context not available');
+        throw new Error("Canvas context not available");
       }
 
       // Set canvas dimensions to match video
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
-      
-      console.log('📐 Canvas dimensions:', canvas.width, 'x', canvas.height);
-      
+
+      console.log("📐 Canvas dimensions:", canvas.width, "x", canvas.height);
+
       // Draw the current frame from video to canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
+
       // Get image data as base64
-      const imageData = canvas.toDataURL('image/jpeg', 0.9);
-      console.log('🖼️ Image captured, size:', imageData.length, 'characters');
-      
+      const imageData = canvas.toDataURL("image/jpeg", 0.9);
+      console.log("🖼️ Image captured, size:", imageData.length, "characters");
+
       // Set captured image for preview
       setCapturedImage(imageData);
       setShowCamera(false);
-      
+
       // Stop camera stream
       const stream = video.srcObject as MediaStream;
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        console.log('📷 Camera stream stopped');
+        stream.getTracks().forEach((track) => track.stop());
+        console.log("📷 Camera stream stopped");
       }
-      
+
       // Convert canvas to blob and create file for analysis
-      canvas.toBlob(async (blob) => {
-        if (blob) {
-          const file = new File([blob], 'captured-document.jpg', { type: 'image/jpeg' });
-          console.log('📁 File created:', file.name, file.size, 'bytes');
-          
-          // Reset previous analysis
-          setUploadedFile(file);
-          setAnalysisResult(null);
-          setMessages([]);
-          setGeneratedImageUrl(null);
-          
-          // Show success message
-          toast({
-            title: language === 'hindi' ? 'फोटो कैप्चर हुई' : 'Photo Captured',
-            description: language === 'hindi' 
-              ? 'फोटो सफलतापूर्वक कैप्चर हुई। अब विश्लेषण करें।'
-              : 'Photo captured successfully. Now analyze it.',
-          });
-          
-          console.log('✅ Photo capture complete, ready for analysis');
-        } else {
-          throw new Error('Failed to create blob from canvas');
-        }
-      }, 'image/jpeg', 0.9);
-      
+      canvas.toBlob(
+        async (blob) => {
+          if (blob) {
+            const file = new File([blob], "captured-document.jpg", {
+              type: "image/jpeg",
+            });
+            console.log("📁 File created:", file.name, file.size, "bytes");
+
+            // Reset previous analysis
+            setUploadedFile(file);
+            setAnalysisResult(null);
+            setMessages([]);
+            setGeneratedImageUrl(null);
+
+            // Show success message
+            toast({
+              title:
+                language === "hindi" ? "फोटो कैप्चर हुई" : "Photo Captured",
+              description:
+                language === "hindi"
+                  ? "फोटो सफलतापूर्वक कैप्चर हुई। अब विश्लेषण करें।"
+                  : "Photo captured successfully. Now analyze it.",
+            });
+
+            console.log("✅ Photo capture complete, ready for analysis");
+          } else {
+            throw new Error("Failed to create blob from canvas");
+          }
+        },
+        "image/jpeg",
+        0.9
+      );
     } catch (error) {
-      console.error('❌ Error capturing photo:', error);
+      console.error("❌ Error capturing photo:", error);
       toast({
-        title: language === 'hindi' ? 'फोटो कैप्चर त्रुटि' : 'Photo Capture Error',
-        description: language === 'hindi' 
-          ? 'फोटो कैप्चर करने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-          : 'Error capturing photo. Please try again.',
-        variant: 'destructive'
+        title:
+          language === "hindi" ? "फोटो कैप्चर त्रुटि" : "Photo Capture Error",
+        description:
+          language === "hindi"
+            ? "फोटो कैप्चर करने में त्रुटि हुई। कृपया पुनः प्रयास करें।"
+            : "Error capturing photo. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -270,188 +314,242 @@ export default function DocumentPage() {
     if (videoRef.current) {
       const stream = videoRef.current.srcObject as MediaStream;
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     }
     setShowCamera(false);
   };
 
   const handleAnalyze = async () => {
-    console.log('🔍 handleAnalyze called');
-    console.log('📁 uploadedFile:', uploadedFile?.name, uploadedFile?.size, 'bytes');
-    console.log('📷 capturedImage:', capturedImage ? 'Present' : 'None');
-    console.log('🎨 generatedImageUrl:', generatedImageUrl ? 'Present' : 'None');
-    
+    console.log("🔍 handleAnalyze called");
+    console.log(
+      "📁 uploadedFile:",
+      uploadedFile?.name,
+      uploadedFile?.size,
+      "bytes"
+    );
+    console.log("📷 capturedImage:", capturedImage ? "Present" : "None");
+    console.log(
+      "🎨 generatedImageUrl:",
+      generatedImageUrl ? "Present" : "None"
+    );
+
     // Check if we have any content to analyze
     if (!uploadedFile && !capturedImage && !generatedImageUrl) {
-      console.log('❌ No file/image found, showing error toast');
+      console.log("❌ No file/image found, showing error toast");
       toast({
-        title: language === 'hindi' ? 'कोई फ़ाइल नहीं' : 'No File Selected',
-        description: language === 'hindi' 
-          ? 'कृपया पहले कोई फ़ाइल अपलोड करें या फोटो लें।'
-          : 'Please upload a file or take a photo first.',
-        variant: 'destructive'
+        title: language === "hindi" ? "कोई फ़ाइल नहीं" : "No File Selected",
+        description:
+          language === "hindi"
+            ? "कृपया पहले कोई फ़ाइल अपलोड करें या फोटो लें।"
+            : "Please upload a file or take a photo first.",
+        variant: "destructive",
       });
       return;
     }
 
     setIsAnalyzing(true);
-    
+
     try {
       let result: DocumentAnalysisResult;
-      
-      console.log('🚀 Starting analysis process...');
-      
+
+      console.log("🚀 Starting analysis process...");
+
       // Determine what type of content we're analyzing
       if (capturedImage && uploadedFile) {
-        console.log('📸 Analyzing captured photo');
+        console.log("📸 Analyzing captured photo");
         result = await apiClient.analyzeDocument(uploadedFile, language);
-        console.log('✅ Captured photo analysis complete');
+        console.log("✅ Captured photo analysis complete");
       } else if (generatedImageUrl) {
-        console.log('Analyzing generated image');
-        console.log('🚀 Generated image URL:', generatedImageUrl);
-        console.log('🚀 About to call apiClient.analyzeDocument with backend /document endpoint for generated image');
-        
+        console.log("Analyzing generated image");
+        console.log("🚀 Generated image URL:", generatedImageUrl);
+        console.log(
+          "🚀 About to call apiClient.analyzeDocument with backend /document endpoint for generated image"
+        );
+
         try {
           // For generated images, convert URL to blob and analyze
-          console.log('📥 Fetching generated image from URL...');
+          console.log("📥 Fetching generated image from URL...");
           const response = await fetch(generatedImageUrl, {
-            mode: 'cors',
+            mode: "cors",
             headers: {
-              'Accept': 'image/*',
-            }
+              Accept: "image/*",
+            },
           });
-          
+
           if (!response.ok) {
-            throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+            throw new Error(
+              `Failed to fetch image: ${response.status} ${response.statusText}`
+            );
           }
-          
-          console.log('✅ Successfully fetched image, converting to blob...');
+
+          console.log("✅ Successfully fetched image, converting to blob...");
           const blob = await response.blob();
-          console.log('✅ Blob created, size:', blob.size, 'bytes, type:', blob.type);
-          
-          const file = new File([blob], 'generated-image.png', { type: blob.type || 'image/png' });
-          console.log('✅ File created, calling analyze API...');
-          
+          console.log(
+            "✅ Blob created, size:",
+            blob.size,
+            "bytes, type:",
+            blob.type
+          );
+
+          const file = new File([blob], "generated-image.png", {
+            type: blob.type || "image/png",
+          });
+          console.log("✅ File created, calling analyze API...");
+
           result = await apiClient.analyzeDocument(file, language);
         } catch (fetchError) {
-          console.error('❌ Error fetching generated image:', fetchError);
-          
+          console.error("❌ Error fetching generated image:", fetchError);
+
           // Fallback: Try to analyze using the image URL directly by sending it to backend
-          console.log('🔄 Trying fallback method - sending URL to backend...');
-          
+          console.log("🔄 Trying fallback method - sending URL to backend...");
+
           try {
-            const fallbackResponse = await fetch(`http://localhost:8000/document`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                image_url: generatedImageUrl, // Send URL instead of base64
-                document_type: 'image/png',
-                language,
-              }),
-            });
-            
+            const fallbackResponse = await fetch(
+              `http://localhost:8000/document`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  image_url: generatedImageUrl, // Send URL instead of base64
+                  document_type: "image/png",
+                  language,
+                }),
+              }
+            );
+
             if (!fallbackResponse.ok) {
-              throw new Error(`Fallback method failed: ${fallbackResponse.status}`);
+              throw new Error(
+                `Fallback method failed: ${fallbackResponse.status}`
+              );
             }
-            
+
             const fallbackData = await fallbackResponse.json();
-            
+
             if (fallbackData.success && fallbackData.analysis) {
               result = {
-                summary: fallbackData.analysis.main_information || 'Generated image analyzed successfully',
-                keyPoints: fallbackData.analysis.fields_detected.map((field: any) => `${field.field_name}: ${field.value}`),
+                summary:
+                  fallbackData.analysis.main_information ||
+                  "Generated image analyzed successfully",
+                keyPoints: fallbackData.analysis.fields_detected.map(
+                  (field: any) => `${field.field_name}: ${field.value}`
+                ),
                 recommendations: fallbackData.analysis.suggestions,
               };
-              console.log('✅ Fallback analysis successful');
+              console.log("✅ Fallback analysis successful");
             } else {
-              throw new Error('Fallback analysis failed');
+              throw new Error("Fallback analysis failed");
             }
           } catch (fallbackError) {
-            console.error('❌ Fallback method also failed:', fallbackError);
-            
+            console.error("❌ Fallback method also failed:", fallbackError);
+
             // Final fallback: Use the image prompt for analysis
             result = {
-              summary: language === 'hindi' 
-                ? `यह एक AI द्वारा बनाई गई छवि है। छवि की सामग्री का विश्लेषण करने में तकनीकी समस्या हुई है। छवि प्रॉम्प्ट के आधार पर: "${imagePrompt}"`
-                : `This is an AI-generated image. There was a technical issue analyzing the image content. Based on the image prompt: "${imagePrompt}"`,
+              summary:
+                language === "hindi"
+                  ? `यह एक AI द्वारा बनाई गई छवि है। छवि की सामग्री का विश्लेषण करने में तकनीकी समस्या हुई है। छवि प्रॉम्प्ट के आधार पर: "${imagePrompt}"`
+                  : `This is an AI-generated image. There was a technical issue analyzing the image content. Based on the image prompt: "${imagePrompt}"`,
               keyPoints: [
-                language === 'hindi' ? 'AI द्वारा बनाई गई छवि' : 'AI-generated image',
-                language === 'hindi' ? 'छवि विश्लेषण में तकनीकी समस्या' : 'Technical issue with image analysis',
-                language === 'hindi' ? 'प्रॉम्प्ट आधारित जानकारी उपलब्ध' : 'Prompt-based information available'
+                language === "hindi"
+                  ? "AI द्वारा बनाई गई छवि"
+                  : "AI-generated image",
+                language === "hindi"
+                  ? "छवि विश्लेषण में तकनीकी समस्या"
+                  : "Technical issue with image analysis",
+                language === "hindi"
+                  ? "प्रॉम्प्ट आधारित जानकारी उपलब्ध"
+                  : "Prompt-based information available",
               ],
               recommendations: [
-                language === 'hindi' ? 'छवि को डाउनलोड करके पुनः अपलोड करें' : 'Download image and re-upload for analysis',
-                language === 'hindi' ? 'छवि का मैन्युअल रूप से उपयोग करें' : 'Use the image manually as needed'
-              ]
+                language === "hindi"
+                  ? "छवि को डाउनलोड करके पुनः अपलोड करें"
+                  : "Download image and re-upload for analysis",
+                language === "hindi"
+                  ? "छवि का मैन्युअल रूप से उपयोग करें"
+                  : "Use the image manually as needed",
+              ],
             };
           }
         }
       } else if (uploadedFile) {
-        console.log('📁 Analyzing uploaded file:', uploadedFile.name);
+        console.log("📁 Analyzing uploaded file:", uploadedFile.name);
         result = await apiClient.analyzeDocument(uploadedFile, language);
-        console.log('✅ Uploaded file analysis complete');
+        console.log("✅ Uploaded file analysis complete");
       } else {
-        throw new Error('No valid input found for analysis');
+        throw new Error("No valid input found for analysis");
       }
-      
-      console.log('Analysis result:', result);
+
+      console.log("Analysis result:", result);
       setAnalysisResult(result);
-      
+
       // Add analysis as first message
       const analysisMessage: Message = {
         id: uuidv4(),
         content: formatAnalysisMessage(result),
-        role: 'assistant'
+        role: "assistant",
       };
       setMessages([analysisMessage]);
-      
+
       toast({
-        title: language === 'hindi' ? 'विश्लेषण पूर्ण' : 'Analysis Complete',
-        description: language === 'hindi' 
-          ? 'दस्तावेज़ का विश्लेषण सफलतापूर्वक पूरा हुआ।'
-          : 'Document analysis completed successfully.',
+        title: language === "hindi" ? "विश्लेषण पूर्ण" : "Analysis Complete",
+        description:
+          language === "hindi"
+            ? "दस्तावेज़ का विश्लेषण सफलतापूर्वक पूरा हुआ।"
+            : "Document analysis completed successfully.",
       });
     } catch (error) {
-      console.error('Analysis error:', error);
-      
-      let errorMessage = '';
-      let errorTitle = '';
-      
+      console.error("Analysis error:", error);
+
+      let errorMessage = "";
+      let errorTitle = "";
+
       if (error instanceof Error) {
         errorMessage = error.message;
-        
-        if (error.message.includes('connection') || error.message.includes('network')) {
-          errorTitle = language === 'hindi' ? 'कनेक्शन त्रुटि' : 'Connection Error';
-        } else if (error.message.includes('API') || error.message.includes('service')) {
-          errorTitle = language === 'hindi' ? 'सेवा त्रुटि' : 'Service Error';
-        } else if (error.message.includes('file') || error.message.includes('format')) {
-          errorTitle = language === 'hindi' ? 'फ़ाइल त्रुटि' : 'File Error';
+
+        if (
+          error.message.includes("connection") ||
+          error.message.includes("network")
+        ) {
+          errorTitle =
+            language === "hindi" ? "कनेक्शन त्रुटि" : "Connection Error";
+        } else if (
+          error.message.includes("API") ||
+          error.message.includes("service")
+        ) {
+          errorTitle = language === "hindi" ? "सेवा त्रुटि" : "Service Error";
+        } else if (
+          error.message.includes("file") ||
+          error.message.includes("format")
+        ) {
+          errorTitle = language === "hindi" ? "फ़ाइल त्रुटि" : "File Error";
         } else {
-          errorTitle = language === 'hindi' ? 'विश्लेषण त्रुटि' : 'Analysis Error';
+          errorTitle =
+            language === "hindi" ? "विश्लेषण त्रुटि" : "Analysis Error";
         }
       } else {
-        errorTitle = language === 'hindi' ? 'अज्ञात त्रुटि' : 'Unknown Error';
-        errorMessage = language === 'hindi' 
-          ? 'दस्तावेज़ विश्लेषण में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-          : 'Error analyzing document. Please try again.';
+        errorTitle = language === "hindi" ? "अज्ञात त्रुटि" : "Unknown Error";
+        errorMessage =
+          language === "hindi"
+            ? "दस्तावेज़ विश्लेषण में त्रुटि हुई। कृपया पुनः प्रयास करें।"
+            : "Error analyzing document. Please try again.";
       }
-      
+
       toast({
         title: errorTitle,
         description: errorMessage,
-        variant: 'destructive'
+        variant: "destructive",
       });
 
       // Add error message to chat
       const errorChatMessage: Message = {
         id: uuidv4(),
-        content: language === 'hindi' 
-          ? `क्षमा करें, दस्तावेज़ विश्लेषण में समस्या हुई: ${errorMessage}\n\nकृपया:\n• अपना इंटरनेट कनेक्शन जांचें\n• फ़ाइल का साइज़ और फॉर्मेट जांचें\n• थोड़ी देर बाद पुनः प्रयास करें`
-          : `Sorry, there was an issue with document analysis: ${errorMessage}\n\nPlease:\n• Check your internet connection\n• Verify file size and format\n• Try again after some time`,
-        role: 'assistant'
+        content:
+          language === "hindi"
+            ? `क्षमा करें, दस्तावेज़ विश्लेषण में समस्या हुई: ${errorMessage}\n\nकृपया:\n• अपना इंटरनेट कनेक्शन जांचें\n• फ़ाइल का साइज़ और फॉर्मेट जांचें\n• थोड़ी देर बाद पुनः प्रयास करें`
+            : `Sorry, there was an issue with document analysis: ${errorMessage}\n\nPlease:\n• Check your internet connection\n• Verify file size and format\n• Try again after some time`,
+        role: "assistant",
       };
       setMessages([errorChatMessage]);
     } finally {
@@ -460,28 +558,37 @@ export default function DocumentPage() {
   };
 
   const formatAnalysisMessage = (result: DocumentAnalysisResult): string => {
-    const header = language === 'hindi' ? '📄 दस्तावेज़ विश्लेषण परिणाम:' : '📄 Document Analysis Results:';
-    
+    const header =
+      language === "hindi"
+        ? "📄 दस्तावेज़ विश्लेषण परिणाम:"
+        : "📄 Document Analysis Results:";
+
     let message = `${header}\n\n`;
-    
-    message += `**${language === 'hindi' ? 'सारांश' : 'Summary'}:**\n${result.summary}\n\n`;
-    
-    message += `**${language === 'hindi' ? 'मुख्य बिंदु' : 'Key Points'}:**\n`;
+
+    message += `**${language === "hindi" ? "सारांश" : "Summary"}:**\n${
+      result.summary
+    }\n\n`;
+
+    message += `**${language === "hindi" ? "मुख्य बिंदु" : "Key Points"}:**\n`;
     result.keyPoints.forEach((point, index) => {
       message += `${index + 1}. ${point}\n`;
     });
-    
+
     if (result.translation) {
-      message += `\n**${language === 'hindi' ? 'अनुवाद' : 'Translation'}:**\n${result.translation}\n`;
+      message += `\n**${language === "hindi" ? "अनुवाद" : "Translation"}:**\n${
+        result.translation
+      }\n`;
     }
-    
+
     if (result.recommendations && result.recommendations.length > 0) {
-      message += `\n**${language === 'hindi' ? 'सुझाव' : 'Recommendations'}:**\n`;
+      message += `\n**${
+        language === "hindi" ? "सुझाव" : "Recommendations"
+      }:**\n`;
       result.recommendations.forEach((rec, index) => {
         message += `${index + 1}. ${rec}\n`;
       });
     }
-    
+
     return message;
   };
 
@@ -491,47 +598,52 @@ export default function DocumentPage() {
     const userMessage: Message = {
       id: uuidv4(),
       content: currentQuestion,
-      role: 'user'
+      role: "user",
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setCurrentQuestion("");
     setIsLoading(true);
 
     try {
-      const conversationHistory: ChatMessage[] = messages.map(msg => ({
-        role: msg.role as 'user' | 'assistant',
+      const conversationHistory: ChatMessage[] = messages.map((msg) => ({
+        role: msg.role as "user" | "assistant",
         content: msg.content,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }));
 
-      const contextPrompt = language === 'hindi' 
-        ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${currentQuestion}`
-        : `You have analyzed this document. Please answer in the context of this document: ${currentQuestion}`;
+      const contextPrompt =
+        language === "hindi"
+          ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${currentQuestion}`
+          : `You have analyzed this document. Please answer in the context of this document: ${currentQuestion}`;
 
-      const response = await apiClient.sendChatMessage(contextPrompt, conversationHistory);
-      
+      const response = await apiClient.sendChatMessage(
+        contextPrompt,
+        conversationHistory
+      );
+
       const assistantMessage: Message = {
         id: uuidv4(),
         content: response,
-        role: 'assistant'
+        role: "assistant",
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error sending question:', error);
-      
-      const errorMessage = language === 'hindi'
-        ? "क्षमा करें, मैं अभी आपके प्रश्न का उत्तर नहीं दे सका। कृपया पुनः प्रयास करें।"
-        : "Sorry, mai abhi aapke question ka jawab nahi de saka. Kripya phir try kariye.";
-      
+      console.error("Error sending question:", error);
+
+      const errorMessage =
+        language === "hindi"
+          ? "क्षमा करें, मैं अभी आपके प्रश्न का उत्तर नहीं दे सका। कृपया पुनः प्रयास करें।"
+          : "Sorry, mai abhi aapke question ka jawab nahi de saka. Kripya phir try kariye.";
+
       const assistantMessage: Message = {
         id: uuidv4(),
         content: errorMessage,
-        role: 'assistant'
+        role: "assistant",
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+
+      setMessages((prev) => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -540,66 +652,82 @@ export default function DocumentPage() {
   const handleGenerateImage = async () => {
     if (!imagePrompt.trim()) {
       toast({
-        title: language === 'hindi' ? 'प्रॉम्प्ट खाली है' : 'Empty Prompt',
-        description: language === 'hindi' 
-          ? 'कृपया छवि का विस्तृत विवरण लिखें।'
-          : 'Please provide a detailed description of the image.',
-        variant: 'destructive'
+        title: language === "hindi" ? "प्रॉम्प्ट खाली है" : "Empty Prompt",
+        description:
+          language === "hindi"
+            ? "कृपया छवि का विस्तृत विवरण लिखें।"
+            : "Please provide a detailed description of the image.",
+        variant: "destructive",
       });
       return;
     }
 
     setIsGeneratingImage(true);
-    
+
     try {
-      console.log('Generating image with prompt:', imagePrompt);
+      console.log("Generating image with prompt:", imagePrompt);
       const imageUrl = await apiClient.generateImage(imagePrompt, language);
-      
-      console.log('Image generated successfully:', imageUrl);
+
+      console.log("Image generated successfully:", imageUrl);
       setGeneratedImageUrl(imageUrl);
-      setImagePrompt(''); // Clear the prompt after successful generation
-      
+      setImagePrompt(""); // Clear the prompt after successful generation
+
       toast({
-        title: language === 'hindi' ? 'छवि तैयार हुई' : 'Image Generated',
-        description: language === 'hindi' 
-          ? 'आपकी छवि सफलतापूर्वक बनाई गई है।'
-          : 'Your image has been generated successfully.',
+        title: language === "hindi" ? "छवि तैयार हुई" : "Image Generated",
+        description:
+          language === "hindi"
+            ? "आपकी छवि सफलतापूर्वक बनाई गई है।"
+            : "Your image has been generated successfully.",
       });
     } catch (error) {
-      console.error('Image generation error:', error);
-      
-      let errorMessage = '';
-      let errorTitle = '';
-      
+      console.error("Image generation error:", error);
+
+      let errorMessage = "";
+      let errorTitle = "";
+
       if (error instanceof Error) {
         errorMessage = error.message;
-        
-        if (error.message.includes('appropriate') || error.message.includes('suitable')) {
-          errorTitle = language === 'hindi' ? 'अनुचित सामग्री' : 'Inappropriate Content';
-        } else if (error.message.includes('quota') || error.message.includes('limit')) {
-          errorTitle = language === 'hindi' ? 'सीमा पार' : 'Limit Exceeded';
-          errorMessage = language === 'hindi' 
-            ? 'दैनिक छवि बनाने की सीमा पार हो गई। कल पुनः कोशिश करें।'
-            : 'Daily image generation limit exceeded. Please try again tomorrow.';
-        } else if (error.message.includes('network') || error.message.includes('connection')) {
-          errorTitle = language === 'hindi' ? 'कनेक्शन त्रुटि' : 'Connection Error';
-          errorMessage = language === 'hindi' 
-            ? 'इंटरनेट कनेक्शन में समस्या। कृपया पुनः प्रयास करें।'
-            : 'Internet connection issue. Please try again.';
+
+        if (
+          error.message.includes("appropriate") ||
+          error.message.includes("suitable")
+        ) {
+          errorTitle =
+            language === "hindi" ? "अनुचित सामग्री" : "Inappropriate Content";
+        } else if (
+          error.message.includes("quota") ||
+          error.message.includes("limit")
+        ) {
+          errorTitle = language === "hindi" ? "सीमा पार" : "Limit Exceeded";
+          errorMessage =
+            language === "hindi"
+              ? "दैनिक छवि बनाने की सीमा पार हो गई। कल पुनः कोशिश करें।"
+              : "Daily image generation limit exceeded. Please try again tomorrow.";
+        } else if (
+          error.message.includes("network") ||
+          error.message.includes("connection")
+        ) {
+          errorTitle =
+            language === "hindi" ? "कनेक्शन त्रुटि" : "Connection Error";
+          errorMessage =
+            language === "hindi"
+              ? "इंटरनेट कनेक्शन में समस्या। कृपया पुनः प्रयास करें।"
+              : "Internet connection issue. Please try again.";
         } else {
-          errorTitle = language === 'hindi' ? 'छवि त्रुटि' : 'Image Error';
+          errorTitle = language === "hindi" ? "छवि त्रुटि" : "Image Error";
         }
       } else {
-        errorTitle = language === 'hindi' ? 'छवि त्रुटि' : 'Image Error';
-        errorMessage = language === 'hindi' 
-          ? 'छवि बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-          : 'Error generating image. Please try again.';
+        errorTitle = language === "hindi" ? "छवि त्रुटि" : "Image Error";
+        errorMessage =
+          language === "hindi"
+            ? "छवि बनाने में त्रुटि हुई। कृपया पुनः प्रयास करें।"
+            : "Error generating image. Please try again.";
       }
-      
+
       toast({
         title: errorTitle,
         description: errorMessage,
-        variant: 'destructive'
+        variant: "destructive",
       });
     } finally {
       setIsGeneratingImage(false);
@@ -615,7 +743,7 @@ export default function DocumentPage() {
     setShowImageGenerator(false);
     setImagePrompt("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -627,10 +755,12 @@ export default function DocumentPage() {
           {/* Sidebar */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-emerald-600 mb-2">{t('appTitle')}</h1>
-              <p className="text-gray-600 text-sm">{t('appSubtitle')}</p>
+              <h1 className="text-2xl font-bold text-emerald-600 mb-2">
+                {t("appTitle")}
+              </h1>
+              <p className="text-gray-600 text-sm">{t("appSubtitle")}</p>
             </div>
-            
+
             <Button
               onClick={toggleLanguage}
               variant="outline"
@@ -641,51 +771,78 @@ export default function DocumentPage() {
             </Button>
 
             <div className="space-y-3">
-              <Link to="/" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                to="/"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <Home className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('home')}</span>
-              </Link>
-              
-              <Link to="/chat" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('chat')}</span>
-              </Link>
-              
-              <Link to="/voice-agent" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Mic className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('voice')}</span>
+                <span className="text-gray-700">{t("home")}</span>
               </Link>
 
-              <Link to="/circulars" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                to="/chat"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">{t("chat")}</span>
+              </Link>
+
+              <Link
+                to="/voice-agent"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Mic className="w-5 h-5 mr-3 text-gray-500" />
+                <span className="text-gray-700">{t("voice")}</span>
+              </Link>
+
+              <Link
+                to="/circulars"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <LinkIcon className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
+                  {language === "hindi"
+                    ? "सरकारी परिपत्र"
+                    : "Government Circulars"}
                 </span>
               </Link>
 
               <div className="flex items-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
                 <FileText className="w-5 h-5 mr-3 text-emerald-600" />
-                <span className="text-emerald-700 font-medium">{t('documentAnalysis')}</span>
+                <span className="text-emerald-700 font-medium">
+                  {t("documentAnalysis")}
+                </span>
               </div>
 
-              <Link to="/academy" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                to="/academy"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
+                  {language === "hindi" ? "सरपंच अकादमी" : "Sarpanch Academy"}
                 </span>
               </Link>
 
-              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                to="/glossary"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
+                  {language === "hindi" ? "शब्दकोश" : "Glossary"}
                 </span>
               </Link>
 
-              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
+              <Link
+                to="/videos"
+                className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
                 <span className="text-gray-700">
-                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
+                  {language === "hindi"
+                    ? "महत्वपूर्ण वीडियो"
+                    : "Important Videos"}
                 </span>
               </Link>
             </div>
@@ -700,7 +857,7 @@ export default function DocumentPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="w-5 h-5" />
-                      {t('documentAnalysis')}
+                      {t("documentAnalysis")}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -712,72 +869,70 @@ export default function DocumentPage() {
                         onChange={handleFileSelect}
                         className="hidden"
                       />
-                      
+
                       {!uploadedFile && !capturedImage && !generatedImageUrl ? (
                         <div className="grid grid-cols-3 gap-4">
-                          <div 
+                          <div
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                             onClick={() => fileInputRef.current?.click()}
                           >
                             <Upload className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                             <p className="text-lg font-medium mb-2">
-                              {language === 'hindi' ? 'फ़ाइल अपलोड करें' : 'Upload File'}
+                              {language === "hindi"
+                                ? "फ़ाइल अपलोड करें"
+                                : "Upload File"}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {language === 'hindi' 
-                                ? 'PDF ✓, Word, PPT, छवि फ़ाइलें'
-                                : 'PDF ✓, Word, PPT, Image files'
-                              }
+                              {language === "hindi"
+                                ? "PDF ✓, Word, PPT, छवि फ़ाइलें"
+                                : "PDF ✓, Word, PPT, Image files"}
                             </p>
                             <p className="text-xs text-emerald-600 mt-1">
-                              {language === 'hindi' 
-                                ? '• PDF फ़ाइलें अब समर्थित हैं! • वास्तविक AI विश्लेषण!'
-                                : '• PDF files now supported! • Real AI analysis!'
-                              }
+                              {language === "hindi"
+                                ? "• PDF फ़ाइलें अब समर्थित हैं! • वास्तविक AI विश्लेषण!"
+                                : "• PDF files now supported! • Real AI analysis!"}
                             </p>
                           </div>
-                          
-                          <div 
+
+                          <div
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                             onClick={startCamera}
                           >
                             <Camera className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                             <p className="text-lg font-medium mb-2">
-                              {language === 'hindi' ? 'फोटो लें' : 'Take Photo'}
+                              {language === "hindi" ? "फोटो लें" : "Take Photo"}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {language === 'hindi' 
-                                ? 'दस्तावेज़ की फोटो खींचें + AI विश्लेषण'
-                                : 'Capture photo + AI analysis'
-                              }
+                              {language === "hindi"
+                                ? "दस्तावेज़ की फोटो खींचें + AI विश्लेषण"
+                                : "Capture photo + AI analysis"}
                             </p>
                             <p className="text-xs text-emerald-600 mt-1">
-                              {language === 'hindi' 
-                                ? '• वास्तविक विश्लेषण!'
-                                : '• Real analysis!'
-                              }
+                              {language === "hindi"
+                                ? "• वास्तविक विश्लेषण!"
+                                : "• Real analysis!"}
                             </p>
                           </div>
 
-                          <div 
+                          <div
                             className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                             onClick={() => setShowImageGenerator(true)}
                           >
                             <Palette className="w-10 h-10 mx-auto mb-3 text-gray-400" />
                             <p className="text-lg font-medium mb-2">
-                              {language === 'hindi' ? 'छवि बनाएं' : 'Generate Image'}
+                              {language === "hindi"
+                                ? "छवि बनाएं"
+                                : "Generate Image"}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {language === 'hindi' 
-                                ? 'इन्फोग्राफिक और चार्ट बनाएं'
-                                : 'Create infographics & charts'
-                              }
+                              {language === "hindi"
+                                ? "इन्फोग्राफिक और चार्ट बनाएं"
+                                : "Create infographics & charts"}
                             </p>
                             <p className="text-xs text-emerald-600 mt-1">
-                              {language === 'hindi' 
-                                ? '• DALL-E AI द्वारा संचालित!'
-                                : '• Powered by DALL-E AI!'
-                              }
+                              {language === "hindi"
+                                ? "• DALL-E AI द्वारा संचालित!"
+                                : "• Powered by DALL-E AI!"}
                             </p>
                           </div>
                         </div>
@@ -785,46 +940,67 @@ export default function DocumentPage() {
                         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-3">
                             {capturedImage ? (
-                              <img src={capturedImage} alt="Captured" className="w-16 h-16 object-cover rounded" />
+                              <img
+                                src={capturedImage}
+                                alt="Captured"
+                                className="w-16 h-16 object-cover rounded"
+                              />
                             ) : generatedImageUrl ? (
-                              <img src={generatedImageUrl} alt="Generated" className="w-16 h-16 object-cover rounded" />
+                              <img
+                                src={generatedImageUrl}
+                                alt="Generated"
+                                className="w-16 h-16 object-cover rounded"
+                              />
                             ) : (
                               <FileText className="w-6 h-6 text-emerald-600" />
                             )}
                             <div>
                               <p className="font-medium">
-                                {uploadedFile?.name || 
-                                 (capturedImage ? (language === 'hindi' ? 'कैप्चर किया गया दस्तावेज़' : 'Captured Document') : 
-                                  generatedImageUrl ? (language === 'hindi' ? 'बनाई गई छवि' : 'Generated Image') : '')}
+                                {uploadedFile?.name ||
+                                  (capturedImage
+                                    ? language === "hindi"
+                                      ? "कैप्चर किया गया दस्तावेज़"
+                                      : "Captured Document"
+                                    : generatedImageUrl
+                                    ? language === "hindi"
+                                      ? "बनाई गई छवि"
+                                      : "Generated Image"
+                                    : "")}
                               </p>
                               {uploadedFile && (
                                 <p className="text-sm text-gray-500">
-                                  {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                                  {(uploadedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                  MB
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="flex gap-2">
-                                                      <Button
-                            onClick={handleAnalyze}
-                            disabled={isAnalyzing || (!uploadedFile && !capturedImage && !generatedImageUrl)}
-                            className="primary-button"
-                          >
-                            {isAnalyzing ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                {t('analyzingDocument')}
-                              </>
-                            ) : (
-                              t('analyzeDocument')
-                            )}
-                          </Button>
+                            <Button
+                              onClick={handleAnalyze}
+                              disabled={
+                                isAnalyzing ||
+                                (!uploadedFile &&
+                                  !capturedImage &&
+                                  !generatedImageUrl)
+                              }
+                              className="primary-button"
+                            >
+                              {isAnalyzing ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  {t("analyzingDocument")}
+                                </>
+                              ) : (
+                                t("analyzeDocument")
+                              )}
+                            </Button>
                             <Button
                               onClick={resetDocument}
                               variant="outline"
                               disabled={isAnalyzing}
                             >
-                              {language === 'hindi' ? 'रीसेट' : 'Reset'}
+                              {language === "hindi" ? "रीसेट" : "Reset"}
                             </Button>
                           </div>
                         </div>
@@ -839,22 +1015,26 @@ export default function DocumentPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
                   <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
                     <h3 className="text-lg font-bold mb-4 text-center">
-                      {language === 'hindi' ? 'दस्तावेज़ की फोटो लें' : 'Capture Document Photo'}
+                      {language === "hindi"
+                        ? "दस्तावेज़ की फोटो लें"
+                        : "Capture Document Photo"}
                     </h3>
                     <div className="relative">
-                      <video 
-                        ref={videoRef} 
-                        autoPlay 
+                      <video
+                        ref={videoRef}
+                        autoPlay
                         playsInline
                         muted
                         webkit-playsinline="true"
                         className="w-full h-64 sm:h-80 bg-gray-200 rounded-lg mb-4 object-cover"
-                        style={{ transform: 'scaleX(-1)' }} // Mirror effect for front camera
+                        style={{ transform: "scaleX(-1)" }} // Mirror effect for front camera
                       />
                       {!videoRef.current?.srcObject && (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-lg">
                           <p className="text-gray-500">
-                            {language === 'hindi' ? 'कैमरा लोड हो रहा है...' : 'Loading camera...'}
+                            {language === "hindi"
+                              ? "कैमरा लोड हो रहा है..."
+                              : "Loading camera..."}
                           </p>
                         </div>
                       )}
@@ -863,10 +1043,10 @@ export default function DocumentPage() {
                     <div className="flex gap-4 justify-center">
                       <Button onClick={capturePhoto} className="primary-button">
                         <Camera className="w-4 h-4 mr-2" />
-                        {language === 'hindi' ? 'फोटो लें' : 'Capture'}
+                        {language === "hindi" ? "फोटो लें" : "Capture"}
                       </Button>
                       <Button onClick={stopCamera} variant="outline">
-                        {language === 'hindi' ? 'रद्द करें' : 'Cancel'}
+                        {language === "hindi" ? "रद्द करें" : "Cancel"}
                       </Button>
                     </div>
                   </div>
@@ -878,38 +1058,71 @@ export default function DocumentPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
                     <h3 className="text-xl font-bold mb-4 text-emerald-600">
-                      {language === 'hindi' ? 'इन्फोग्राफिक और चार्ट बनाएं' : 'Generate Infographics & Charts'}
+                      {language === "hindi"
+                        ? "इन्फोग्राफिक और चार्ट बनाएं"
+                        : "Generate Infographics & Charts"}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {language === 'hindi' 
-                        ? 'केवल सरकारी कार्य, प्रशिक्षण सामग्री और अधिकारिक प्रस्तुतियों के लिए छवियां बनाएं।'
-                        : 'Create images only for government work, training materials and official presentations.'
-                      }
+                      {language === "hindi"
+                        ? "केवल सरकारी कार्य, प्रशिक्षण सामग्री और अधिकारिक प्रस्तुतियों के लिए छवियां बनाएं।"
+                        : "Create images only for government work, training materials and official presentations."}
                     </p>
                     <details className="mb-4">
                       <summary className="text-sm font-medium text-emerald-600 cursor-pointer">
-                        {language === 'hindi' ? 'उदाहरण देखें' : 'View Examples'}
+                        {language === "hindi"
+                          ? "उदाहरण देखें"
+                          : "View Examples"}
                       </summary>
                       <div className="mt-2 text-xs text-gray-600 space-y-1">
-                        <p>• {language === 'hindi' ? 'MGNREGA कार्य प्रक्रिया का फ्लोचार्ट' : 'MGNREGA work process flowchart'}</p>
-                        <p>• {language === 'hindi' ? 'ग्राम पंचायत बजट का पाई चार्ट' : 'Gram Panchayat budget pie chart'}</p>
-                        <p>• {language === 'hindi' ? 'स्वच्छ भारत योजना के चरण' : 'Swachh Bharat scheme steps'}</p>
-                        <p>• {language === 'hindi' ? 'पंचायत चुनाव प्रक्रिया डायग्राम' : 'Panchayat election process diagram'}</p>
-                        <p>• {language === 'hindi' ? 'जल जीवन मिशन इन्फोग्राफिक' : 'Jal Jeevan Mission infographic'}</p>
+                        <p>
+                          •{" "}
+                          {language === "hindi"
+                            ? "MGNREGA कार्य प्रक्रिया का फ्लोचार्ट"
+                            : "MGNREGA work process flowchart"}
+                        </p>
+                        <p>
+                          •{" "}
+                          {language === "hindi"
+                            ? "ग्राम पंचायत बजट का पाई चार्ट"
+                            : "Gram Panchayat budget pie chart"}
+                        </p>
+                        <p>
+                          •{" "}
+                          {language === "hindi"
+                            ? "स्वच्छ भारत योजना के चरण"
+                            : "Swachh Bharat scheme steps"}
+                        </p>
+                        <p>
+                          •{" "}
+                          {language === "hindi"
+                            ? "पंचायत चुनाव प्रक्रिया डायग्राम"
+                            : "Panchayat election process diagram"}
+                        </p>
+                        <p>
+                          •{" "}
+                          {language === "hindi"
+                            ? "जल जीवन मिशन इन्फोग्राफिक"
+                            : "Jal Jeevan Mission infographic"}
+                        </p>
                       </div>
                     </details>
                     <textarea
                       value={imagePrompt}
                       onChange={(e) => setImagePrompt(e.target.value)}
-                      placeholder={language === 'hindi' 
-                        ? 'विस्तार से बताएं कि आप क्या चार्ट या डायग्राम बनाना चाहते हैं...\nउदाहरण: MGNREGA के तहत मजदूरी भुगतान की प्रक्रिया दिखाने वाला स्टेप-बाई-स्टेप चार्ट बनाएं'
-                        : 'Describe in detail what chart or diagram you want to create...\nExample: Create a step-by-step chart showing the wage payment process under MGNREGA'
+                      placeholder={
+                        language === "hindi"
+                          ? "विस्तार से बताएं कि आप क्या चार्ट या डायग्राम बनाना चाहते हैं...\nउदाहरण: MGNREGA के तहत मजदूरी भुगतान की प्रक्रिया दिखाने वाला स्टेप-बाई-स्टेप चार्ट बनाएं"
+                          : "Describe in detail what chart or diagram you want to create...\nExample: Create a step-by-step chart showing the wage payment process under MGNREGA"
                       }
                       className="w-full p-4 border border-gray-300 rounded-lg mb-4 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     {generatedImageUrl && (
                       <div className="mb-4">
-                        <img src={generatedImageUrl} alt="Generated" className="w-full max-h-64 object-contain rounded-lg border" />
+                        <img
+                          src={generatedImageUrl}
+                          alt="Generated"
+                          className="w-full max-h-64 object-contain rounded-lg border"
+                        />
                       </div>
                     )}
                     <div className="flex gap-4 justify-end">
@@ -918,7 +1131,7 @@ export default function DocumentPage() {
                         variant="outline"
                         disabled={isGeneratingImage}
                       >
-                        {language === 'hindi' ? 'बंद करें' : 'Close'}
+                        {language === "hindi" ? "बंद करें" : "Close"}
                       </Button>
                       <Button
                         onClick={handleGenerateImage}
@@ -928,12 +1141,16 @@ export default function DocumentPage() {
                         {isGeneratingImage ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {language === 'hindi' ? 'बनाई जा रही है...' : 'Generating...'}
+                            {language === "hindi"
+                              ? "बनाई जा रही है..."
+                              : "Generating..."}
                           </>
                         ) : (
                           <>
                             <Palette className="w-4 h-4 mr-2" />
-                            {language === 'hindi' ? 'छवि बनाएं' : 'Generate Image'}
+                            {language === "hindi"
+                              ? "छवि बनाएं"
+                              : "Generate Image"}
                           </>
                         )}
                       </Button>
@@ -945,14 +1162,20 @@ export default function DocumentPage() {
               {/* Messages */}
               {messages.map((message) => (
                 <div key={message.id} className="mb-4">
-                  <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div 
+                  <div
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
                       className={`max-w-[85%] p-4 rounded-xl ${
-                        message.role === 'user' 
-                          ? 'bg-emerald-600 text-white rounded-tr-none' 
-                          : 'bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200'
+                        message.role === "user"
+                          ? "bg-emerald-600 text-white rounded-tr-none"
+                          : "bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200"
                       }`}
-                      dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br/>') }}
+                      dangerouslySetInnerHTML={{
+                        __html: message.content.replace(/\n/g, "<br/>"),
+                      }}
                     />
                   </div>
                 </div>
@@ -961,14 +1184,16 @@ export default function DocumentPage() {
               {isLoading && (
                 <div className="flex justify-center">
                   <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl animate-pulse">
-                    <p className="text-emerald-600 text-center font-medium">{t('thinking')}</p>
+                    <p className="text-emerald-600 text-center font-medium">
+                      {t("thinking")}
+                    </p>
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
-            
+
             {/* Question Input */}
             {analysisResult && (
               <div className="border-t border-gray-200 p-6 bg-gray-50 rounded-b-xl">
@@ -977,10 +1202,13 @@ export default function DocumentPage() {
                     type="text"
                     value={currentQuestion}
                     onChange={(e) => setCurrentQuestion(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleQuestionSubmit()}
-                    placeholder={language === 'hindi' 
-                      ? 'दस्तावेज़ के बारे में प्रश्न पूछें...'
-                      : 'Ask questions about the document...'
+                    onKeyPress={(e) =>
+                      e.key === "Enter" && handleQuestionSubmit()
+                    }
+                    placeholder={
+                      language === "hindi"
+                        ? "दस्तावेज़ के बारे में प्रश्न पूछें..."
+                        : "Ask questions about the document..."
                     }
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     disabled={isLoading}
@@ -995,7 +1223,7 @@ export default function DocumentPage() {
                 </div>
               </div>
             )}
-            
+
             {/* Desktop Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="bg-gray-50 rounded-xl p-6 text-center">
@@ -1014,8 +1242,10 @@ export default function DocumentPage() {
         <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between max-w-md mx-auto">
             <div>
-              <h1 className="text-xl font-bold text-emerald-600">{t('documentAnalysis')}</h1>
-              <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
+              <h1 className="text-xl font-bold text-emerald-600">
+                {t("documentAnalysis")}
+              </h1>
+              <p className="text-xs text-gray-500">{t("appSubtitle")}</p>
             </div>
             <Button
               onClick={toggleLanguage}
@@ -1043,48 +1273,60 @@ export default function DocumentPage() {
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  
+
                   {!uploadedFile && !capturedImage && !generatedImageUrl ? (
                     <div className="space-y-4">
-                      <div 
+                      <div
                         className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <Upload className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                         <p className="font-medium text-sm">
-                          {language === 'hindi' ? 'फ़ाइल अपलोड करें' : 'Upload File'}
+                          {language === "hindi"
+                            ? "फ़ाइल अपलोड करें"
+                            : "Upload File"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {language === 'hindi' ? 'PDF ✓, Word, PPT, छवि' : 'PDF ✓, Word, PPT, Image'}
+                          {language === "hindi"
+                            ? "PDF ✓, Word, PPT, छवि"
+                            : "PDF ✓, Word, PPT, Image"}
                         </p>
                         <p className="text-xs text-emerald-600">
-                          {language === 'hindi' ? 'PDF अब समर्थित!' : 'PDF now supported!'}
+                          {language === "hindi"
+                            ? "PDF अब समर्थित!"
+                            : "PDF now supported!"}
                         </p>
                       </div>
-                      
-                      <div 
+
+                      <div
                         className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                         onClick={startCamera}
                       >
                         <Camera className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                         <p className="font-medium text-sm">
-                          {language === 'hindi' ? 'फोटो लें' : 'Take Photo'}
+                          {language === "hindi" ? "फोटो लें" : "Take Photo"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {language === 'hindi' ? 'दस्तावेज़ की फोटो' : 'Document photo'}
+                          {language === "hindi"
+                            ? "दस्तावेज़ की फोटो"
+                            : "Document photo"}
                         </p>
                       </div>
 
-                      <div 
+                      <div
                         className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                         onClick={() => setShowImageGenerator(true)}
                       >
                         <Palette className="w-6 h-6 mx-auto mb-2 text-gray-400" />
                         <p className="font-medium text-sm">
-                          {language === 'hindi' ? 'छवि बनाएं' : 'Generate Image'}
+                          {language === "hindi"
+                            ? "छवि बनाएं"
+                            : "Generate Image"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {language === 'hindi' ? 'चार्ट और इन्फोग्राफिक' : 'Charts & infographics'}
+                          {language === "hindi"
+                            ? "चार्ट और इन्फोग्राफिक"
+                            : "Charts & infographics"}
                         </p>
                       </div>
                     </div>
@@ -1092,34 +1334,58 @@ export default function DocumentPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                         {capturedImage ? (
-                          <img src={capturedImage} alt="Captured" className="w-12 h-12 object-cover rounded" />
+                          <img
+                            src={capturedImage}
+                            alt="Captured"
+                            className="w-12 h-12 object-cover rounded"
+                          />
                         ) : generatedImageUrl ? (
-                          <img src={generatedImageUrl} alt="Generated" className="w-12 h-12 object-cover rounded" />
+                          <img
+                            src={generatedImageUrl}
+                            alt="Generated"
+                            className="w-12 h-12 object-cover rounded"
+                          />
                         ) : (
                           <FileText className="w-6 h-6 text-emerald-600" />
                         )}
                         <div className="flex-1">
                           <p className="font-medium text-sm">
-                            {uploadedFile?.name || 
-                             (capturedImage ? (language === 'hindi' ? 'कैप्चर किया गया दस्तावेज़' : 'Captured Document') : 
-                              generatedImageUrl ? (language === 'hindi' ? 'बनाई गई छवि' : 'Generated Image') : '')}
+                            {uploadedFile?.name ||
+                              (capturedImage
+                                ? language === "hindi"
+                                  ? "कैप्चर किया गया दस्तावेज़"
+                                  : "Captured Document"
+                                : generatedImageUrl
+                                ? language === "hindi"
+                                  ? "बनाई गई छवि"
+                                  : "Generated Image"
+                                : "")}
                           </p>
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <Button
                           onClick={handleAnalyze}
-                          disabled={isAnalyzing || (!uploadedFile && !capturedImage && !generatedImageUrl)}
+                          disabled={
+                            isAnalyzing ||
+                            (!uploadedFile &&
+                              !capturedImage &&
+                              !generatedImageUrl)
+                          }
                           className="primary-button flex-1"
                           size="sm"
                         >
                           {isAnalyzing ? (
                             <>
                               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                              {language === 'hindi' ? 'विश्लेषण...' : 'Analyzing...'}
+                              {language === "hindi"
+                                ? "विश्लेषण..."
+                                : "Analyzing..."}
                             </>
+                          ) : language === "hindi" ? (
+                            "विश्लेषण करें"
                           ) : (
-                            language === 'hindi' ? 'विश्लेषण करें' : 'Analyze'
+                            "Analyze"
                           )}
                         </Button>
                         <Button
@@ -1128,7 +1394,7 @@ export default function DocumentPage() {
                           disabled={isAnalyzing}
                           size="sm"
                         >
-                          {language === 'hindi' ? 'रीसेट' : 'Reset'}
+                          {language === "hindi" ? "रीसेट" : "Reset"}
                         </Button>
                       </div>
                     </div>
@@ -1140,14 +1406,20 @@ export default function DocumentPage() {
             {/* Messages */}
             {messages.map((message) => (
               <div key={message.id} className="mb-4">
-                <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div 
+                <div
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
                     className={`max-w-[85%] p-3 rounded-xl text-sm ${
-                      message.role === 'user' 
-                        ? 'bg-emerald-600 text-white rounded-tr-none' 
-                        : 'bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200'
+                      message.role === "user"
+                        ? "bg-emerald-600 text-white rounded-tr-none"
+                        : "bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200"
                     }`}
-                    dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br/>') }}
+                    dangerouslySetInnerHTML={{
+                      __html: message.content.replace(/\n/g, "<br/>"),
+                    }}
                   />
                 </div>
               </div>
@@ -1156,13 +1428,15 @@ export default function DocumentPage() {
             {isLoading && (
               <div className="flex justify-center mb-4">
                 <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl animate-pulse">
-                  <p className="text-emerald-600 text-center text-sm font-medium">{t('thinking')}</p>
+                  <p className="text-emerald-600 text-center text-sm font-medium">
+                    {t("thinking")}
+                  </p>
                 </div>
               </div>
             )}
           </div>
         </main>
-        
+
         {/* Mobile Question Input */}
         {analysisResult && (
           <footer className="bg-white border-t border-gray-200 p-4 pb-24">
@@ -1171,10 +1445,9 @@ export default function DocumentPage() {
                 type="text"
                 value={currentQuestion}
                 onChange={(e) => setCurrentQuestion(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleQuestionSubmit()}
-                placeholder={language === 'hindi' 
-                  ? 'प्रश्न पूछें...'
-                  : 'Ask question...'
+                onKeyPress={(e) => e.key === "Enter" && handleQuestionSubmit()}
+                placeholder={
+                  language === "hindi" ? "प्रश्न पूछें..." : "Ask question..."
                 }
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                 disabled={isLoading}
@@ -1205,4 +1478,4 @@ export default function DocumentPage() {
       </div>
     </div>
   );
-} 
+}

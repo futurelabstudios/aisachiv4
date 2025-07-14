@@ -34,8 +34,9 @@ async def chat(
             error_response = "मुझे खुशी होगी आपकी मदद करने में! लेकिन मैं सिर्फ हिंदी या हिंग्लिश में बात कर सकता हूं। कृपया इन भाषाओं में से किसी एक में अपना सवाल पूछें।\n\nI'd be happy to help you! But I can only communicate in Hindi or Hinglish. Please ask your question in one of these languages."
             
             async def error_stream():
-                yield error_response
-            return StreamingResponse(error_stream(), media_type="text/plain")
+                # Format error as an SSE message
+                yield f"data: {json.dumps({'error': error_response})}\n\n"
+            return StreamingResponse(error_stream(), media_type="text/event-stream")
         
         # Get conversation history for context
         if request.conversation_id:
@@ -56,9 +57,22 @@ async def chat(
         async def stream_generator():
             full_response = ""
             new_conversation_id = request.conversation_id
-            is_first_chunk = True
 
             try:
+                # If it's a new chat, create the conversation entry first to get an ID
+                if not new_conversation_id:
+                    saved_conv = await database_service.save_conversation(
+                        db,
+                        user_id=str(current_user.id),
+                        user_question=request.message,
+                        assistant_answer="", # Save empty first
+                        response_time=0
+                    )
+                    new_conversation_id = str(saved_conv.id)
+                
+                # Send the conversation_id as the first event
+                yield f"event: conversation_id\ndata: {new_conversation_id}\n\n"
+                
                 response_stream = get_openai_response(
                     request.message, 
                     conversation_context,
@@ -66,31 +80,14 @@ async def chat(
                 )
                 
                 async for chunk in response_stream:
-                    full_response += chunk
-                    if is_first_chunk:
-                        # On the first chunk, save the conversation to get an ID (if new)
-                        # And send the ID back with the first chunk of the response
-                        if not new_conversation_id:
-                            saved_conv = await database_service.save_conversation(
-                                db,
-                                user_id=str(current_user.id),
-                                user_question=request.message,
-                                assistant_answer="", # Save empty first
-                                response_time=0
-                            )
-                            new_conversation_id = str(saved_conv.id)
-                        
-                        response_data = {
-                            "conversation_id": new_conversation_id,
-                            "response_chunk": chunk
-                        }
-                        yield json.dumps(response_data)
-                        is_first_chunk = False
-                    else:
-                        yield chunk
+                    if chunk:
+                        full_response += chunk
+                        # Send each chunk as a data-only SSE message
+                        # Use json.dumps to handle special characters like newlines correctly
+                        yield f"data: {json.dumps(chunk)}\n\n"
             
             finally:
-                # Update the conversation with the full response
+                # Update the conversation with the full response at the end
                 if new_conversation_id:
                     processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
                     await database_service.update_conversation(
@@ -99,14 +96,17 @@ async def chat(
                         assistant_answer=full_response,
                         response_time=processing_time
                     )
-
+        
+        # Use text/event-stream media type
         return StreamingResponse(stream_generator(), media_type="text/event-stream")
         
     except Exception as e:
         logger.error(f"Chat endpoint error: {e}")
         async def exception_stream():
-            yield "An unexpected error occurred."
-        return StreamingResponse(exception_stream(), media_type="text/plain", status_code=500)
+            error_data = {"error": "An unexpected error occurred."}
+            yield f"data: {json.dumps(error_data)}\n\n"
+        return StreamingResponse(exception_stream(), media_type="text/event-stream", status_code=500)
+
 
 
 @router.get("/history", response_model=List[ConversationSchema])
