@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create a table for public user profiles
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   updated_at TIMESTAMPTZ,
   username TEXT UNIQUE,
@@ -44,7 +44,7 @@ CREATE TRIGGER on_auth_user_created
 
 
 -- Conversations table linked to users
-CREATE TABLE conversations (
+CREATE TABLE IF NOT EXISTS conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     user_question TEXT NOT NULL,
@@ -65,4 +65,46 @@ CREATE POLICY "Users can access their own conversations" ON conversations
     FOR ALL USING (auth.uid() = user_id);
 
 -- Remove the old session-based cleanup function if it exists
-DROP FUNCTION IF EXISTS cleanup_old_conversations(); 
+DROP FUNCTION IF EXISTS cleanup_old_conversations();
+
+-- RAG-related schema
+-- Enable vector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Create a table for documents
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content TEXT NOT NULL,
+    metadata JSONB,
+    embedding VECTOR(1536)
+);
+
+-- Create a function to search for documents
+CREATE OR REPLACE FUNCTION match_documents (
+  query_embedding VECTOR(1536),
+  match_threshold FLOAT,
+  match_count INT
+)
+RETURNS TABLE (
+  id UUID,
+  content TEXT,
+  metadata JSONB,
+  similarity FLOAT
+)
+LANGUAGE sql STABLE
+AS $$
+  SELECT
+    documents.id,
+    documents.content,
+    documents.metadata,
+    1 - (documents.embedding <=> query_embedding) AS similarity
+  FROM documents
+  WHERE 1 - (documents.embedding <=> query_embedding) > match_threshold
+  ORDER BY similarity DESC
+  LIMIT match_count;
+$$;
+
+-- Create an index for the documents table
+-- Using HNSW for better performance and accuracy on vector similarity search
+DROP INDEX IF EXISTS ix_documents_embedding;
+CREATE INDEX ix_documents_embedding ON documents USING hnsw (embedding vector_cosine_ops);
