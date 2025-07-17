@@ -9,7 +9,7 @@ import { elevenLabsService } from "@/services/elevenlabs";
 import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import MobileNavigation from "@/components/MobileNavigation";
+import MainLayout from "@/components/layout/MainLayout";
 
 import { Button } from "@/components/ui/button";
 
@@ -216,212 +216,59 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Desktop Layout */}
-      <div className="hidden lg:block desktop-layout">
-        <div className="chat-desktop">
-          {/* Sidebar */}
-          <div className="bg-gray-50 border-r border-gray-200 p-4 flex flex-col">
-            <div className="text-left mb-6 px-2">
-              <h1 className="text-2xl font-bold text-emerald-600">{t('appTitle')}</h1>
-              <p className="text-gray-500 text-sm">{t('appSubtitle')}</p>
+    <MainLayout>
+      <div className="flex-1 h-[calc(100vh-300px)] lg:h-auto overflow-y-auto p-6">
+        <div
+          className="max-w-4xl mx-auto max-h-[calc(100vh-200px)] pb-24  space-y-4"
+          style={{ scrollBehavior: "smooth" }}
+        >
+          {chatState.messages.map((message) => (
+            <div key={message.id} className="fade-in pb-4">
+              <ChatMessage message={message} language={language} />
             </div>
-            
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              className="w-full mb-4 bg-white border-gray-200 text-gray-700 hover:bg-gray-100"
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              {getLanguageButtonText()}
-            </Button>
+          ))}
 
-            <nav className="space-y-1 flex-1">
-              <Link to="/" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <Home className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('home')}</span>
-              </Link>
-              
-              <div className="flex items-center px-3 py-2 rounded-lg bg-emerald-100 border border-emerald-200 text-emerald-800">
-                <MessageCircle className="w-5 h-5 mr-3 text-emerald-600" />
-                <span className="text-emerald-800 font-medium">{t('chat')}</span>
-              </div>
-              
-              <Link to="/voice-agent" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <Mic className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('voice')}</span>
-              </Link>
-
-              <Link to="/circulars" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <LinkIcon className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
-                </span>
-              </Link>
-
-              <Link to="/document" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <FileText className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('documentAnalysis')}</span>
-              </Link>
-
-              <Link to="/academy" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                </span>
-              </Link>
-
-              <Link to="/glossary" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-                </span>
-              </Link>
-
-              <Link to="/videos" className="flex items-center px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition-colors">
-                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
-                </span>
-              </Link>
-            </nav>
-            <div className="mt-auto">
-                <div className="bg-gray-100 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-600">
-                    Built by Futurelab Ikigai & Piramal Foundation © 2025
-                    </p>
-                </div>
-            </div>
-          </div>
-
-          {/* Main Chat Area */}
-          <div className="chat-main-desktop bg-gray-100">
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="max-w-4xl mx-auto max-h-[calc(100vh-200px)] pb-24  space-y-4" style={{ scrollBehavior: "smooth" }}>
-                {chatState.messages.map((message) => (
-                  <div key={message.id} className="fade-in pb-4">
-                    <ChatMessage 
-                      message={message} 
-                      language={language} 
-                    />
-                  </div>
-                ))}
-                
-                {isListening && (
-                  <div className="flex justify-center">
-                    <div className="bg-blue-100 border border-blue-200 p-4 rounded-xl scale-in">
-                      <p className="text-blue-700 text-center font-medium">{t('listening')}</p>
-                      {transcript && (
-                        <p className="mt-2 text-center text-gray-700">{transcript}</p>
-                      )}
-                    </div>
-                  </div>
+          {isListening && (
+            <div className="flex justify-center">
+              <div className="bg-blue-100 border border-blue-200 p-4 rounded-xl scale-in">
+                <p className="text-blue-700 text-center font-medium">
+                  {t("listening")}
+                </p>
+                {transcript && (
+                  <p className="mt-2 text-center text-gray-700">{transcript}</p>
                 )}
-                
-                {chatState.isLoading && (
-                  <div className="flex justify-center">
-                    <div className="bg-emerald-100 border border-emerald-200 p-4 rounded-xl animate-pulse">
-                      <p className="text-emerald-700 text-center font-medium">{t('thinking')}</p>
-                    </div>
-                  </div>
-                )}
-                
-                <div ref={messagesEndRef} />
               </div>
             </div>
-            
-            {/* Chat Input */}
-            <div className="p-6 bg-gray-100 border-t border-gray-200">
-              <div className="max-w-4xl mx-auto">
-                <MessageInput 
-                  onSendMessage={handleSendMessage}
-                  isLoading={chatState.isLoading}
-                  language={language}
-                  isListening={isListening}
-                  onStartListening={handleStartListening}
-                  onStopListening={handleStopListening}
-                  transcript={transcript}
-                />
+          )}
+
+          {chatState.isLoading && (
+            <div className="flex justify-center">
+              <div className="bg-emerald-100 border border-emerald-200 p-4 rounded-xl animate-pulse">
+                <p className="text-emerald-700 text-center font-medium">
+                  {t("thinking")}
+                </p>
               </div>
             </div>
-          </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col h-screen bg-gray-50">
-        {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 p-4 shadow-sm sticky top-0 z-10">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            <div>
-              <h1 className="text-xl font-bold text-emerald-600">{t('appTitle')}</h1>
-              <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
-            </div>
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              size="sm"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              {getLanguageButtonText()}
-            </Button>
-          </div>
-        </header>
-
-        {/* Mobile Chat Area */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            {chatState.messages.map((message) => (
-              <div key={message.id} className="fade-in">
-                <ChatMessage 
-                  message={message} 
-                  language={language} 
-                />
-              </div>
-            ))}
-            
-            {isListening && (
-              <div className="flex justify-center">
-                <div className="bg-blue-100 border border-blue-200 p-3 rounded-xl w-full scale-in">
-                  <p className="text-blue-700 text-center text-sm font-medium">{t('listening')}</p>
-                  {transcript && (
-                    <p className="mt-2 text-center text-gray-700 text-sm">{transcript}</p>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {chatState.isLoading && (
-              <div className="flex justify-center">
-                <div className="bg-emerald-100 border border-emerald-200 p-3 rounded-xl w-full animate-pulse">
-                  <p className="text-emerald-700 text-center text-sm font-medium">{t('thinking')}</p>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </main>
-        
-        {/* Mobile Footer */}
-        <footer className="bg-white border-t border-gray-200 p-4">
-          <div className="max-w-md mx-auto">
-            <MessageInput 
-              onSendMessage={handleSendMessage}
-              isLoading={chatState.isLoading}
-              language={language}
-              isListening={isListening}
-              onStartListening={handleStartListening}
-              onStopListening={handleStopListening}
-              transcript={transcript}
-            />
-          </div>
-        </footer>
-
-        {/* Mobile Navigation */}
-        <MobileNavigation />
+      {/* Chat Input */}
+      <div className="p-6 bg-gray-100 mb-10 lg:mb-0 border-t border-gray-200">
+        <div className="max-w-4xl mx-auto">
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            isLoading={chatState.isLoading}
+            language={language}
+            isListening={isListening}
+            onStartListening={handleStartListening}
+            onStopListening={handleStopListening}
+            transcript={transcript}
+          />
+        </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

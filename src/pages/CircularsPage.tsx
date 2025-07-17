@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ExternalLink, FileText, Home, MessageCircle, Mic, Globe, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  FileText,
+  Home,
+  MessageCircle,
+  Mic,
+  Globe,
+  Link as LinkIcon,
+  GraduationCap,
+  PlayCircle,
+  BookOpen,
+} from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
+import MainLayout from "@/components/layout/MainLayout";
 
 interface StateData {
   id: string;
@@ -188,7 +201,7 @@ const statesData: StateData[] = [
       },
       {
         title: {
-          hindi: 'बिहार में नेशनल इंस्टीट्यूट ऑफ फूड टेक्नोलॉजी',
+          hindi: 'बिहार में नेशनल इंस्टीट्यूट ऑफ फूड टेक्नॉलॉजी',
           hinglish: 'National Institute of Food Technology in Bihar'
         },
         description: {
@@ -677,446 +690,149 @@ export default function CircularsPage() {
 
   const selectedStateData = selectedState ? statesData.find(s => s.id === selectedState) : null;
   const filteredSchemes = selectedStateData?.schemes.filter(scheme => 
-    selectedCategory === 'all' || scheme.category === selectedCategory
-  ) || [];
+    selectedCategory === "all" || scheme.category === selectedCategory
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
-      {/* Desktop Layout */}
-      <div className="hidden lg:block desktop-layout">
-        <div className="chat-desktop">
-          {/* Sidebar */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-emerald-600 mb-2">{t('appTitle')}</h1>
-              <p className="text-gray-600 text-sm">{t('appSubtitle')}</p>
+    <MainLayout>
+      <div className="flex-1 overflow-y-auto p-6">
+        {!selectedState ? (
+          // State Selection
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-emerald-600 mb-4">
+                {language === "hindi"
+                  ? "महत्वपूर्ण सरकारी योजनाएं और परिपत्र"
+                  : "Important Government Schemes and Circulars"}
+              </h2>
+              <p className="text-gray-600">
+                {language === "hindi"
+                  ? "अपना राज्य चुनें और संबंधित योजनाओं की जानकारी प्राप्त करें"
+                  : "Choose your state and access relevant schemes and information"}
+              </p>
             </div>
-            
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              className="w-full mb-4 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              {getLanguageButtonText()}
-            </Button>
 
-            <div className="space-y-3">
-              <Link to="/" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Home className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('home')}</span>
-              </Link>
-              
-              <Link to="/chat" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('chat')}</span>
-              </Link>
-              
-              <Link to="/voice-agent" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Mic className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('voice')}</span>
-              </Link>
-
-              <div className="flex items-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                <LinkIcon className="w-5 h-5 mr-3 text-emerald-600" />
-                <span className="text-emerald-700 font-medium">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
-                </span>
-              </div>
-
-              <Link to="/document" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <FileText className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('documentAnalysis')}</span>
-              </Link>
-
-              <Link to="/academy" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                </span>
-              </Link>
-
-              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-                </span>
-              </Link>
-
-              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="chat-main-desktop">
-            <div className="flex-1 overflow-y-auto p-6">
-              {!selectedState ? (
-                // State Selection
-                <div>
-                  <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-emerald-600 mb-4">
-                      {language === 'hindi' ? 'महत्वपूर्ण सरकारी योजनाएं और परिपत्र' : 'Important Government Schemes and Circulars'}
-                    </h2>
-                    <p className="text-gray-600">
-                      {language === 'hindi' 
-                        ? 'अपना राज्य चुनें और संबंधित योजनाओं की जानकारी प्राप्त करें'
-                        : 'Choose your state and access relevant schemes and information'
-                      }
+            <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {statesData.map((state) => (
+                <Card
+                  key={state.id}
+                  className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  onClick={() => setSelectedState(state.id)}
+                >
+                  <CardContent className="p-8 text-center">
+                    <div className="text-4xl mb-4">🏛️</div>
+                    <h3 className="text-xl font-bold text-emerald-700 mb-2">
+                      {state.name[language]}
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {state.schemes.length}{" "}
+                      {language === "hindi"
+                        ? "योजनाएं और परिपत्र"
+                        : "schemes and circulars"}
                     </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto">
-                    {statesData.map((state) => (
-                      <Card 
-                        key={state.id}
-                        className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
-                        onClick={() => setSelectedState(state.id)}
-                      >
-                        <CardContent className="p-8 text-center">
-                          <div className="text-4xl mb-4">🏛️</div>
-                          <h3 className="text-xl font-bold text-emerald-700 mb-2">
-                            {state.name[language]}
-                          </h3>
-                          <p className="text-gray-600 text-sm">
-                            {state.schemes.length} {language === 'hindi' ? 'योजनाएं और परिपत्र' : 'schemes and circulars'}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                // State Schemes and Circulars
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <Button
-                        onClick={() => setSelectedState(null)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        {language === 'hindi' ? 'वापस' : 'Back'}
-                      </Button>
-                      <h2 className="text-2xl font-bold text-emerald-600">
-                        {selectedStateData?.name[language]} - {language === 'hindi' ? 'योजनाएं और परिपत्र' : 'Schemes & Circulars'}
-                      </h2>
-                    </div>
-                  </div>
-
-                  {/* Category Filter */}
-                  <div className="flex gap-2 mb-6">
-                    {['all', 'scheme', 'circular', 'policy'].map((category) => (
-                      <Button
-                        key={category}
-                        onClick={() => setSelectedCategory(category as any)}
-                        variant={selectedCategory === category ? "default" : "outline"}
-                        size="sm"
-                        className={selectedCategory === category ? "primary-button" : ""}
-                      >
-                        {getCategoryText(category)}
-                      </Button>
-                    ))}
-                  </div>
-
-                  {/* Schemes List */}
-                  <div className="space-y-4">
-                    {filteredSchemes.map((scheme, index) => (
-                      <Card key={index} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xl">{getCategoryIcon(scheme.category)}</span>
-                                <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
-                                  {getCategoryText(scheme.category)}
-                                </span>
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                {scheme.title[language]}
-                              </h3>
-                              <p className="text-gray-600 mb-4">
-                                {scheme.description[language]}
-                              </p>
-                            </div>
-                            <Button
-                              onClick={() => window.open(scheme.url, '_blank')}
-                              className="primary-button ml-4"
-                              size="sm"
-                            >
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              {language === 'hindi' ? 'देखें' : 'View'}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {filteredSchemes.length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-gray-500">
-                        {language === 'hindi' 
-                          ? 'इस श्रेणी में कोई योजना या परिपत्र उपलब्ध नहीं है।'
-                          : 'No schemes or circulars available in this category.'
-                        }
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Desktop Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="bg-gray-50 rounded-xl p-6 text-center">
-                <p className="text-xs text-gray-500 font-medium tracking-wide">
-                  Built by Futurelab Ikigai and Piramal Foundation © 2025
-                </p>
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col h-screen">
-        {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            <div className="flex items-center gap-2">
-              {selectedState && (
+        ) : (
+          // State Schemes and Circulars
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
                 <Button
                   onClick={() => setSelectedState(null)}
                   variant="outline"
                   size="sm"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  {language === "hindi" ? "वापस" : "Back"}
                 </Button>
-              )}
-              <div>
-                <h1 className="text-lg font-bold text-emerald-600">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Gov Circulars'}
-                </h1>
-                <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
+                <h2 className="text-2xl font-bold text-emerald-600">
+                  {selectedStateData?.name[language]} -{" "}
+                  {language === "hindi"
+                    ? "योजनाएं और परिपत्र"
+                    : "Schemes & Circulars"}
+                </h2>
               </div>
             </div>
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              size="sm"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              {getLanguageButtonText()}
-            </Button>
-          </div>
-        </header>
 
-        {/* Mobile Content */}
-        <main className="flex-1 overflow-y-auto bg-white mobile-padding">
-          <div className="max-w-md mx-auto p-4">
-            {!selectedState ? (
-              // State Selection
-              <div>
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-emerald-600 mb-2">
-                    {language === 'hindi' ? 'राज्य चुनें' : 'Select State'}
-                  </h2>
-                  <p className="text-gray-600 text-sm">
-                    {language === 'hindi' 
-                      ? 'अपना राज्य चुनें'
-                      : 'Choose your state'
-                    }
-                  </p>
-                </div>
+            {/* Category Filter */}
+            <div className="flex gap-2 mb-6">
+              {["all", "scheme", "circular", "policy"].map((category) => (
+                <Button
+                  key={category}
+                  onClick={() =>
+                    setSelectedCategory(
+                      category as "all" | "scheme" | "circular" | "policy"
+                    )
+                  }
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  className={selectedCategory === category ? "primary-button" : ""}
+                >
+                  {getCategoryText(category)}
+                </Button>
+              ))}
+            </div>
 
-                <div className="space-y-4">
-                  {statesData.map((state) => (
-                    <Card 
-                      key={state.id}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedState(state.id)}
-                    >
-                      <CardContent className="p-4 flex items-center">
-                        <div className="text-2xl mr-4">🏛️</div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-emerald-700">
-                            {state.name[language]}
-                          </h3>
-                          <p className="text-xs text-gray-500">
-                            {state.schemes.length} {language === 'hindi' ? 'योजनाएं' : 'items'}
-                          </p>
+            {/* Schemes List */}
+            <div className="space-y-4">
+              {filteredSchemes.map((scheme, index) => (
+                <Card key={index} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">
+                            {getCategoryIcon(scheme.category)}
+                          </span>
+                          <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                            {getCategoryText(scheme.category)}
+                          </span>
                         </div>
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              // State Schemes
-              <div>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-emerald-600 mb-3">
-                    {selectedStateData?.name[language]}
-                  </h2>
-                  
-                  {/* Mobile Category Filter */}
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {['all', 'scheme', 'circular', 'policy'].map((category) => (
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                          {scheme.title[language]}
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          {scheme.description[language]}
+                        </p>
+                      </div>
                       <Button
-                        key={category}
-                        onClick={() => setSelectedCategory(category as any)}
-                        variant={selectedCategory === category ? "default" : "outline"}
+                        onClick={() => window.open(scheme.url, "_blank")}
+                        className="primary-button ml-4"
                         size="sm"
-                        className={`whitespace-nowrap ${selectedCategory === category ? "primary-button" : ""}`}
                       >
-                        {getCategoryText(category)}
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        {language === "hindi" ? "देखें" : "View"}
                       </Button>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-                {/* Mobile Schemes List */}
-                <div className="space-y-3">
-                  {filteredSchemes.map((scheme, index) => (
-                    <Card key={index} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-sm">{getCategoryIcon(scheme.category)}</span>
-                              <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
-                                {getCategoryText(scheme.category)}
-                              </span>
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-1 text-sm">
-                              {scheme.title[language]}
-                            </h3>
-                            <p className="text-gray-600 text-xs mb-3">
-                              {scheme.description[language]}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => window.open(scheme.url, '_blank')}
-                          className="primary-button w-full"
-                          size="sm"
-                        >
-                          <ExternalLink className="w-3 h-3 mr-2" />
-                          {language === 'hindi' ? 'देखें' : 'View'}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {filteredSchemes.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 text-sm">
-                      {language === 'hindi' 
-                        ? 'कोई योजना उपलब्ध नहीं है।'
-                        : 'No schemes available.'
-                      }
-                    </p>
-                  </div>
-                )}
+            {filteredSchemes.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">
+                  {language === "hindi"
+                    ? "इस श्रेणी में कोई योजना या परिपत्र उपलब्ध नहीं है।"
+                    : "No schemes or circulars available in this category."}
+                </p>
               </div>
             )}
           </div>
-        </main>
+        )}
+      </div>
 
-        {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
-            <Link 
-              to="/" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <Home size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
-            </Link>
-            
-            <Link 
-              to="/chat" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <MessageCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('chat')}</span>
-            </Link>
-            
-            <Link 
-              to="/voice-agent" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <Mic size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('voice')}</span>
-            </Link>
-
-            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
-              <LinkIcon size={18} className="text-emerald-600" />
-              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">
-                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
-              </span>
-            </div>
-
-            <Link 
-              to="/document" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <FileText size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/academy" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <GraduationCap size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'अकादमी' : 'Academy'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/glossary" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <BookOpen size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </span>
-            </Link>
-
-            <Link 
-              to="/videos" 
-              className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50"
-            >
-              <PlayCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'वीडियो' : 'Videos'}
-              </span>
-            </Link>
-          </div>
-        </nav>
-
-        {/* Mobile Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-xs text-gray-600 font-medium tracking-wide">
-              Built by Futurelab Ikigai and Piramal Foundation © 2025
-            </p>
-          </div>
+      {/* Desktop Footer */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="bg-gray-50 rounded-xl p-6 text-center">
+          <p className="text-xs text-gray-500 font-medium tracking-wide">
+            Built by Futurelab Ikigai and Piramal Foundation © 2025
+          </p>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 } 

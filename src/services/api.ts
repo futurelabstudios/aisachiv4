@@ -168,6 +168,32 @@ class APIClient {
     this.getToken = () => null;
   }
 
+  async sendChatMessage(
+    message: string,
+    conversationHistory: ChatMessage[]
+  ): Promise<string> {
+    try {
+      const response = await fetch(`${this.baseUrl}/chat`, {
+        method: "POST",
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({
+          message,
+          conversation_history: conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ChatResponse = await response.json();
+      return data.response;
+    } catch (error) {
+      console.error("Error sending chat message:", error);
+      throw error;
+    }
+  }
+
   setTokenSource(getToken: () => string | null) {
     this.getToken = getToken;
   }

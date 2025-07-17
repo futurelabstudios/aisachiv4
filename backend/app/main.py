@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     yield
     
     # Shutdown
-    logger.info("Shutting down application")
+    logger.info("Shutting down application
     await close_db()
 
 

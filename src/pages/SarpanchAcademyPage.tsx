@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, BookOpen, PlayCircle, Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, Volume2, VolumeX, Search, Filter, Star, Clock, Users, Award, Lightbulb, Target, TrendingUp, Zap, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
+import MainLayout from "@/components/layout/MainLayout";
 
 interface Module {
   id: number;
@@ -332,496 +333,204 @@ export default function SarpanchAcademyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
-      {/* Desktop Layout */}
-      <div className="hidden lg:block desktop-layout">
-        <div className="chat-desktop">
-          {/* Sidebar */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-emerald-600 mb-2">{t('appTitle')}</h1>
-              <p className="text-gray-600 text-sm">{t('appSubtitle')}</p>
+    <MainLayout>
+      <div className="flex-1 overflow-y-auto p-6">
+        {!selectedModule ? (
+          // Simple and Beautiful Module Selection
+          <div>
+            <div className="text-center mb-12">
+              <div className="text-8xl mb-6">🎓</div>
+              <h2 className="text-4xl font-bold text-emerald-600 mb-4">
+                {language === "hindi" ? "सरपंच अकादमी" : "Sarpanch Academy"}
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                {language === "hindi"
+                  ? "सफल सरपंच बनने के लिए 6 आसान मॉड्यूल सीखें"
+                  : "Learn 6 easy modules to become a successful sarpanch"}
+              </p>
             </div>
-            
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              className="w-full mb-4 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              {getLanguageButtonText()}
-            </Button>
 
-            <div className="space-y-3">
-              <Link to="/" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Home className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('home')}</span>
-              </Link>
-              
-              <Link to="/chat" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('chat')}</span>
-              </Link>
-              
-              <Link to="/voice-agent" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Mic className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('voice')}</span>
-              </Link>
-
-              <Link to="/circulars" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <LinkIcon className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
-                </span>
-              </Link>
-
-              <Link to="/document" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <FileText className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('documentAnalysis')}</span>
-              </Link>
-
-              <div className="flex items-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                <GraduationCap className="w-5 h-5 mr-3 text-emerald-600" />
-                <span className="text-emerald-700 font-medium">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                </span>
-              </div>
-
-              <Link to="/glossary" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <BookOpen className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-                </span>
-              </Link>
-
-              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Main Academy Area */}
-          <div className="chat-main-desktop">
-            <div className="flex-1 overflow-y-auto p-6">
-              {!selectedModule ? (
-                // Simple and Beautiful Module Selection
-                <div>
-                  <div className="text-center mb-12">
-                    <div className="text-8xl mb-6">🎓</div>
-                    <h2 className="text-4xl font-bold text-emerald-600 mb-4">
-                      {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                    </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                      {language === 'hindi' 
-                        ? 'सफल सरपंच बनने के लिए 6 आसान मॉड्यूल सीखें'
-                        : 'Learn 6 easy modules to become a successful sarpanch'
-                      }
-                    </p>
-                  </div>
-
-                  {/* Beautiful Training Modules */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    {trainingModules.map((module) => (
-                      <Card 
-                        key={module.id}
-                        className="cursor-pointer hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 overflow-hidden group"
-                        onClick={() => setSelectedModule(module.id)}
-                      >
-                        <div className={`h-2 bg-gradient-to-r ${getColorClasses(module.color).split(' ')[0]} ${getColorClasses(module.color).split(' ')[1]} ${getColorClasses(module.color).split(' ')[2]}`}></div>
-                        <CardContent className="p-6 text-center">
-                          <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                            {module.emoji}
-                          </div>
-                          <div className="bg-gray-100 text-gray-600 text-sm font-bold px-3 py-1 rounded-full inline-block mb-3">
-                            {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {module.id}
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-emerald-600 transition-colors">
-                            {module.title[language]}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                            {module.description[language]}
-                          </p>
-                          <div className="flex items-center justify-center text-emerald-600 font-medium group-hover:text-emerald-700">
-                            <BookOpen className="w-4 h-4 mr-2" />
-                            {language === 'hindi' ? 'सीखना शुरू करें' : 'Start Learning'}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {/* Motivational Section */}
-                  <div className="text-center mt-16">
-                    <Card className="max-w-3xl mx-auto bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0">
-                      <CardContent className="p-8">
-                        <div className="text-4xl mb-4">✨</div>
-                        <h3 className="text-2xl font-bold mb-4">
-                          {language === 'hindi' ? 'आप एक बेहतरीन सरपंच बन सकते हैं!' : 'You can become an excellent sarpanch!'}
-                        </h3>
-                                                 <p className="text-lg opacity-90">
-                           {language === 'hindi' 
-                             ? 'ये 6 मॉड्यूल आपको सब कुछ सिखाएंगे जो एक सफल सरपंच को जानना चाहिए'
-                             : 'These 6 modules will teach you everything a successful sarpanch needs to know'
-                           }
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              ) : (
-                // Simple and Clear Module Content
-                <div>
-                  <div className="flex items-center justify-between mb-8">
-                    <Button
-                      onClick={() => setSelectedModule(null)}
-                      variant="outline"
-                      className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      {language === 'hindi' ? 'वापस जाएं' : 'Go Back'}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        if (selectedModuleData) {
-                          const fullText = `${selectedModuleData.title[language]}. ${selectedModuleData.content[language].join('. ')}`;
-                          toggleReading(fullText);
-                        }
-                      }}
-                      variant="outline"
-                      className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                    >
-                      {isReading ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                      {isReading 
-                        ? (language === 'hindi' ? 'रोकें' : 'Stop') 
-                        : (language === 'hindi' ? 'सुनें' : 'Listen')
-                      }
-                    </Button>
-                  </div>
-
-                  {selectedModuleData && (
-                    <div className="max-w-4xl mx-auto">
-                      {/* Module Header */}
-                      <div className="text-center mb-12">
-                        <div className="text-8xl mb-6">{selectedModuleData.emoji}</div>
-                        <div className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
-                          {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {selectedModuleData.id}
-                        </div>
-                        <h2 className="text-4xl font-bold text-emerald-600 mb-4">
-                          {selectedModuleData.title[language]}
-                        </h2>
-                        <p className="text-xl text-gray-600">
-                          {selectedModuleData.description[language]}
-                        </p>
-                      </div>
-
-                      {/* Simple Content List */}
-                      <Card className="border-l-4 border-l-emerald-500 shadow-lg">
-                        <CardHeader className="bg-emerald-50">
-                          <CardTitle className="text-emerald-600 text-xl">
-                            {language === 'hindi' ? '📚 आपको ये सब सीखना है:' : '📚 You need to learn all this:'}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div className="space-y-0">
-                            {selectedModuleData.content[language].map((point, index) => (
-                              <div key={index} className="flex items-start gap-4 p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
-                                <div className="bg-emerald-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-emerald-600 font-bold">{index + 1}</span>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-gray-800 text-lg leading-relaxed">
-                                    {point}
-                                  </p>
-                                </div>
-                                <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" />
-                              </div>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Encouragement */}
-                      <div className="text-center mt-12">
-                        <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
-                          <CardContent className="p-6">
-                            <div className="text-3xl mb-3">🌟</div>
-                            <h3 className="font-bold mb-2">
-                              {language === 'hindi' ? 'बहुत बढ़िया!' : 'Very Good!'}
-                            </h3>
-                            <p className="text-sm opacity-90">
-                              {language === 'hindi' 
-                                ? 'अब आप एक्सपर्ट हो गए!'
-                                : 'Now you are an expert!'
-                              }
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Desktop Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="bg-gray-50 rounded-xl p-6 text-center">
-                <p className="text-xs text-gray-500 font-medium tracking-wide">
-                  Built by Futurelab Ikigai and Piramal Foundation © 2025
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Layout - Simple and Clean */}
-      <div className="lg:hidden flex flex-col h-screen">
-        {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            <div className="flex items-center gap-2">
-              {selectedModule && (
-                <Button
-                  onClick={() => setSelectedModule(null)}
-                  variant="outline"
-                  size="sm"
+            {/* Beautiful Training Modules */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {trainingModules.map((module) => (
+                <Card
+                  key={module.id}
+                  className="cursor-pointer hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 overflow-hidden group"
+                  onClick={() => setSelectedModule(module.id)}
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              )}
-              <div>
-                <h1 className="text-lg font-bold text-emerald-600">
-                  🎓 {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                </h1>
-                <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
-              </div>
+                  <div
+                    className={`h-2 bg-gradient-to-r ${
+                      getColorClasses(module.color).split(" ")[0]
+                    } ${getColorClasses(module.color).split(" ")[1]} ${
+                      getColorClasses(module.color).split(" ")[2]
+                    }`}
+                  ></div>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                      {module.emoji}
+                    </div>
+                    <div className="bg-gray-100 text-gray-600 text-sm font-bold px-3 py-1 rounded-full inline-block mb-3">
+                      {language === "hindi" ? "मॉड्यूल" : "Module"} {module.id}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-emerald-600 transition-colors">
+                      {module.title[language]}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                      {module.description[language]}
+                    </p>
+                    <div className="flex items-center justify-center text-emerald-600 font-medium group-hover:text-emerald-700">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      {language === "hindi"
+                        ? "सीखना शुरू करें"
+                        : "Start Learning"}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              size="sm"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              {getLanguageButtonText()}
-            </Button>
-          </div>
-        </header>
 
-        {/* Mobile Content */}
-        <main className="flex-1 overflow-y-auto bg-white mobile-padding">
-          <div className="max-w-md mx-auto p-4">
-            {!selectedModule ? (
-              <div>
-                <div className="text-center mb-8">
-                  <div className="text-6xl mb-4">🎓</div>
-                  <h2 className="text-2xl font-bold text-emerald-600 mb-3">
-                    {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
+            {/* Motivational Section */}
+            <div className="text-center mt-16">
+              <Card className="max-w-3xl mx-auto bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0">
+                <CardContent className="p-8">
+                  <div className="text-4xl mb-4">✨</div>
+                  <h3 className="text-2xl font-bold mb-4">
+                    {language === "hindi"
+                      ? "आप एक बेहतरीन सरपंच बन सकते हैं!"
+                      : "You can become an excellent sarpanch!"}
+                  </h3>
+                  <p className="text-lg opacity-90">
+                    {language === "hindi"
+                      ? "ये 6 मॉड्यूल आपको सब कुछ सिखाएंगे जो एक सफल सरपंच को जानना चाहिए"
+                      : "These 6 modules will teach you everything a successful sarpanch needs to know"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          // Simple and Clear Module Content
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <Button
+                onClick={() => setSelectedModule(null)}
+                variant="outline"
+                className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {language === "hindi" ? "वापस जाएं" : "Go Back"}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedModuleData) {
+                    const fullText = `${
+                      selectedModuleData.title[language]
+                    }. ${selectedModuleData.content[language].join(". ")}`;
+                    toggleReading(fullText);
+                  }
+                }}
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                {isReading ? (
+                  <VolumeX className="w-4 h-4 mr-2" />
+                ) : (
+                  <Volume2 className="w-4 h-4 mr-2" />
+                )}
+                {isReading
+                  ? language === "hindi"
+                    ? "रोकें"
+                    : "Stop"
+                  : language === "hindi"
+                  ? "सुनें"
+                  : "Listen"}
+              </Button>
+            </div>
+
+            {selectedModuleData && (
+              <div className="max-w-4xl mx-auto">
+                {/* Module Header */}
+                <div className="text-center mb-12">
+                  <div className="text-8xl mb-6">
+                    {selectedModuleData.emoji}
+                  </div>
+                  <div className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
+                    {language === "hindi" ? "मॉड्यूल" : "Module"}{" "}
+                    {selectedModuleData.id}
+                  </div>
+                  <h2 className="text-4xl font-bold text-emerald-600 mb-4">
+                    {selectedModuleData.title[language]}
                   </h2>
-                                     <p className="text-gray-600 text-sm">
-                     {language === 'hindi' 
-                       ? '6 आसान मॉड्यूल सीखें'
-                       : 'Learn 6 easy modules'
-                     }
+                  <p className="text-xl text-gray-600">
+                    {selectedModuleData.description[language]}
                   </p>
                 </div>
 
-                {/* Mobile Training Modules */}
-                <div className="space-y-4">
-                  {trainingModules.map((module) => (
-                    <Card 
-                      key={module.id}
-                      className="cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 border-l-emerald-500"
-                      onClick={() => setSelectedModule(module.id)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="text-3xl">{module.emoji}</div>
-                          <div className="flex-1">
-                            <div className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full inline-block mb-2">
-                              {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {module.id}
+                {/* Simple Content List */}
+                <Card className="border-l-4 border-l-emerald-500 shadow-lg">
+                  <CardHeader className="bg-emerald-50">
+                    <CardTitle className="text-emerald-600 text-xl">
+                      {language === "hindi"
+                        ? "📚 आपको ये सब सीखना है:"
+                        : "📚 You need to learn all this:"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-0">
+                      {selectedModuleData.content[language].map(
+                        (point, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-4 p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="bg-emerald-100 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-emerald-600 font-bold">
+                                {index + 1}
+                              </span>
                             </div>
-                            <h3 className="font-bold text-gray-800 text-sm mb-1">
-                              {module.title[language]}
-                            </h3>
-                            <p className="text-gray-600 text-xs">
-                              {module.description[language]}
-                            </p>
+                            <div className="flex-1">
+                              <p className="text-gray-800 text-lg leading-relaxed">
+                                {point}
+                              </p>
+                            </div>
+                            <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" />
                           </div>
-                          <div className="text-emerald-600">
-                            <BookOpen className="w-5 h-5" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                {/* Mobile Motivation */}
-                <div className="mt-8">
-                  <Card className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white border-0">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-3xl mb-2">✨</div>
+                {/* Encouragement */}
+                <div className="text-center mt-12">
+                  <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
+                    <CardContent className="p-6">
+                      <div className="text-3xl mb-3">🌟</div>
                       <h3 className="font-bold mb-2">
-                        {language === 'hindi' ? 'आप कर सकते हैं!' : 'You can do it!'}
+                        {language === "hindi" ? "बहुत बढ़िया!" : "Very Good!"}
                       </h3>
-                                             <p className="text-sm opacity-90">
-                         {language === 'hindi' 
-                           ? 'ये 6 मॉड्यूल आपको सब कुछ सिखाएंगे'
-                           : 'These 6 modules will teach you everything'
-                         }
+                      <p className="text-sm opacity-90">
+                        {language === "hindi"
+                          ? "अब आप एक्सपर्ट हो गए!"
+                          : "Now you are an expert!"}
                       </p>
                     </CardContent>
                   </Card>
                 </div>
               </div>
-            ) : (
-              // Mobile Module Content
-              <div>
-                {selectedModuleData && (
-                  <div>
-                    <div className="text-center mb-6">
-                      <div className="text-5xl mb-3">{selectedModuleData.emoji}</div>
-                      <div className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                        {language === 'hindi' ? 'मॉड्यूल' : 'Module'} {selectedModuleData.id}
-                      </div>
-                      <h2 className="text-xl font-bold text-emerald-600 mb-2">
-                        {selectedModuleData.title[language]}
-                      </h2>
-                      <p className="text-gray-600 text-sm mb-4">
-                        {selectedModuleData.description[language]}
-                      </p>
-                      <Button
-                        onClick={() => {
-                          if (selectedModuleData) {
-                            const fullText = `${selectedModuleData.title[language]}. ${selectedModuleData.content[language].join('. ')}`;
-                            toggleReading(fullText);
-                          }
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
-                      >
-                        {isReading ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                        {isReading 
-                          ? (language === 'hindi' ? 'रोकें' : 'Stop') 
-                          : (language === 'hindi' ? 'सुनें' : 'Listen')
-                        }
-                      </Button>
-                    </div>
-
-                    {/* Mobile Simple Content */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-bold text-emerald-600 mb-3">
-                        📚 {language === 'hindi' ? 'आपको ये सब सीखना है:' : 'You need to learn all this:'}
-                      </h3>
-                      {selectedModuleData.content[language].map((point, index) => (
-                        <div key={index} className="flex items-start gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
-                          <div className="bg-emerald-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-emerald-600 text-sm font-bold">{index + 1}</span>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-gray-800 text-sm leading-relaxed">
-                              {point}
-                            </p>
-                          </div>
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-1" />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Mobile Encouragement */}
-                    <div className="mt-6">
-                      <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-0">
-                        <CardContent className="p-4 text-center">
-                          <div className="text-2xl mb-2">🌟</div>
-                          <h3 className="font-bold mb-1">
-                            {language === 'hindi' ? 'बहुत बढ़िया!' : 'Very Good!'}
-                          </h3>
-                          <p className="text-sm opacity-90">
-                            {language === 'hindi' 
-                              ? 'अब आप एक्सपर्ट हो गए!'
-                              : 'Now you are an expert!'
-                            }
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                )}
-              </div>
             )}
           </div>
-        </main>
-
-        {/* Mobile Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-xs text-gray-600 font-medium tracking-wide">
-              Built by Futurelab Ikigai and Piramal Foundation © 2025
-            </p>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
-            <Link to="/" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <Home size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
-            </Link>
-            
-            <Link to="/chat" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <MessageCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('chat')}</span>
-            </Link>
-            
-            <Link to="/voice-agent" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <Mic size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('voice')}</span>
-            </Link>
-
-            <Link to="/circulars" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <LinkIcon size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
-              </span>
-            </Link>
-
-            <Link to="/document" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <FileText size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
-              </span>
-            </Link>
-
-            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
-              <GraduationCap size={18} className="text-emerald-600" />
-              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">
-                {language === 'hindi' ? 'अकादमी' : 'Academy'}
-              </span>
-            </div>
-
-            <Link to="/glossary" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <BookOpen size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </span>
-            </Link>
-
-            <Link to="/videos" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <PlayCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'वीडियो' : 'Videos'}
-              </span>
-            </Link>
-          </div>
-        </nav>
+        )}
       </div>
-    </div>
+
+      {/* Desktop Footer */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="bg-gray-50 rounded-xl p-6 text-center">
+          <p className="text-xs text-gray-500 font-medium tracking-wide">
+            Built by Futurelab Ikigai and Piramal Foundation © 2025
+          </p>
+        </div>
+      </div>
+    </MainLayout>
   );
 } 

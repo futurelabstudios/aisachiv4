@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Home, MessageCircle, Mic, Globe, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen, Volume2, VolumeX } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
+import MainLayout from "@/components/layout/MainLayout";
 
 interface GlossaryTerm {
   id: number;
@@ -425,371 +426,118 @@ export default function GlossaryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
-      {/* Desktop Layout */}
-      <div className="hidden lg:block desktop-layout">
-        <div className="chat-desktop">
-          {/* Sidebar */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-emerald-600 mb-2">{t('appTitle')}</h1>
-              <p className="text-gray-600 text-sm">{t('appSubtitle')}</p>
+    <MainLayout>
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="text-center mb-8">
+          <div className="text-6xl mb-4">📚</div>
+          <h2 className="text-4xl font-bold text-emerald-600 mb-4">
+            {language === "hindi" ? "शब्दकोश" : "Glossary"}
+          </h2>
+          <p className="text-xl text-gray-600">
+            {language === "hindi"
+              ? "सरपंच के लिए जरूरी शब्दों का सरल अर्थ"
+              : "Simple meanings of important words for sarpanch"}
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder={
+                  language === "hindi" ? "शब्द खोजें..." : "Search terms..."
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 border-emerald-200 focus:border-emerald-500"
+              />
             </div>
-            
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              className="w-full mb-4 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-emerald-200 rounded-md focus:border-emerald-500 outline-none"
             >
-              <Globe className="w-4 h-4 mr-2" />
-              {getLanguageButtonText()}
-            </Button>
-
-            <div className="space-y-3">
-              <Link to="/" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Home className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('home')}</span>
-              </Link>
-              
-              <Link to="/chat" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <MessageCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('chat')}</span>
-              </Link>
-              
-              <Link to="/voice-agent" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <Mic className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('voice')}</span>
-              </Link>
-
-              <Link to="/circulars" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <LinkIcon className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars'}
-                </span>
-              </Link>
-
-              <Link to="/document" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <FileText className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">{t('documentAnalysis')}</span>
-              </Link>
-
-              <Link to="/academy" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <GraduationCap className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy'}
-                </span>
-              </Link>
-
-              <div className="flex items-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                <BookOpen className="w-5 h-5 mr-3 text-emerald-600" />
-                <span className="text-emerald-700 font-medium">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-                </span>
-              </div>
-
-              <Link to="/videos" className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <PlayCircle className="w-5 h-5 mr-3 text-gray-500" />
-                <span className="text-gray-700">
-                  {language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos'}
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Main Glossary Area */}
-          <div className="chat-main-desktop">
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="text-center mb-8">
-                <div className="text-6xl mb-4">📚</div>
-                <h2 className="text-4xl font-bold text-emerald-600 mb-4">
-                  {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-                </h2>
-                <p className="text-xl text-gray-600">
-                  {language === 'hindi' 
-                    ? 'सरपंच के लिए जरूरी शब्दों का सरल अर्थ'
-                    : 'Simple meanings of important words for sarpanch'
-                  }
-                </p>
-              </div>
-
-              {/* Search and Filter */}
-              <div className="mb-8 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder={language === 'hindi' ? 'शब्द खोजें...' : 'Search terms...'}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 border-emerald-200 focus:border-emerald-500"
-                    />
-                  </div>
-                  
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-4 py-2 border border-emerald-200 rounded-md focus:border-emerald-500 outline-none"
-                  >
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name[language]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Glossary Terms */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                {filteredTerms.map((term) => (
-                  <Card key={term.id} className="hover:shadow-lg transition-shadow duration-300">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg text-emerald-600">
-                          {term.term[language]}
-                        </CardTitle>
-                        <Button
-                          onClick={() => readTerm(term)}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                        >
-                          <Volume2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-sm mb-1">
-                            {language === 'hindi' ? 'अर्थ:' : 'Meaning:'}
-                          </h4>
-                          <p className="text-gray-700 text-sm leading-relaxed">
-                            {term.meaning[language]}
-                          </p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800 text-sm mb-1">
-                            {language === 'hindi' ? 'उदाहरण:' : 'Example:'}
-                          </h4>
-                          <p className="text-gray-600 text-sm italic">
-                            "{term.example[language]}"
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {filteredTerms.length === 0 && (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                    {language === 'hindi' ? 'कोई शब्द नहीं मिला' : 'No terms found'}
-                  </h3>
-                  <p className="text-gray-500">
-                    {language === 'hindi' 
-                      ? 'कृपया अपने खोज शब्द बदलें'
-                      : 'Please try different search terms'
-                    }
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            {/* Desktop Footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="bg-gray-50 rounded-xl p-6 text-center">
-                <p className="text-xs text-gray-500 font-medium tracking-wide">
-                  Built by Futurelab Ikigai and Piramal Foundation © 2025
-                </p>
-              </div>
-            </div>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name[language]}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Layout */}
-      <div className="lg:hidden flex flex-col h-screen">
-        {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between max-w-md mx-auto">
-            <div>
-              <h1 className="text-lg font-bold text-emerald-600">
-                📚 {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </h1>
-              <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
-            </div>
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              size="sm"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+        {/* Glossary Terms */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          {filteredTerms.map((term) => (
+            <Card
+              key={term.id}
+              className="hover:shadow-lg transition-shadow duration-300"
             >
-              <Globe className="w-4 h-4 mr-1" />
-              {getLanguageButtonText()}
-            </Button>
-          </div>
-        </header>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg text-emerald-600">
+                    {term.term[language]}
+                  </CardTitle>
+                  <Button
+                    onClick={() => readTerm(term)}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm mb-1">
+                      {language === "hindi" ? "अर्थ:" : "Meaning:"}
+                    </h4>
+                    <p className="text-gray-700 text-sm leading-relaxed">
+                      {term.meaning[language]}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm mb-1">
+                      {language === "hindi" ? "उदाहरण:" : "Example:"}
+                    </h4>
+                    <p className="text-gray-600 text-sm italic">
+                      `"{term.example[language]}"`
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        {/* Mobile Content */}
-        <main className="flex-1 overflow-y-auto bg-white mobile-padding">
-          <div className="max-w-md mx-auto p-4">
-            <div className="text-center mb-6">
-              <div className="text-5xl mb-3">📚</div>
-              <h2 className="text-xl font-bold text-emerald-600 mb-2">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </h2>
-              <p className="text-gray-600 text-sm">
-                {language === 'hindi' 
-                  ? 'जरूरी शब्दों का सरल अर्थ'
-                  : 'Simple meanings of important words'
-                }
-              </p>
-            </div>
-
-            {/* Mobile Search */}
-            <div className="mb-6 space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder={language === 'hindi' ? 'शब्द खोजें...' : 'Search terms...'}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-emerald-200 focus:border-emerald-500"
-                />
-              </div>
-              
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-emerald-200 rounded-md focus:border-emerald-500 outline-none"
-              >
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name[language]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Mobile Terms */}
-            <div className="space-y-4">
-              {filteredTerms.map((term) => (
-                <Card key={term.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-emerald-600 text-sm">
-                        {term.term[language]}
-                      </h3>
-                      <Button
-                        onClick={() => readTerm(term)}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                      >
-                        <Volume2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-gray-700 text-xs leading-relaxed">
-                          {term.meaning[language]}
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 p-2 rounded-md">
-                        <p className="text-gray-600 text-xs italic">
-                          "{term.example[language]}"
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {filteredTerms.length === 0 && (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">🔍</div>
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                  {language === 'hindi' ? 'कोई शब्द नहीं मिला' : 'No terms found'}
-                </h3>
-                <p className="text-gray-500 text-sm">
-                  {language === 'hindi' 
-                    ? 'कृपया अपने खोज शब्द बदलें'
-                    : 'Please try different search terms'
-                  }
-                </p>
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* Mobile Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 px-6 py-4 text-center mb-16">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <p className="text-xs text-gray-600 font-medium tracking-wide">
-              Built by Futurelab Ikigai and Piramal Foundation © 2025
+        {filteredTerms.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {language === "hindi" ? "कोई शब्द नहीं मिला" : "No terms found"}
+            </h3>
+            <p className="text-gray-500">
+              {language === "hindi"
+                ? "कृपया अपने खोज शब्द बदलें"
+                : "Please try different search terms"}
             </p>
           </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
-            <Link to="/" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <Home size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('home')}</span>
-            </Link>
-            
-            <Link to="/chat" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <MessageCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('chat')}</span>
-            </Link>
-            
-            <Link to="/voice-agent" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <Mic size={18} />
-              <span className="text-xs mt-1 font-medium text-center">{t('voice')}</span>
-            </Link>
-
-            <Link to="/circulars" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <LinkIcon size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'परिपत्र' : 'Circulars'}
-              </span>
-            </Link>
-
-            <Link to="/document" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <FileText size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'दस्तावेज़' : 'Document'}
-              </span>
-            </Link>
-
-            <Link to="/academy" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <GraduationCap size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'अकादमी' : 'Academy'}
-              </span>
-            </Link>
-
-            <div className="bg-emerald-50 border border-emerald-200 flex flex-col items-center py-2 px-1 rounded-lg">
-              <BookOpen size={18} className="text-emerald-600" />
-              <span className="text-xs mt-1 font-medium text-emerald-700 text-center">
-                {language === 'hindi' ? 'शब्दकोश' : 'Glossary'}
-              </span>
-            </div>
-
-            <Link to="/videos" className="flex flex-col items-center py-2 px-1 rounded-lg transition-all text-gray-500 hover:bg-gray-50">
-              <PlayCircle size={18} />
-              <span className="text-xs mt-1 font-medium text-center">
-                {language === 'hindi' ? 'वीडियो' : 'Videos'}
-              </span>
-            </Link>
-          </div>
-        </nav>
+        )}
       </div>
-    </div>
+
+      {/* Desktop Footer */}
+      <div className="mt-8 pt-6 border-t border-gray-200">
+        <div className="bg-gray-50 rounded-xl p-6 text-center">
+          <p className="text-xs text-gray-500 font-medium tracking-wide">
+            Built by Futurelab Ikigai and Piramal Foundation © 2025
+          </p>
+        </div>
+      </div>
+    </MainLayout>
   );
 } 
