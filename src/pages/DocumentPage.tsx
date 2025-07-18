@@ -306,7 +306,7 @@ export default function DocumentPage() {
         description:
           language === 'hindi'
             ? 'फोटो कैप्चर करने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-            : 'Error capturing photo. Please try again.';
+            : 'Error capturing photo. Please try again.',
         variant: 'destructive',
       });
     }
@@ -1078,7 +1078,9 @@ export default function DocumentPage() {
                       {isDownloadingImage ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          {language === 'hindi' ? 'डाउनलोड हो रहा है...' : 'Downloading...'}
+                          {language === 'hindi'
+                            ? 'डाउनलोड हो रहा है...'
+                            : 'Downloading...'}
                         </>
                       ) : (
                         <>

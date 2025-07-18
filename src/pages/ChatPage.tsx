@@ -1,23 +1,34 @@
-import { useState, useEffect, useRef } from "react";
-import ChatMessage from "@/components/ChatMessage";
-import MessageInput from "@/components/MessageInput";
-import { Message, ChatState, Language } from "@/types";
-import { useSpeechRecognition } from "@/utils/speechRecognition";
-import { v4 as uuidv4 } from "uuid";
-import { apiClient, ChatMessage as APIChatMessage } from "@/services/api";
-import { elevenLabsService } from "@/services/elevenlabs";
-import { MessageCircle, Globe, Home, Mic, FileText, Link as LinkIcon, GraduationCap, PlayCircle, BookOpen } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useLanguage } from "@/contexts/LanguageContext";
-import MainLayout from "@/components/layout/MainLayout";
+import { useState, useEffect, useRef } from 'react';
+import ChatMessage from '@/components/ChatMessage';
+import MessageInput from '@/components/MessageInput';
+import { Message, ChatState, Language } from '@/types';
+import { speechRecognitionService } from '@/utils/speechRecognition';
+import { v4 as uuidv4 } from 'uuid';
+import { apiClient, ChatMessage as APIChatMessage } from '@/services/api';
+import { elevenLabsService } from '@/services/elevenlabs';
+import {
+  MessageCircle,
+  Globe,
+  Home,
+  Mic,
+  FileText,
+  Link as LinkIcon,
+  GraduationCap,
+  PlayCircle,
+  BookOpen,
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
+import MainLayout from '@/components/layout/MainLayout';
+import { useToast } from '@/components/ui/use-toast';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 export default function ChatPage() {
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const { toast } = useToast();
 
-  
   const [chatState, setChatState] = useState<ChatState>(() => {
     return {
       messages: [],
@@ -26,11 +37,11 @@ export default function ChatPage() {
       conversationId: null, // Add conversationId to state
     };
   });
-  
+
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
+  const [transcript, setTranscript] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const speechRecognition = useSpeechRecognition();
+  const speechRecognition = speechRecognitionService;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,48 +57,55 @@ export default function ChatPage() {
 
   const handleLanguageChange = (newLanguage: Language) => {
     setLanguage(newLanguage);
-    setChatState(prev => ({ ...prev, language: newLanguage }));
+    setChatState((prev) => ({ ...prev, language: newLanguage }));
   };
 
-  const addMessage = async (content: string, role: 'user' | 'assistant', audioUrl?: string) => {
+  const addMessage = async (
+    content: string,
+    role: 'user' | 'assistant',
+    audioUrl?: string
+  ) => {
     const newMessage: Message = {
       id: uuidv4(),
       content,
       role,
-      audioUrl
+      audioUrl,
     };
-    
-    setChatState(prev => ({
+
+    setChatState((prev) => ({
       ...prev,
-      messages: [...prev.messages, newMessage]
+      messages: [...prev.messages, newMessage],
     }));
 
     return newMessage.id;
   };
 
   const updateMessage = (id: string, content: string) => {
-    setChatState(prev => ({
+    setChatState((prev) => ({
       ...prev,
-      messages: prev.messages.map(m =>
+      messages: prev.messages.map((m) =>
         m.id === id ? { ...m, content: m.content + content } : m
-      )
+      ),
     }));
   };
 
   const finalizeMessage = async (id: string) => {
-    setChatState(prev => {
-      const finalMessage = prev.messages.find(m => m.id === id);
+    setChatState((prev) => {
+      const finalMessage = prev.messages.find((m) => m.id === id);
       if (finalMessage) {
-        elevenLabsService.textToSpeech(finalMessage.content, prev.language)
-          .then(audioUrl => {
-            setChatState(subPrev => ({
+        elevenLabsService
+          .textToSpeech(finalMessage.content, prev.language)
+          .then((audioUrl) => {
+            setChatState((subPrev) => ({
               ...subPrev,
-              messages: subPrev.messages.map(m =>
+              messages: subPrev.messages.map((m) =>
                 m.id === id ? { ...m, audioUrl } : m
-              )
+              ),
             }));
           })
-          .catch(error => console.error('❌ Failed to generate audio:', error));
+          .catch((error) =>
+            console.error('❌ Failed to generate audio:', error)
+          );
       }
       return prev;
     });
@@ -95,21 +113,21 @@ export default function ChatPage() {
 
   const handleSendMessage = async (content: string) => {
     console.log('📤 Sending message:', content);
-    
+
     // Add user message to local state
     await addMessage(content, 'user');
-    
-    setChatState(prev => ({ ...prev, isLoading: true }));
-    
+
+    setChatState((prev) => ({ ...prev, isLoading: true }));
+
     // Create conversation history from state, excluding the latest message
-    const conversationHistory = chatState.messages.slice(-10).map(m => ({
+    const conversationHistory = chatState.messages.slice(-10).map((m) => ({
       role: m.role,
       content: m.content,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }));
 
     // Add empty assistant message for streaming
-    const assistantMessageId = await addMessage("", 'assistant');
+    const assistantMessageId = await addMessage('', 'assistant');
 
     await apiClient.streamChat({
       message: content,
@@ -117,54 +135,74 @@ export default function ChatPage() {
       conversationHistory,
       onChunk: (chunk, conversationId) => {
         if (conversationId && !chatState.conversationId) {
-          setChatState(prev => ({ ...prev, conversationId }));
+          setChatState((prev) => ({ ...prev, conversationId }));
         }
         updateMessage(assistantMessageId, chunk);
         scrollToBottom();
       },
       onComplete: () => {
         finalizeMessage(assistantMessageId);
-        setChatState(prev => ({ ...prev, isLoading: false }));
+        setChatState((prev) => ({ ...prev, isLoading: false }));
       },
       onError: (error) => {
         console.error('❌ Error sending message:', error);
-      
+
         let errorMessage = '';
-        
+
         if (error instanceof Error) {
-          if (error.message.includes('fetch') || error.message.includes('network')) {
-            errorMessage = chatState.language === 'hindi'
-              ? "🌐 इंटरनेट कनेक्शन की समस्या है। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
-              : "🌐 Internet connection problem hai. Kripya apna connection check kariye aur phir try kariye.";
-          } else if (error.message.includes('401') || error.message.includes('API')) {
-            errorMessage = chatState.language === 'hindi'
-              ? "🔑 सर्विस में अस्थायी समस्या है। कृपया बाद में पुनः प्रयास करें।"
-              : "🔑 Service mein temporary problem hai. Kripya baad mein phir try kariye.";
+          if (
+            error.message.includes('fetch') ||
+            error.message.includes('network')
+          ) {
+            errorMessage =
+              chatState.language === 'hindi'
+                ? '🌐 इंटरनेट कनेक्शन की समस्या है। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।'
+                : '🌐 Internet connection problem hai. Kripya apna connection check kariye aur phir try kariye.';
+          } else if (
+            error.message.includes('401') ||
+            error.message.includes('API')
+          ) {
+            errorMessage =
+              chatState.language === 'hindi'
+                ? '🔑 सर्विस में अस्थायी समस्या है। कृपया बाद में पुनः प्रयास करें।'
+                : '🔑 Service mein temporary problem hai. Kripya baad mein phir try kariye.';
           } else {
-            errorMessage = chatState.language === 'hindi'
-              ? "⚠️ कुछ गलत हुआ है। कृपया पुनः प्रयास करें।"
-              : "⚠️ Kuch galat hua hai. Kripya phir try kariye.";
+            errorMessage =
+              chatState.language === 'hindi'
+                ? '⚠️ कुछ गलत हुआ है। कृपया पुनः प्रयास करें।'
+                : '⚠️ Kuch galat hua hai. Kripya phir try kariye.';
           }
         } else {
-          errorMessage = chatState.language === 'hindi'
-            ? "❓ अज्ञात त्रुटि हुई है। कृपया पुनः प्रयास करें।"
-            : "❓ Unknown error hui hai. Kripya phir try kariye.";
+          errorMessage =
+            chatState.language === 'hindi'
+              ? '❓ अज्ञात त्रुटि हुई है। कृपया पुनः प्रयास करें।'
+              : '❓ Unknown error hui hai. Kripya phir try kariye.';
         }
-        
-        const helpMessage = chatState.language === 'hindi'
-          ? "\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें"
-          : "\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye";
-        
+
+        const helpMessage =
+          chatState.language === 'hindi'
+            ? '\n\n💡 सुझाव:\n• इंटरनेट कनेक्शन जांचें\n• पेज को रीफ्रेश करें\n• कुछ देर बाद प्रयास करें'
+            : '\n\n💡 Suggestions:\n• Internet connection check kariye\n• Page ko refresh kariye\n• Kuch der baad try kariye';
+
         updateMessage(assistantMessageId, errorMessage + helpMessage);
-        setChatState(prev => ({ ...prev, isLoading: false }));
-      }
+        setChatState((prev) => ({ ...prev, isLoading: false }));
+      },
     });
   };
 
   const handleStartListening = () => {
-    setTranscript("");
+    if (!navigator.onLine) {
+      toast({
+        title: t('speechErrorTitle'),
+        description: t('offlineError'),
+        variant: 'destructive',
+      });
+      setIsListening(false);
+      return;
+    }
+    setTranscript('');
     setIsListening(true);
-    
+
     const started = speechRecognition.start({
       language: chatState.language,
       onResult: (text) => {
@@ -172,16 +210,29 @@ export default function ChatPage() {
       },
       onEnd: () => {
         setIsListening(false);
-        if (transcript.trim()) {
-          handleSendMessage(transcript.trim());
-        }
+        // Transcript is now handled by the result finalization
       },
       onError: (error) => {
         console.error('Speech recognition error:', error);
         setIsListening(false);
-      }
+
+        let description = t('speechErrorGeneric');
+        if (error === 'network') {
+          description = t('speechErrorNetwork');
+        } else if (error === 'not-allowed' || error === 'service-not-allowed') {
+          description = t('speechErrorNotAllowed');
+        } else if (error === 'no-speech') {
+          description = t('speechErrorNoSpeech');
+        }
+
+        toast({
+          title: t('speechErrorTitle'),
+          description: description,
+          variant: 'destructive',
+        });
+      },
     });
-    
+
     if (!started) {
       setIsListening(false);
     }
@@ -192,9 +243,64 @@ export default function ChatPage() {
     setIsListening(false);
     if (transcript.trim()) {
       handleSendMessage(transcript.trim());
-      setTranscript(""); // Clear transcript after sending
+      setTranscript(''); // Clear transcript after sending
     }
   };
+
+  useEffect(() => {
+    let finalTranscript = '';
+    const handleResult = (text: string) => {
+      finalTranscript = text;
+      setTranscript(text);
+    };
+
+    const handleEnd = () => {
+      if (finalTranscript.trim()) {
+        handleSendMessage(finalTranscript.trim());
+      }
+      setIsListening(false);
+    };
+
+    if (isListening) {
+      const started = speechRecognition.start({
+        language: chatState.language,
+        onResult: handleResult,
+        onEnd: handleEnd,
+        onError: (error) => {
+          console.error('Speech recognition error:', error);
+          setIsListening(false);
+
+          let description = t('speechErrorGeneric');
+          if (error === 'network') {
+            description = t('speechErrorNetwork');
+          } else if (
+            error === 'not-allowed' ||
+            error === 'service-not-allowed'
+          ) {
+            description = t('speechErrorNotAllowed');
+          } else if (error === 'no-speech') {
+            description = t('speechErrorNoSpeech');
+          }
+
+          toast({
+            title: t('speechErrorTitle'),
+            description: description,
+            variant: 'destructive',
+          });
+        },
+      });
+
+      if (!started) {
+        setIsListening(false);
+      }
+    } else {
+      speechRecognition.stop();
+    }
+
+    return () => {
+      speechRecognition.stop();
+    };
+  }, [isListening]);
 
   // Add a welcome message when the chat first loads
   useEffect(() => {
@@ -213,10 +319,13 @@ export default function ChatPage() {
   };
 
   const getLanguageButtonText = () => {
-    switch(language) {
-      case 'hindi': return t('switchToHinglish');
-      case 'hinglish': return t('switchToHindi');
-      default: return 'हिंदी';
+    switch (language) {
+      case 'hindi':
+        return t('switchToHinglish');
+      case 'hinglish':
+        return t('switchToHindi');
+      default:
+        return 'हिंदी';
     }
   };
 
@@ -225,7 +334,7 @@ export default function ChatPage() {
       <div className="flex-1 h-[calc(100vh-300px)] lg:h-auto overflow-y-auto p-6">
         <div
           className="max-w-4xl mx-auto max-h-[calc(100vh-200px)] pb-24  space-y-4"
-          style={{ scrollBehavior: "smooth" }}
+          style={{ scrollBehavior: 'smooth' }}
         >
           {chatState.messages.map((message) => (
             <div key={message.id} className="fade-in pb-4">
@@ -237,7 +346,7 @@ export default function ChatPage() {
             <div className="flex justify-center">
               <div className="bg-blue-100 border border-blue-200 p-4 rounded-xl scale-in">
                 <p className="text-blue-700 text-center font-medium">
-                  {t("listening")}
+                  {t('listening')}
                 </p>
                 {transcript && (
                   <p className="mt-2 text-center text-gray-700">{transcript}</p>
@@ -250,13 +359,11 @@ export default function ChatPage() {
             <div className="flex justify-center">
               <div className="bg-emerald-100 border border-emerald-200 p-4 rounded-xl animate-pulse">
                 <p className="text-emerald-700 text-center font-medium">
-                  {t("thinking")}
+                  {t('thinking')}
                 </p>
               </div>
             </div>
           )}
-
-      
         </div>
         <div ref={messagesEndRef} />
       </div>

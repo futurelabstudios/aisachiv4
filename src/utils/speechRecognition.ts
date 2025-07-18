@@ -1,4 +1,3 @@
-
 interface SpeechRecognitionOptions {
   language: string;
   onResult: (transcript: string) => void;
@@ -6,57 +5,65 @@ interface SpeechRecognitionOptions {
   onError: (error: any) => void;
 }
 
-export function useSpeechRecognition() {
-  let recognition: any = null;
-  
-  if ('webkitSpeechRecognition' in window) {
-    // @ts-ignore - WebkitSpeechRecognition is not in the TypeScript types
-    recognition = new webkitSpeechRecognition();
-  } else if ('SpeechRecognition' in window) {
-    // @ts-ignore - SpeechRecognition is not properly typed
-    recognition = new (window as any).SpeechRecognition();
+class SpeechRecognitionService {
+  private recognition: any = null;
+  private isBrowserSupported: boolean = false;
+
+  constructor() {
+    if ('webkitSpeechRecognition' in window) {
+      // @ts-ignore
+      this.recognition = new webkitSpeechRecognition();
+      this.isBrowserSupported = true;
+    } else if ('SpeechRecognition' in window) {
+      // @ts-ignore
+      this.recognition = new (window as any).SpeechRecognition();
+      this.isBrowserSupported = true;
+    }
   }
-  
-  const start = ({ language, onResult, onEnd, onError }: SpeechRecognitionOptions) => {
-    if (!recognition) {
-      onError('Speech recognition is not supported in this browser');
+
+  public start(options: SpeechRecognitionOptions): boolean {
+    if (!this.isBrowserSupported || !this.recognition) {
+      options.onError('Speech recognition is not supported in this browser');
       return false;
     }
-    
-    recognition.lang = language === 'hindi' ? 'hi-IN' : 'en-US';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    
-    recognition.onresult = (event) => {
+
+    this.recognition.lang = options.language === 'hindi' ? 'hi-IN' : 'en-US';
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+
+    this.recognition.onresult = (event: any) => {
       const transcript = Array.from(event.results)
-        .map(result => result[0].transcript)
+        .map((result: any) => result[0].transcript)
         .join('');
-      
-      onResult(transcript);
+      options.onResult(transcript);
     };
-    
-    recognition.onerror = (event) => {
-      onError(event.error);
+
+    this.recognition.onerror = (event: any) => {
+      options.onError(event.error);
     };
-    
-    recognition.onend = () => {
-      onEnd();
+
+    this.recognition.onend = () => {
+      options.onEnd();
     };
-    
+
     try {
-      recognition.start();
+      this.recognition.start();
       return true;
     } catch (error) {
-      onError(error);
+      options.onError(error);
       return false;
     }
-  };
-  
-  const stop = () => {
-    if (recognition) {
-      recognition.stop();
+  }
+
+  public stop(): void {
+    if (this.recognition) {
+      this.recognition.stop();
     }
-  };
-  
-  return { start, stop, isSupported: !!recognition };
+  }
+
+  public get isSupported(): boolean {
+    return this.isBrowserSupported;
+  }
 }
+
+export const speechRecognitionService = new SpeechRecognitionService();
