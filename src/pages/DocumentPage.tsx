@@ -52,6 +52,7 @@ export default function DocumentPage() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  const [isDownloadingImage, setIsDownloadingImage] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -305,7 +306,7 @@ export default function DocumentPage() {
         description:
           language === 'hindi'
             ? 'फोटो कैप्चर करने में त्रुटि हुई। कृपया पुनः प्रयास करें।'
-            : 'Error capturing photo. Please try again.',
+            : 'Error capturing photo. Please try again.';
         variant: 'destructive',
       });
     }
@@ -1019,6 +1020,74 @@ export default function DocumentPage() {
                     alt="Generated"
                     className="w-full max-h-64 object-contain rounded-lg border"
                   />
+                  <div className="flex justify-center mt-2">
+                    <Button
+                      onClick={async () => {
+                        setIsDownloadingImage(true);
+                        try {
+                          const downloadUrl = `http://localhost:8000/download-image?url=${encodeURIComponent(
+                            generatedImageUrl
+                          )}`;
+                          const response = await fetch(downloadUrl);
+                          if (!response.ok) {
+                            throw new Error(
+                              'Failed to download image via proxy'
+                            );
+                          }
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `generated-image-${Date.now()}.png`;
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+
+                          toast({
+                            title:
+                              language === 'hindi'
+                                ? 'डाउनलोड शुरू'
+                                : 'Download Started',
+                            description:
+                              language === 'hindi'
+                                ? 'छवि डाउनलोड हो रही है'
+                                : 'Image is downloading',
+                          });
+                        } catch (error) {
+                          console.error('Download error:', error);
+                          toast({
+                            title:
+                              language === 'hindi'
+                                ? 'डाउनलोड त्रुटि'
+                                : 'Download Error',
+                            description:
+                              language === 'hindi'
+                                ? 'छवि डाउनलोड नहीं हो सकी'
+                                : 'Could not download image',
+                            variant: 'destructive',
+                          });
+                        } finally {
+                          setIsDownloadingImage(false);
+                        }
+                      }}
+                      variant="outline"
+                      size="sm"
+                      disabled={isDownloadingImage}
+                    >
+                      {isDownloadingImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          {language === 'hindi' ? 'डाउनलोड हो रहा है...' : 'Downloading...'}
+                        </>
+                      ) : (
+                        <>
+                          <Image className="w-4 h-4 mr-2" />
+                          {language === 'hindi' ? 'डाउनलोड करें' : 'Download'}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
               <div className="flex gap-4 justify-end">

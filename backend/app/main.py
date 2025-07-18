@@ -1,7 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+import httpx
 
 from .core.config import get_settings
 from .core.database import init_db, close_db
@@ -90,6 +92,23 @@ async def health_check():
     }
 
 
+@app.get("/download-image")
+async def download_image(url: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            
+            content_type = response.headers.get('content-type', 'application/octet-stream')
+            
+            return Response(content=response.content, media_type=content_type)
+    except httpx.RequestError as e:
+        logger.error(f"Error downloading image: {e}")
+        raise HTTPException(status_code=500, detail="Error downloading image from source.")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Error downloading image, status code: {e.response.status_code}")
+        raise HTTPException(status_code=e.response.status_code, detail="Image source returned an error.")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
@@ -98,4 +117,3 @@ if __name__ == "__main__":
         port=settings.PORT,
         reload=settings.DEBUG
     )
-    
