@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import get_settings
 from .core.database import init_db, close_db
-from .routers import chat, health, tts, document, user, auth, rag
+from .routers import chat, health, tts, document, user, auth
 
 # Configure logging
 logging.basicConfig(
@@ -64,7 +64,6 @@ app.include_router(tts.router)
 app.include_router(document.router)
 app.include_router(user.router)
 app.include_router(auth.router)
-app.include_router(rag.router, prefix="/rag", tags=["RAG"])
 
 # Health check endpoints
 @app.get("/")
@@ -99,3 +98,4 @@ if __name__ == "__main__":
         port=settings.PORT,
         reload=settings.DEBUG
     )
+    

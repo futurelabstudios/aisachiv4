@@ -37,7 +37,11 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // A small delay to allow the DOM to update before scrolling.
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
   }, [chatState.messages]);
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -116,6 +120,7 @@ export default function ChatPage() {
           setChatState(prev => ({ ...prev, conversationId }));
         }
         updateMessage(assistantMessageId, chunk);
+        scrollToBottom();
       },
       onComplete: () => {
         finalizeMessage(assistantMessageId);
@@ -251,8 +256,9 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+      
         </div>
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Chat Input */}

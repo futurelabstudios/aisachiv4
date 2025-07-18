@@ -74,48 +74,85 @@ def ingest_pdfs_from_directory(directory_path: str):
             print(f"Error generating embeddings for {filename}: {e}")
             continue # Skip to the next file
 
-        # 4. Vector Storage (in a single batch)
+        # 4. Vector Storage (in batches)
         print(f"Ingesting {len(all_chunks)} chunks into Supabase for {filename}...")
+        batch_size = 100
+        total_batches = (len(all_chunks) + batch_size - 1) // batch_size
+
         try:
-            supabase.table("documents").insert(all_chunks).execute()
+            for i in range(0, len(all_chunks), batch_size):
+                batch = all_chunks[i:i + batch_size]
+                current_batch_num = (i // batch_size) + 1
+                print(f"  - Ingesting batch {current_batch_num} of {total_batches} for {filename}...")
+                supabase.table("documents").insert(batch).execute()
+            
             print(f"Successfully ingested {filename}")
         except Exception as e:
-            print(f"Error ingesting {filename}: {e}")
+            print(f"Error ingesting data for {filename}: {e}")
+
+
+def get_rag_context(query: str, top_k: int = 5) -> str | None:
+    """
+    Retrieves and re-ranks context from documents based on a query.
+    Returns a formatted context string or None if no relevant documents are found.
+    This function is more robust and includes detailed logging.
+    """
+    try:
+        # 1. Query Embedding
+        query_embedding = get_embedding(query)
+        print(f"RAG DEBUG: {query} Query embedding: {query_embedding[0]}")
+        # 2. Retrieval from Supabase
+        retrieved_docs = supabase.rpc(
+            "match_documents",
+            {"query_embedding": query_embedding, "match_threshold": 0.5, "match_count": 100}
+        ).execute().data
+        
+        # Log the retrieved documents
+        print(f"RAG DEBUG: Retrieved {len(retrieved_docs)} docs from Supabase.")
+
+        if not retrieved_docs or not isinstance(retrieved_docs, list):
+            print("RAG DEBUG: No valid documents returned from Supabase.")
+            return None
+
+        # 3. Re-ranking
+        cross_inp = [[query, doc.get('content', '')] for doc in retrieved_docs]
+        cross_scores = rerank_model.predict(cross_inp)
+        
+        for doc, score in zip(retrieved_docs, cross_scores):
+            doc['rerank_score'] = score
+            
+        reranked_docs = sorted(retrieved_docs, key=lambda x: x.get('rerank_score', 0), reverse=True)
+        
+        # 4. Format final context from top K documents
+        top_docs = reranked_docs[:top_k]
+        final_context = "\n---\n".join([doc['content'] for doc in top_docs if doc.get('content')])
+
+        # Final check to ensure we return a non-empty string or None
+        if final_context.strip():
+            print(f"RAG DEBUG: Final context length: {len(final_context)}")
+            return final_context
+        else:
+            print("RAG DEBUG: Final context is empty after processing.")
+            return None
+            
+    except Exception as e:
+        print(f"RAG ERROR: An unexpected error occurred in get_rag_context: {e}")
+        return None
 
 
 def query_rag(query: str):
     """
-    Queries the RAG pipeline to get an answer for a given query.
+    Queries the RAG pipeline to get a direct answer for a given query.
+    This is now a wrapper around get_rag_context and the OpenAI API.
     """
-    # 1. Query Embedding
-    query_embedding = get_embedding(query)
+    # 1. Retrieve RAG context
+    final_context = get_rag_context(query)
     
-    # 2. Retrieval
-    # Use a stored procedure (rpc call) for similarity search
-    retrieved_docs = supabase.rpc(
-        "match_documents",
-        {"query_embedding": query_embedding, "match_threshold": 0.78, "match_count": 20}
-    ).execute().data
-    
-    if not retrieved_docs:
+    # 2. Handle case where no context is found
+    if final_context is None:
         return "I couldn't find any relevant information in the documents."
 
-    # 3. Re-ranking
-    cross_inp = [[query, doc['content']] for doc in retrieved_docs]
-    cross_scores = rerank_model.predict(cross_inp)
-    
-    # Combine scores and documents
-    for doc, score in zip(retrieved_docs, cross_scores):
-        doc['rerank_score'] = score
-        
-    # Sort by new rerank score
-    reranked_docs = sorted(retrieved_docs, key=lambda x: x['rerank_score'], reverse=True)
-    
-    # Select top 3-5 documents
-    top_k = 5
-    final_context = "\n---\n".join([doc['content'] for doc in reranked_docs[:top_k]])
-
-    # 4. Prompt Formulation & 5. Generation
+    # 3. Prompt Formulation & Generation
     prompt = f"""
     You are an expert assistant. Use the following context to answer the question at the end. 
     If you don't know the answer from the context provided, just say that you don't know. Do not make up an answer.

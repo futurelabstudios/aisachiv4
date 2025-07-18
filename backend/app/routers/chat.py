@@ -11,6 +11,7 @@ from ..services.database_service import database_service
 from ..core.database import get_session
 from ..utils.openai_helpers import get_openai_response, detect_language
 from ..utils.dependencies import get_current_user
+from ..services.rag_service import get_rag_context
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 logger = logging.getLogger(__name__)
@@ -70,13 +71,57 @@ async def chat(
                     )
                     new_conversation_id = str(saved_conv.id)
                 
-                # Send the conversation_id as the first event
+                # 1. Get RAG context before yielding anything to the client.
+                # This ensures the potentially slow operation completes first.
+                # Summarize the conversation history using OpenAI's fastest model (gpt-3.5-turbo)
+                summary_text = ""
+                if conversation_context:
+                    # Prepare a summarization prompt
+                    summary_prompt = (
+                        "Summarize the following conversation between a user and an assistant in 2-3 sentences, "
+                        "focusing on the main topics, user needs, and any important context. "
+                        "Use the same language as the conversation.\n\n"
+                        "Conversation:\n"
+                    )
+                    # Flatten the conversation context for summarization
+                    for msg in conversation_context:
+                        summary_prompt += f"{msg['role'].capitalize()}: {msg['content']}\n"
+                    try:
+                        from app.utils.openai_helpers import openai_client
+                        summary_response = openai_client.chat.completions.create(
+                            model="gpt-3.5-turbo",
+                            messages=[
+                                {"role": "system", "content": "You are a helpful assistant that summarizes conversations."},
+                                {"role": "user", "content": summary_prompt}
+                            ],
+                            max_tokens=128,
+                            temperature=0.3
+                        )
+                        summary_text = summary_response.choices[0].message.content.strip()
+                    except Exception as e:
+                        logger.error(f"Error during conversation summarization: {e}")
+                        summary_text = ""
+
+                # Enhance the user message with the conversation summary (if available)
+                enhanced_message = request.message
+                if summary_text:
+                    enhanced_message = (
+                        f"Previous conversation summary: {summary_text}\n\n"
+                        f"Current user message: {request.message}"
+                    )
+
+                # Get RAG context using the enhanced message
+                rag_context = get_rag_context(enhanced_message)
+
+                # Now send the conversation_id as the first event
                 yield f"data: {json.dumps({'conversationId': new_conversation_id})}\n\n"
                 
-                response_stream = get_openai_response(
+                # 2. Get the streaming response using the retrieved context
+                response_stream =  get_openai_response(
                     request.message, 
                     conversation_context,
-                    language=input_language
+                    language=input_language,
+                    rag_context=rag_context  # Pass the context here
                 )
                 
                 async for chunk in response_stream:

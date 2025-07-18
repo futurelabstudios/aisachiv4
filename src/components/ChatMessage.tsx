@@ -51,9 +51,9 @@ export default function ChatMessage({ message, language }: ChatMessageProps) {
   const handleAudioEnded = () => {
     setIsPlaying(false);
   };
-
-  return (
-    <div
+  if (message.content.length > 0) {
+    return (
+      <div
       className={`flex ${
         message.role === "user" ? "justify-end" : "justify-start"
       } mb-2 sm:mb-4 px-2 animate-fade-in`}
@@ -105,5 +105,9 @@ export default function ChatMessage({ message, language }: ChatMessageProps) {
           )}
       </div>
     </div>
+  );
+}
+  return (
+   <></>
   );
 }
