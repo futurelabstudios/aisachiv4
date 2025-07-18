@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Language } from "@/types";
-import { ArrowRight, Mic, MicOff } from "lucide-react";
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Language } from '@/types';
+import { ArrowRight, Mic, MicOff } from 'lucide-react';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -14,16 +14,16 @@ interface MessageInputProps {
   transcript?: string;
 }
 
-export default function MessageInput({ 
-  onSendMessage, 
-  isLoading, 
+export default function MessageInput({
+  onSendMessage,
+  isLoading,
   language,
   isListening = false,
   onStartListening,
   onStopListening,
-  transcript = ""
+  transcript = '',
 }: MessageInputProps) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Use transcript if available, otherwise use typed message
@@ -33,7 +33,7 @@ export default function MessageInput({
     e.preventDefault();
     if (currentMessage.trim() && !isLoading) {
       onSendMessage(currentMessage);
-      setMessage("");
+      setMessage('');
       // Stop listening if currently recording
       if (isListening) {
         onStopListening?.();
@@ -53,12 +53,16 @@ export default function MessageInput({
     if (isListening) {
       return language === 'hindi' ? 'सुन रहा हूं...' : 'Sun raha hun...';
     }
-    return language === 'hindi' ? 'अपना संदेश लिखें या बोलने के लिए माइक दबाएं...' : 
-           'Apna message likhe ya bolne ke liye mic dabaye...';
+    return language === 'hindi'
+      ? 'अपना संदेश लिखें या बोलने के लिए माइक दबाएं...'
+      : 'Apna message likhe ya bolne ke liye mic dabaye...';
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 sm:p-4 bg-white border-t border-gray-200">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2 p-2 sm:p-4 bg-white border-t border-gray-200"
+    >
       <Input
         ref={inputRef}
         type="text"
@@ -71,9 +75,9 @@ export default function MessageInput({
         disabled={isLoading || isListening}
         aria-label={language === 'hindi' ? 'संदेश इनपुट' : 'Message input'}
       />
-      
+
       {/* Voice Button */}
-      {onStartListening && onStopListening && (
+      {/* {onStartListening && onStopListening && (
         <Button
           type="button"
           onClick={handleVoiceToggle}
@@ -91,20 +95,24 @@ export default function MessageInput({
             isListening ? 'scale-110' : 'scale-100'
           }`} />
         </Button>
-      )}
-      
+      )} */}
+
       {/* Send Button */}
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         disabled={!currentMessage.trim() || isLoading}
         className={`btn-primary h-12 sm:h-14 aspect-square rounded-xl transition-all duration-200 ${
-          !currentMessage.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+          !currentMessage.trim() || isLoading
+            ? 'opacity-50 cursor-not-allowed'
+            : 'hover:scale-105'
         }`}
         aria-label={language === 'hindi' ? 'संदेश भेजें' : 'Message bheje'}
       >
-        <ArrowRight className={`h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 ${
-          isLoading ? 'animate-pulse' : ''
-        }`} />
+        <ArrowRight
+          className={`h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-200 ${
+            isLoading ? 'animate-pulse' : ''
+          }`}
+        />
       </Button>
     </form>
   );
