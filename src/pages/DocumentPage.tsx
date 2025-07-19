@@ -103,15 +103,26 @@ export default function DocumentPage() {
       }
 
       // Clean up previous document resources if they exist
-      if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
-        console.log('🧹 Cleaning up previous document resources before new upload');
-        apiClient.cleanupDocumentResources(
-          analysisResult.assistantId,
-          analysisResult.threadId,
-          analysisResult.fileId
-        ).catch((error) => {
-          console.warn('⚠️ Failed to cleanup previous document resources:', error);
-        });
+      if (
+        analysisResult?.assistantId &&
+        analysisResult?.threadId &&
+        analysisResult?.fileId
+      ) {
+        console.log(
+          '🧹 Cleaning up previous document resources before new upload'
+        );
+        apiClient
+          .cleanupDocumentResources(
+            analysisResult.assistantId,
+            analysisResult.threadId,
+            analysisResult.fileId
+          )
+          .catch((error) => {
+            console.warn(
+              '⚠️ Failed to cleanup previous document resources:',
+              error
+            );
+          });
       }
 
       setUploadedFile(file);
@@ -628,10 +639,12 @@ export default function DocumentPage() {
     try {
       // Use document-specific endpoint if we have assistant/thread IDs
       if (analysisResult.assistantId && analysisResult.threadId) {
-        console.log('💬 Using document-specific assistant for follow-up question');
+        console.log(
+          '💬 Using document-specific assistant for follow-up question'
+        );
         console.log(`🎯 Assistant ID: ${analysisResult.assistantId}`);
         console.log(`🧵 Thread ID: ${analysisResult.threadId}`);
-        
+
         const response = await apiClient.askDocumentQuestion(
           questionToAsk,
           analysisResult.assistantId,
@@ -648,8 +661,10 @@ export default function DocumentPage() {
         setMessages((prev) => [...prev, assistantMessage]);
       } else {
         // Fallback to general chat if no persistent IDs
-        console.log('⚠️ No persistent assistant IDs, falling back to general chat');
-        
+        console.log(
+          '⚠️ No persistent assistant IDs, falling back to general chat'
+        );
+
         const conversationHistory: ChatMessage[] = messages.map((msg) => ({
           role: msg.role as 'user' | 'assistant',
           content: msg.content,
@@ -781,17 +796,26 @@ export default function DocumentPage() {
 
   const resetDocument = () => {
     // Clean up resources from previous document if they exist
-    if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
+    if (
+      analysisResult?.assistantId &&
+      analysisResult?.threadId &&
+      analysisResult?.fileId
+    ) {
       console.log('🧹 Cleaning up previous document resources');
-      apiClient.cleanupDocumentResources(
-        analysisResult.assistantId,
-        analysisResult.threadId,
-        analysisResult.fileId
-      ).catch((error) => {
-        console.warn('⚠️ Failed to cleanup previous document resources:', error);
-      });
+      apiClient
+        .cleanupDocumentResources(
+          analysisResult.assistantId,
+          analysisResult.threadId,
+          analysisResult.fileId
+        )
+        .catch((error) => {
+          console.warn(
+            '⚠️ Failed to cleanup previous document resources:',
+            error
+          );
+        });
     }
-    
+
     setUploadedFile(null);
     setAnalysisResult(null);
     setMessages([]);
@@ -807,15 +831,24 @@ export default function DocumentPage() {
   // Cleanup when component unmounts
   useEffect(() => {
     return () => {
-      if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
+      if (
+        analysisResult?.assistantId &&
+        analysisResult?.threadId &&
+        analysisResult?.fileId
+      ) {
         console.log('🧹 Component unmounting, cleaning up document resources');
-        apiClient.cleanupDocumentResources(
-          analysisResult.assistantId,
-          analysisResult.threadId,
-          analysisResult.fileId
-        ).catch((error) => {
-          console.warn('⚠️ Failed to cleanup document resources on unmount:', error);
-        });
+        apiClient
+          .cleanupDocumentResources(
+            analysisResult.assistantId,
+            analysisResult.threadId,
+            analysisResult.fileId
+          )
+          .catch((error) => {
+            console.warn(
+              '⚠️ Failed to cleanup document resources on unmount:',
+              error
+            );
+          });
       }
     };
   }, [analysisResult]);

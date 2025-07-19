@@ -1,7 +1,7 @@
 // API service for backend endpoints
-import { Language } from "@/types";
+import { Language } from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface CircularsResponse {
   success: boolean;
@@ -21,7 +21,7 @@ export interface CircularsResponse {
         hinglish: string;
       };
       url: string;
-      category: "scheme" | "circular" | "policy";
+      category: 'scheme' | 'circular' | 'policy';
     }>;
   }>;
   schemes?: Array<{
@@ -34,7 +34,7 @@ export interface CircularsResponse {
       hinglish: string;
     };
     url: string;
-    category: "scheme" | "circular" | "policy";
+    category: 'scheme' | 'circular' | 'policy';
   }>;
   message?: string;
 }
@@ -147,7 +147,7 @@ export interface GlossaryResponse {
 }
 
 export interface ChatMessage {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: string;
 }
@@ -178,7 +178,7 @@ class APIClient {
   ): Promise<string> {
     try {
       const response = await fetch(`${this.baseUrl}/chat`, {
-        method: "POST",
+        method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           message,
@@ -193,7 +193,7 @@ class APIClient {
       const data: ChatResponse = await response.json();
       return data.response;
     } catch (error) {
-      console.error("Error sending chat message:", error);
+      console.error('Error sending chat message:', error);
       throw error;
     }
   }
@@ -206,23 +206,23 @@ class APIClient {
     const token = this.getToken();
     if (token) {
       return {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       };
     }
-    return { "Content-Type": "application/json" };
+    return { 'Content-Type': 'application/json' };
   }
 
   async getCirculars(
-    language: string = "hinglish",
+    language: string = 'hinglish',
     stateId?: string,
-    category: string = "all"
+    category: string = 'all'
   ): Promise<CircularsResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/circulars`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           state_id: stateId,
@@ -237,14 +237,14 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error("Error fetching circulars:", error);
+      console.error('Error fetching circulars:', error);
       throw error;
     }
   }
 
   async analyzeDocument(
     file: File,
-    language: string = "hinglish"
+    language: string = 'hinglish'
   ): Promise<{
     summary: string;
     keyPoints: string[];
@@ -260,9 +260,9 @@ class APIClient {
       const base64Data = await this.fileToBase64(file);
 
       const response = await fetch(`${this.baseUrl}/document`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           image_data: base64Data,
@@ -278,14 +278,14 @@ class APIClient {
       const data: DocumentAnalysisResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Document analysis failed");
+        throw new Error(data.message || 'Document analysis failed');
       }
 
       // Convert backend response to expected format
       if (data.analysis) {
         return {
           summary:
-            data.analysis.main_information || "Document analyzed successfully",
+            data.analysis.main_information || 'Document analyzed successfully',
           keyPoints: data.analysis.fields_detected.map(
             (field) => `${field.field_name}: ${field.value}`
           ),
@@ -296,10 +296,10 @@ class APIClient {
           fileId: data.file_id,
         };
       } else {
-        throw new Error("No analysis data received");
+        throw new Error('No analysis data received');
       }
     } catch (error) {
-      console.error("Error analyzing document:", error);
+      console.error('Error analyzing document:', error);
       throw error;
     }
   }
@@ -308,15 +308,15 @@ class APIClient {
     question: string,
     assistantId: string,
     threadId: string,
-    language: string = "hinglish"
+    language: string = 'hinglish'
   ): Promise<string> {
     try {
-      console.log("💬 Asking document question");
+      console.log('💬 Asking document question');
 
       const response = await fetch(`${this.baseUrl}/document/question`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           question: question,
@@ -334,13 +334,13 @@ class APIClient {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Question processing failed");
+        throw new Error(data.message || 'Question processing failed');
       }
 
-      console.log("✅ Document question answered successfully");
+      console.log('✅ Document question answered successfully');
       return data.answer;
     } catch (error) {
-      console.error("❌ Error asking document question:", error);
+      console.error('❌ Error asking document question:', error);
       throw error;
     }
   }
@@ -351,12 +351,12 @@ class APIClient {
     fileId: string
   ): Promise<void> {
     try {
-      console.log("🧹 Cleaning up document resources");
+      console.log('🧹 Cleaning up document resources');
 
       const response = await fetch(`${this.baseUrl}/document/cleanup`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           assistant_id: assistantId,
@@ -373,27 +373,27 @@ class APIClient {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Cleanup failed");
+        throw new Error(data.message || 'Cleanup failed');
       }
 
-      console.log("✅ Document resources cleaned up successfully");
+      console.log('✅ Document resources cleaned up successfully');
     } catch (error) {
-      console.error("❌ Error cleaning up document resources:", error);
+      console.error('❌ Error cleaning up document resources:', error);
       throw error;
     }
   }
 
   async generateImage(
     prompt: string,
-    language: string = "hinglish"
+    language: string = 'hinglish'
   ): Promise<string> {
     try {
-      console.log("🎨 Calling backend to generate image");
+      console.log('🎨 Calling backend to generate image');
 
       const response = await fetch(`${this.baseUrl}/generate-image`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: prompt,
@@ -411,13 +411,13 @@ class APIClient {
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || "Image generation failed");
+        throw new Error(data.message || 'Image generation failed');
       }
 
-      console.log("✅ Image generated successfully");
+      console.log('✅ Image generated successfully');
       return data.image_url;
     } catch (error) {
-      console.error("❌ Error generating image:", error);
+      console.error('❌ Error generating image:', error);
       throw error;
     }
   }
@@ -426,28 +426,28 @@ class APIClient {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
-        if (typeof reader.result === "string") {
+        if (typeof reader.result === 'string') {
           // Remove data URL prefix (data:image/jpeg;base64,)
-          const base64 = reader.result.split(",")[1];
+          const base64 = reader.result.split(',')[1];
           resolve(base64);
         } else {
-          reject(new Error("Failed to convert file to base64"));
+          reject(new Error('Failed to convert file to base64'));
         }
       };
-      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsDataURL(file);
     });
   }
 
   async getAcademyContent(
-    language: string = "hinglish",
+    language: string = 'hinglish',
     moduleId?: number
   ): Promise<AcademyResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/academy`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           module_id: moduleId,
@@ -461,20 +461,20 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error("Error fetching academy content:", error);
+      console.error('Error fetching academy content:', error);
       throw error;
     }
   }
 
   async getVideos(
-    language: string = "hinglish",
-    category: string = "all"
+    language: string = 'hinglish',
+    category: string = 'all'
   ): Promise<VideosResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/videos`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           category,
@@ -488,21 +488,21 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error("Error fetching videos:", error);
+      console.error('Error fetching videos:', error);
       throw error;
     }
   }
 
   async getGlossaryTerms(
-    language: string = "hinglish",
+    language: string = 'hinglish',
     searchQuery?: string,
-    category: string = "all"
+    category: string = 'all'
   ): Promise<GlossaryResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/glossary`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           search_query: searchQuery,
@@ -517,7 +517,7 @@ class APIClient {
 
       return await response.json();
     } catch (error) {
-      console.error("Error fetching glossary terms:", error);
+      console.error('Error fetching glossary terms:', error);
       throw error;
     }
   }
@@ -538,10 +538,10 @@ class APIClient {
     onComplete: () => void;
   }) {
     try {
-      console.log("🚀 Streaming message to backend");
+      console.log('🚀 Streaming message to backend');
 
       const response = await fetch(`${this.baseUrl}/chat/`, {
-        method: "POST",
+        method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({
           message: message,
@@ -555,7 +555,7 @@ class APIClient {
       }
 
       if (!response.body) {
-        throw new Error("Response body is null");
+        throw new Error('Response body is null');
       }
 
       const reader = response.body.getReader();
@@ -570,10 +570,10 @@ class APIClient {
         }
 
         const sseChunk = decoder.decode(value);
-        const lines = sseChunk.split("\n").filter((line) => line.trim() !== "");
+        const lines = sseChunk.split('\n').filter((line) => line.trim() !== '');
 
         for (const line of lines) {
-          if (line.startsWith("data:")) {
+          if (line.startsWith('data:')) {
             const data = line.substring(5).trim();
             try {
               const parsedData = JSON.parse(data);
@@ -582,7 +582,7 @@ class APIClient {
                 receivedConversationId = parsedData.conversationId;
                 // You might want to pass this to the onChunk callback if needed
                 console.log(
-                  "Received conversation ID:",
+                  'Received conversation ID:',
                   receivedConversationId
                 );
               } else if (parsedData.chunk) {
@@ -591,7 +591,7 @@ class APIClient {
                 throw new Error(parsedData.error);
               }
             } catch (e) {
-              console.error("Failed to parse SSE data chunk:", data, e);
+              console.error('Failed to parse SSE data chunk:', data, e);
             }
           }
         }
@@ -599,29 +599,29 @@ class APIClient {
 
       onComplete();
     } catch (error) {
-      console.error("❌ API Stream Error:", error);
+      console.error('❌ API Stream Error:', error);
       if (error instanceof Error) {
         onError(error);
       } else {
-        onError(new Error("An unknown error occurred during streaming."));
+        onError(new Error('An unknown error occurred during streaming.'));
       }
     }
   }
 
   async synthesizeSpeech(
     text: string,
-    language: Language = "hinglish"
+    language: Language = 'hinglish'
   ): Promise<string> {
     try {
       const response = await fetch(`${this.baseUrl}/tts/synthesize`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           text: text,
           language: language,
-          gender: "female",
+          gender: 'female',
         }),
       });
 
@@ -632,7 +632,7 @@ class APIClient {
       const audioBlob = await response.blob();
       return URL.createObjectURL(audioBlob);
     } catch (error) {
-      console.error("❌ TTS Error:", error);
+      console.error('❌ TTS Error:', error);
       throw error;
     }
   }
