@@ -32,6 +32,10 @@ interface DocumentAnalysisResult {
   keyPoints: string[];
   translation?: string;
   recommendations?: string[];
+  // Add persistent resource IDs
+  assistantId?: string;
+  threadId?: string;
+  fileId?: string;
 }
 
 export default function DocumentPage() {
@@ -96,6 +100,18 @@ export default function DocumentPage() {
           variant: 'destructive',
         });
         return;
+      }
+
+      // Clean up previous document resources if they exist
+      if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
+        console.log('🧹 Cleaning up previous document resources before new upload');
+        apiClient.cleanupDocumentResources(
+          analysisResult.assistantId,
+          analysisResult.threadId,
+          analysisResult.fileId
+        ).catch((error) => {
+          console.warn('⚠️ Failed to cleanup previous document resources:', error);
+        });
       }
 
       setUploadedFile(file);
@@ -605,33 +621,59 @@ export default function DocumentPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const questionToAsk = currentQuestion;
     setCurrentQuestion('');
     setIsLoading(true);
 
     try {
-      const conversationHistory: ChatMessage[] = messages.map((msg) => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-        timestamp: new Date().toISOString(),
-      }));
+      // Use document-specific endpoint if we have assistant/thread IDs
+      if (analysisResult.assistantId && analysisResult.threadId) {
+        console.log('💬 Using document-specific assistant for follow-up question');
+        console.log(`🎯 Assistant ID: ${analysisResult.assistantId}`);
+        console.log(`🧵 Thread ID: ${analysisResult.threadId}`);
+        
+        const response = await apiClient.askDocumentQuestion(
+          questionToAsk,
+          analysisResult.assistantId,
+          analysisResult.threadId,
+          language
+        );
 
-      const contextPrompt =
-        language === 'hindi'
-          ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${currentQuestion}`
-          : `You have analyzed this document. Please answer in the context of this document: ${currentQuestion}`;
+        const assistantMessage: Message = {
+          id: uuidv4(),
+          content: response,
+          role: 'assistant',
+        };
 
-      const response = await apiClient.sendChatMessage(
-        contextPrompt,
-        conversationHistory
-      );
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        // Fallback to general chat if no persistent IDs
+        console.log('⚠️ No persistent assistant IDs, falling back to general chat');
+        
+        const conversationHistory: ChatMessage[] = messages.map((msg) => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          timestamp: new Date().toISOString(),
+        }));
 
-      const assistantMessage: Message = {
-        id: uuidv4(),
-        content: response,
-        role: 'assistant',
-      };
+        const contextPrompt =
+          language === 'hindi'
+            ? `आपने इस दस्तावेज़ का विश्लेषण किया है। कृपया इस दस्तावेज़ के संदर्भ में उत्तर दें: ${questionToAsk}`
+            : `You have analyzed this document. Please answer in the context of this document: ${questionToAsk}`;
 
-      setMessages((prev) => [...prev, assistantMessage]);
+        const response = await apiClient.sendChatMessage(
+          contextPrompt,
+          conversationHistory
+        );
+
+        const assistantMessage: Message = {
+          id: uuidv4(),
+          content: response,
+          role: 'assistant',
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
     } catch (error) {
       console.error('Error sending question:', error);
 
@@ -738,6 +780,18 @@ export default function DocumentPage() {
   };
 
   const resetDocument = () => {
+    // Clean up resources from previous document if they exist
+    if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
+      console.log('🧹 Cleaning up previous document resources');
+      apiClient.cleanupDocumentResources(
+        analysisResult.assistantId,
+        analysisResult.threadId,
+        analysisResult.fileId
+      ).catch((error) => {
+        console.warn('⚠️ Failed to cleanup previous document resources:', error);
+      });
+    }
+    
     setUploadedFile(null);
     setAnalysisResult(null);
     setMessages([]);
@@ -749,6 +803,22 @@ export default function DocumentPage() {
       fileInputRef.current.value = '';
     }
   };
+
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      if (analysisResult?.assistantId && analysisResult?.threadId && analysisResult?.fileId) {
+        console.log('🧹 Component unmounting, cleaning up document resources');
+        apiClient.cleanupDocumentResources(
+          analysisResult.assistantId,
+          analysisResult.threadId,
+          analysisResult.fileId
+        ).catch((error) => {
+          console.warn('⚠️ Failed to cleanup document resources on unmount:', error);
+        });
+      }
+    };
+  }, [analysisResult]);
 
   return (
     <MainLayout>

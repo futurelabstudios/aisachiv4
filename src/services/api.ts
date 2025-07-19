@@ -55,6 +55,10 @@ export interface DocumentAnalysisResponse {
   };
   answer?: string;
   message?: string;
+  // Add persistent resource IDs for follow-up questions
+  assistant_id?: string;
+  thread_id?: string;
+  file_id?: string;
 }
 
 export interface AcademyResponse {
@@ -246,6 +250,10 @@ class APIClient {
     keyPoints: string[];
     translation?: string;
     recommendations?: string[];
+    // Add persistent resource IDs
+    assistantId?: string;
+    threadId?: string;
+    fileId?: string;
   }> {
     try {
       // Convert file to base64 for API call
@@ -282,12 +290,95 @@ class APIClient {
             (field) => `${field.field_name}: ${field.value}`
           ),
           recommendations: data.analysis.suggestions,
+          // Include persistent resource IDs
+          assistantId: data.assistant_id,
+          threadId: data.thread_id,
+          fileId: data.file_id,
         };
       } else {
         throw new Error("No analysis data received");
       }
     } catch (error) {
       console.error("Error analyzing document:", error);
+      throw error;
+    }
+  }
+
+  async askDocumentQuestion(
+    question: string,
+    assistantId: string,
+    threadId: string,
+    language: string = "hinglish"
+  ): Promise<string> {
+    try {
+      console.log("💬 Asking document question");
+
+      const response = await fetch(`${this.baseUrl}/document/question`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: question,
+          assistant_id: assistantId,
+          thread_id: threadId,
+          language: language,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Question processing failed");
+      }
+
+      console.log("✅ Document question answered successfully");
+      return data.answer;
+    } catch (error) {
+      console.error("❌ Error asking document question:", error);
+      throw error;
+    }
+  }
+
+  async cleanupDocumentResources(
+    assistantId: string,
+    threadId: string,
+    fileId: string
+  ): Promise<void> {
+    try {
+      console.log("🧹 Cleaning up document resources");
+
+      const response = await fetch(`${this.baseUrl}/document/cleanup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          assistant_id: assistantId,
+          thread_id: threadId,
+          file_id: fileId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Cleanup failed");
+      }
+
+      console.log("✅ Document resources cleaned up successfully");
+    } catch (error) {
+      console.error("❌ Error cleaning up document resources:", error);
       throw error;
     }
   }

@@ -5,7 +5,7 @@ import re
 import base64
 from openai import OpenAI
 from ..core.config import get_settings
-from ..utils.openai_helpers import analyze_document_with_assistant
+from ..utils.openai_helpers import analyze_document_with_assistant, ask_document_question, cleanup_document_resources
 import io
 
 router = APIRouter(tags=["document"])
@@ -26,6 +26,29 @@ class DocumentAnalysisResponse(BaseModel):
     analysis: Optional[Dict[str, Any]] = None
     answer: Optional[str] = None
     message: Optional[str] = None
+    # Add persistent resource IDs for follow-up questions
+    assistant_id: Optional[str] = None
+    thread_id: Optional[str] = None
+    file_id: Optional[str] = None
+
+
+class DocumentQuestionRequest(BaseModel):
+    question: str
+    assistant_id: str
+    thread_id: str
+    language: str = "hinglish"
+
+
+class DocumentQuestionResponse(BaseModel):
+    success: bool
+    answer: Optional[str] = None
+    message: Optional[str] = None
+
+
+class DocumentCleanupRequest(BaseModel):
+    assistant_id: str
+    thread_id: str
+    file_id: str
 
 
 class ImageGenerationRequest(BaseModel):
@@ -196,7 +219,10 @@ async def analyze_document(request: DocumentAnalysisRequest):
             analysis=analysis_result,
             answer=answer,
             message="Document analyzed successfully" if language == "hinglish" 
-                   else "दस्तावेज़ का विश्लेषण सफलतापूर्वक पूरा हुआ"
+                   else "दस्तावेज़ का विश्लेषण सफलतापूर्वक पूरा हुआ",
+            assistant_id=analysis_result.get('assistant_id'),
+            thread_id=analysis_result.get('thread_id'),
+            file_id=analysis_result.get('file_id')
         )
         
         print(f"📤 Sending successful response")
@@ -243,4 +269,66 @@ async def generate_image(request: ImageGenerationRequest):
             success=False, 
             message=error_msg if request.language == "hinglish" 
                    else f"छवि बनाने में त्रुटि: {str(e)}"
-        ) 
+        )
+
+
+@router.post("/document/question", response_model=DocumentQuestionResponse)
+async def ask_document_question_endpoint(request: DocumentQuestionRequest):
+    """
+    Ask a follow-up question about a previously analyzed document
+    """
+    try:
+        print(f"💬 Document question request received")
+        print(f"🎯 Assistant ID: {request.assistant_id}")
+        print(f"🧵 Thread ID: {request.thread_id}")
+        print(f"❓ Question: {request.question}")
+        print(f"🌍 Language: {request.language}")
+        
+        # Ask the question using the existing assistant and thread
+        answer = await ask_document_question(
+            question=request.question,
+            assistant_id=request.assistant_id,
+            thread_id=request.thread_id,
+            language=request.language
+        )
+        
+        return DocumentQuestionResponse(
+            success=True,
+            answer=answer,
+            message="Question answered successfully" if request.language == "hinglish"
+                   else "प्रश्न का उत्तर सफलतापूर्वक दिया गया"
+        )
+        
+    except Exception as e:
+        print(f"❌ Error in document question endpoint: {type(e).__name__}: {str(e)}")
+        error_msg = f"Error processing question: {str(e)}"
+        return DocumentQuestionResponse(
+            success=False,
+            message=error_msg if request.language == "hinglish"
+                   else f"प्रश्न संसाधित करने में त्रुटि: {str(e)}"
+        )
+
+
+@router.post("/document/cleanup")
+async def cleanup_document_endpoint(request: DocumentCleanupRequest):
+    """
+    Clean up document analysis resources when no longer needed
+    """
+    try:
+        print(f"🧹 Document cleanup request received")
+        print(f"🎯 Assistant ID: {request.assistant_id}")
+        print(f"🧵 Thread ID: {request.thread_id}")
+        print(f"📄 File ID: {request.file_id}")
+        
+        await cleanup_document_resources(
+            assistant_id=request.assistant_id,
+            thread_id=request.thread_id,
+            file_id=request.file_id
+        )
+        
+        return {"success": True, "message": "Resources cleaned up successfully"}
+        
+    except Exception as e:
+        print(f"❌ Error in document cleanup endpoint: {type(e).__name__}: {str(e)}")
+        return {"success": False, "message": f"Error cleaning up resources: {str(e)}"}
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}") 

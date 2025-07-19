@@ -190,9 +190,10 @@ async def get_openai_response(
         yield error_messages.get(language, error_messages["hinglish"])
 
 
-async def analyze_document_with_assistant(file_data_base64: str, language: str, question: Optional[str]) -> Dict[str, Any]:
+async def analyze_document_with_assistant(file_data_base64: str, language: str, question: Optional[str], keep_resources: bool = True) -> Dict[str, Any]:
     """
     Analyze a document (PDF or image) using the OpenAI Assistants API with file search.
+    If keep_resources=True, keeps assistant, thread, and file for follow-up questions.
     """
     print("🚀 Analyzing document with Assistant API...")
     
@@ -276,7 +277,7 @@ async def analyze_document_with_assistant(file_data_base64: str, language: str, 
             
             if assistant_response:
                 print("✅ Assistant run completed successfully.")
-                return {
+                result = {
                     "document_type": "AI Analysis",
                     "detected_language": language,
                     "confidence": 0.95,
@@ -284,6 +285,17 @@ async def analyze_document_with_assistant(file_data_base64: str, language: str, 
                     "suggestions": ["Review the provided analysis.", "Ask follow-up questions if you need more details."],
                     "main_information": assistant_response.strip()
                 }
+                
+                # Add persistent IDs for follow-up questions if keeping resources
+                if keep_resources:
+                    result.update({
+                        "assistant_id": assistant.id,
+                        "thread_id": thread.id,
+                        "file_id": uploaded_file.id
+                    })
+                    print(f"💾 Keeping resources for follow-up: assistant={assistant.id}, thread={thread.id}, file={uploaded_file.id}")
+                
+                return result
             else:
                 raise Exception("Assistant finished but returned no response.")
         else:
@@ -297,16 +309,106 @@ async def analyze_document_with_assistant(file_data_base64: str, language: str, 
         return {"main_information": f"{error_message} Error: {str(e)}"}
     
     finally:
-        # 6. Clean up resources
-        try:
-            if assistant:
-                await client.beta.assistants.delete(assistant.id)
-                print(f"✅ Deleted assistant: {assistant.id}")
-            if thread:
-                await client.beta.threads.delete(thread.id)
-                print(f"✅ Deleted thread: {thread.id}")
-            if uploaded_file:
-                await client.files.delete(uploaded_file.id)
-                print(f"✅ Deleted file: {uploaded_file.id}")
-        except Exception as cleanup_error:
-            print(f"⚠️ Error during resource cleanup: {cleanup_error}")
+        # 6. Clean up resources only if not keeping them
+        if not keep_resources:
+            try:
+                if assistant:
+                    await client.beta.assistants.delete(assistant.id)
+                    print(f"✅ Deleted assistant: {assistant.id}")
+                if thread:
+                    await client.beta.threads.delete(thread.id)
+                    print(f"✅ Deleted thread: {thread.id}")
+                if uploaded_file:
+                    await client.files.delete(uploaded_file.id)
+                    print(f"✅ Deleted file: {uploaded_file.id}")
+            except Exception as cleanup_error:
+                print(f"⚠️ Error during resource cleanup: {cleanup_error}")
+        else:
+            print(f"💾 Resources kept for follow-up questions")
+
+
+async def ask_document_question(
+    question: str,
+    assistant_id: str,
+    thread_id: str,
+    language: str
+) -> str:
+    """
+    Ask a follow-up question to an existing document analysis assistant.
+    """
+    try:
+        print(f"💬 Asking follow-up question to assistant {assistant_id}")
+        print(f"🧵 Using thread {thread_id}")
+        print(f"❓ Question: {question}")
+        
+        # Add the question to the existing thread
+        await client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=question
+        )
+        
+        # Run the assistant again
+        run = await client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=assistant_id
+        )
+        
+        # Poll for completion
+        while run.status in ['queued', 'in_progress']:
+            await asyncio.sleep(1)
+            run = await client.beta.threads.runs.retrieve(
+                thread_id=thread_id,
+                run_id=run.id
+            )
+            print(f"🏃 Run status: {run.status}")
+        
+        if run.status == 'completed':
+            # Get the latest assistant response
+            messages = await client.beta.threads.messages.list(
+                thread_id=thread_id, 
+                order="desc", 
+                limit=1
+            )
+            
+            async for msg in messages:
+                if msg.role == "assistant":
+                    assistant_response = ""
+                    for content_block in msg.content:
+                        if content_block.type == 'text':
+                            assistant_response += content_block.text.value
+                    
+                    print(f"✅ Follow-up question answered successfully")
+                    return assistant_response.strip()
+            
+            raise Exception("No assistant response found")
+        else:
+            raise Exception(f"Assistant run failed with status: {run.status}")
+            
+    except Exception as e:
+        print(f"❌ Error in follow-up question: {e}")
+        error_message = "An error occurred while processing your question."
+        if language == "hindi":
+            error_message = "आपके प्रश्न को संसाधित करते समय एक त्रुटि हुई।"
+        return f"{error_message} Error: {str(e)}"
+
+
+async def cleanup_document_resources(assistant_id: str, thread_id: str, file_id: str):
+    """
+    Clean up document analysis resources when no longer needed.
+    """
+    try:
+        print(f"🧹 Cleaning up document resources...")
+        
+        await client.beta.assistants.delete(assistant_id)
+        print(f"✅ Deleted assistant: {assistant_id}")
+        
+        await client.beta.threads.delete(thread_id)
+        print(f"✅ Deleted thread: {thread_id}")
+        
+        await client.files.delete(file_id)
+        print(f"✅ Deleted file: {file_id}")
+        
+    except Exception as cleanup_error:
+        print(f"⚠️ Error during resource cleanup: {cleanup_error}")
+        raise cleanup_error
