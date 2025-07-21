@@ -26,6 +26,7 @@ import { Message } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import MainLayout from '@/components/layout/MainLayout';
 import MobileNavigation from '@/components/MobileNavigation';
+import { formatMessageContent } from '@/components/ChatMessage';
 
 interface DocumentAnalysisResult {
   summary: string;
@@ -1242,7 +1243,7 @@ export default function DocumentPage() {
                     : 'bg-white text-gray-800 rounded-tl-none shadow-sm border border-gray-200'
                 }`}
                 dangerouslySetInnerHTML={{
-                  __html: message.content.replace(/\n/g, '<br/>'),
+                  __html: formatMessageContent(message.content),
                 }}
               />
             </div>

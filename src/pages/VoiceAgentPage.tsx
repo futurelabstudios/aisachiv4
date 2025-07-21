@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Button } from "@/components/ui/button";
-import { elevenLabsService } from "@/services/elevenlabs";
-import MainLayout from "@/components/layout/MainLayout";
+import { useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from '@/components/ui/button';
+import { elevenLabsService } from '@/services/elevenlabs';
+import MainLayout from '@/components/layout/MainLayout';
 
 export default function VoiceAgentPage() {
   const { language, setLanguage, t } = useLanguage();
   const [conversations, setConversations] = useState<
     Array<{ timestamp: string; text: string }>
   >([]);
-  const [apiKey, setApiKey] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>('');
 
   // Set translations for this page
   const translations = {
@@ -18,26 +18,27 @@ export default function VoiceAgentPage() {
       title: 'Voice Agent Mode',
       description: 'Speak with your AI Sachiv assistant.',
       recentConversations: 'Recent Conversations',
-      conversationSaved: "Conversation saved",
-      conversationSavedDesc: "Your conversation has been recorded locally",
-      startConversation: "Start Voice Conversation"
+      conversationSaved: 'Conversation saved',
+      conversationSavedDesc: 'Your conversation has been recorded locally',
+      startConversation: 'Start Voice Conversation',
     },
     hindi: {
       title: 'वॉइस एजेंट मोड',
       description: 'अपने एआई सचिव सहायक से बात करें।',
       recentConversations: 'हाल की बातचीत',
-      conversationSaved: "वार्तालाप सहेजा गया",
-      conversationSavedDesc: "आपकी वार्तालाप स्थानीय रूप से दर्ज की गई है",
-      startConversation: "वॉइस वार्तालाप शुरू करें"
+      conversationSaved: 'वार्तालाप सहेजा गया',
+      conversationSavedDesc: 'आपकी वार्तालाप स्थानीय रूप से दर्ज की गई है',
+      startConversation: 'वॉइस वार्तालाप शुरू करें',
     },
     hinglish: {
       title: 'Voice Agent Mode',
       description: 'Apne AI Sachiv assistant se baat karen.',
       recentConversations: 'Recent Conversations',
-      conversationSaved: "Conversation save ho gaya",
-      conversationSavedDesc: "Aapki conversation local device par save ho gayi hai",
-      startConversation: "Voice Conversation Start Karen"
-    }
+      conversationSaved: 'Conversation save ho gaya',
+      conversationSavedDesc:
+        'Aapki conversation local device par save ho gayi hai',
+      startConversation: 'Voice Conversation Start Karen',
+    },
   };
 
   const toggleLanguage = () => {
@@ -46,21 +47,25 @@ export default function VoiceAgentPage() {
   };
 
   const getLanguageButtonText = () => {
-    switch(language) {
-      case 'hindi': return t('switchToHinglish');
-      case 'hinglish': return t('switchToHindi');
-      default: return 'हिंदी';
+    switch (language) {
+      case 'hindi':
+        return t('switchToHinglish');
+      case 'hinglish':
+        return t('switchToHindi');
+      default:
+        return 'हिंदी';
     }
   };
 
-  // Load OpenAI API key 
+  // Load OpenAI API key
   useEffect(() => {
     const storedApiKey = localStorage.getItem('openai-api-key');
     if (storedApiKey) {
       setApiKey(storedApiKey);
     } else {
       // Set default API key - should be stored more securely in a production environment
-      const defaultKey = "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";
+      const defaultKey =
+        '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';
       setApiKey(defaultKey);
       localStorage.setItem('openai-api-key', defaultKey);
     }
@@ -70,17 +75,22 @@ export default function VoiceAgentPage() {
   const saveConversation = (text: string) => {
     const newConversation = {
       timestamp: new Date().toISOString(),
-      text
+      text,
     };
-    setConversations(prev => [...prev, newConversation]);
-    
+    setConversations((prev) => [...prev, newConversation]);
+
     // Save to localStorage
     try {
-      const savedConversations = JSON.parse(localStorage.getItem('sachiv-conversations') || '[]');
-      localStorage.setItem('sachiv-conversations', JSON.stringify([...savedConversations, newConversation]));
+      const savedConversations = JSON.parse(
+        localStorage.getItem('sachiv-conversations') || '[]'
+      );
+      localStorage.setItem(
+        'sachiv-conversations',
+        JSON.stringify([...savedConversations, newConversation])
+      );
       toast({
         title: translations[language].conversationSaved,
-        description: translations[language].conversationSavedDesc
+        description: translations[language].conversationSavedDesc,
       });
     } catch (error) {
       console.error('Error saving conversation:', error);
@@ -90,7 +100,9 @@ export default function VoiceAgentPage() {
   // Load saved conversations on mount
   useEffect(() => {
     try {
-      const savedConversations = JSON.parse(localStorage.getItem('sachiv-conversations') || '[]');
+      const savedConversations = JSON.parse(
+        localStorage.getItem('sachiv-conversations') || '[]'
+      );
       setConversations(savedConversations);
     } catch (error) {
       console.error('Error loading conversations:', error);
@@ -100,9 +112,7 @@ export default function VoiceAgentPage() {
   // Format date according to selected language
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString(
-      language === 'hindi' ? 'hi-IN' : 'en-US'
-    );
+    return date.toLocaleString(language === 'hindi' ? 'hi-IN' : 'en-US');
   };
 
   return (
@@ -110,9 +120,9 @@ export default function VoiceAgentPage() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-emerald-600 mb-4">
-            {t("voiceTitle")}
+            {t('voiceTitle')}
           </h2>
-          <p className="text-gray-600">{t("voiceDescription")}</p>
+          <p className="text-gray-600">{t('voiceDescription')}</p>
         </div>
 
         {/* ElevenLabs Convai Widget */}
@@ -123,7 +133,7 @@ export default function VoiceAgentPage() {
         {/* Recent Conversations */}
         <div className="max-w-2xl mx-auto">
           <h3 className="text-xl font-semibold mb-4 text-gray-800">
-            {t("recentConversations")}
+            {t('recentConversations')}
           </h3>
           <div className="space-y-4">
             {conversations.slice(-5).map((conv, index) => (

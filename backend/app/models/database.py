@@ -15,8 +15,9 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)  # Admin role field for dashboard access
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     conversations = relationship("Conversation", back_populates="user")
 
@@ -29,7 +30,7 @@ class Conversation(Base):
     user_question = Column(Text, nullable=False)
     assistant_answer = Column(Text, nullable=False)
     response_time = Column(Integer, nullable=False)  # Response time in milliseconds
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="conversations")

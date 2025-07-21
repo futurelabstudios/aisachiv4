@@ -645,6 +645,100 @@ class APIClient {
       return false;
     }
   }
+
+  // Generic HTTP methods for admin functionality
+  async get(endpoint: string, options?: RequestInit): Promise<{ data: any }> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error('GET request error:', error);
+      throw error;
+    }
+  }
+
+  async post(
+    endpoint: string,
+    body?: any,
+    options?: RequestInit
+  ): Promise<{ data: any }> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined,
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error('POST request error:', error);
+      throw error;
+    }
+  }
+
+  async put(
+    endpoint: string,
+    body?: any,
+    options?: RequestInit
+  ): Promise<{ data: any }> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: body ? JSON.stringify(body) : undefined,
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error('PUT request error:', error);
+      throw error;
+    }
+  }
+
+  async delete(
+    endpoint: string,
+    options?: RequestInit
+  ): Promise<{ data: any }> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { data };
+    } catch (error) {
+      console.error('DELETE request error:', error);
+      throw error;
+    }
+  }
 }
 
 export const apiClient = new APIClient();

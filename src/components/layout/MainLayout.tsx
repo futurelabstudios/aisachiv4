@@ -1,6 +1,7 @@
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Home,
   MessageCircle,
@@ -11,8 +12,9 @@ import {
   GraduationCap,
   PlayCircle,
   BookOpen,
-} from "lucide-react";
-import MobileNavigation from "@/components/MobileNavigation";
+  Settings,
+} from 'lucide-react';
+import MobileNavigation from '@/components/MobileNavigation';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,50 +22,62 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { language, setLanguage, t } = useLanguage();
+
+  const { user, userProfile } = useAuth();
   const location = useLocation();
 
   const toggleLanguage = () => {
-    if (language === "hindi") setLanguage("hinglish");
-    else setLanguage("hindi");
+    if (language === 'hindi') setLanguage('hinglish');
+    else setLanguage('hindi');
   };
 
   const getLanguageButtonText = () => {
     switch (language) {
-      case "hindi":
-        return t("switchToHinglish");
-      case "hinglish":
-        return t("switchToHindi");
+      case 'hindi':
+        return t('switchToHinglish');
+      case 'hinglish':
+        return t('switchToHindi');
       default:
-        return "हिंदी";
+        return 'हिंदी';
     }
   };
 
   const navLinks = [
-    { to: "/", icon: Home, label: t("home") },
-    { to: "/chat", icon: MessageCircle, label: t("chat") },
-    { to: "/voice-agent", icon: Mic, label: t("voice") },
+    { to: '/', icon: Home, label: t('home') },
+    { to: '/chat', icon: MessageCircle, label: t('chat') },
+    { to: '/voice-agent', icon: Mic, label: t('voice') },
     {
-      to: "/circulars",
+      to: '/circulars',
       icon: LinkIcon,
-      label: language === "hindi" ? "सरकारी परिपत्र" : "Government Circulars",
+      label: language === 'hindi' ? 'सरकारी परिपत्र' : 'Government Circulars',
     },
-    { to: "/document", icon: FileText, label: t("documentAnalysis") },
+    { to: '/document', icon: FileText, label: t('documentAnalysis') },
     {
-      to: "/academy",
+      to: '/academy',
       icon: GraduationCap,
-      label: language === "hindi" ? "सरपंच अकादमी" : "Sarpanch Academy",
+      label: language === 'hindi' ? 'सरपंच अकादमी' : 'Sarpanch Academy',
     },
     {
-      to: "/glossary",
+      to: '/glossary',
       icon: BookOpen,
-      label: language === "hindi" ? "शब्दकोश" : "Glossary",
+      label: language === 'hindi' ? 'शब्दकोश' : 'Glossary',
     },
     {
-      to: "/videos",
+      to: '/videos',
       icon: PlayCircle,
-      label: language === "hindi" ? "महत्वपूर्ण वीडियो" : "Important Videos",
+      label: language === 'hindi' ? 'महत्वपूर्ण वीडियो' : 'Important Videos',
     },
   ];
+
+  // Add admin link if user is admin
+  const isAdmin = userProfile?.is_admin;
+  if (isAdmin) {
+    navLinks.push({
+      to: '/admin',
+      icon: Settings,
+      label: language === 'hindi' ? 'एडमिन डैशबोर्ड' : 'Admin Dashboard',
+    });
+  }
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -76,9 +90,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="bg-gray-50 border-r border-gray-200 p-4 flex flex-col">
             <div className="text-left mb-6 px-2">
               <h1 className="text-2xl font-bold text-emerald-600">
-                {t("appTitle")}
+                {t('appTitle')}
               </h1>
-              <p className="text-gray-500 text-sm">{t("appSubtitle")}</p>
+              <p className="text-gray-500 text-sm">{t('appSubtitle')}</p>
             </div>
 
             <Button
@@ -97,20 +111,20 @@ export default function MainLayout({ children }: MainLayoutProps) {
                   to={link.to}
                   className={`flex items-center px-3 py-2 rounded-lg transition-colors ${
                     isActive(link.to)
-                      ? "bg-emerald-100 border border-emerald-200 text-emerald-800"
-                      : "text-gray-700 hover:bg-gray-200"
+                      ? 'bg-emerald-100 border border-emerald-200 text-emerald-800'
+                      : 'text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <link.icon
                     className={`w-5 h-5 mr-3 ${
-                      isActive(link.to) ? "text-emerald-600" : "text-gray-500"
+                      isActive(link.to) ? 'text-emerald-600' : 'text-gray-500'
                     }`}
                   />
                   <span
                     className={
                       isActive(link.to)
-                        ? "text-emerald-800 font-medium"
-                        : "text-gray-700"
+                        ? 'text-emerald-800 font-medium'
+                        : 'text-gray-700'
                     }
                   >
                     {link.label}
@@ -138,9 +152,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="flex items-center justify-between max-w-md mx-auto">
             <div>
               <h1 className="text-xl font-bold text-emerald-600">
-                {t("appTitle")}
+                {t('appTitle')}
               </h1>
-              <p className="text-xs text-gray-500">{t("appSubtitle")}</p>
+              <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
             </div>
             <Button
               onClick={toggleLanguage}
@@ -160,4 +174,4 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </div>
     </div>
   );
-} 
+}

@@ -7,7 +7,7 @@ import httpx
 
 from .core.config import get_settings
 from .core.database import init_db, close_db
-from .routers import chat, health, tts, document, user, auth
+from .routers import chat, health, tts, document, user, auth, admin
 
 # Configure logging
 logging.basicConfig(
@@ -66,7 +66,7 @@ app.include_router(tts.router)
 app.include_router(document.router)
 app.include_router(user.router)
 app.include_router(auth.router)
-
+app.include_router(admin.router)
 # Health check endpoints
 @app.get("/")
 async def root():

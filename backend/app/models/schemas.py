@@ -14,6 +14,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: UUID
     is_active: bool = True
+    is_admin: bool = False  # NEW: Admin role field
     created_at: datetime
     updated_at: datetime
 
@@ -154,4 +155,46 @@ class GlossaryResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     database: bool
-    timestamp: datetime 
+    timestamp: datetime
+
+# Admin models
+class AdminConversationResponse(BaseModel):
+    id: UUID4
+    user_id: UUID4
+    user_email: str
+    user_question: str
+    assistant_answer: str
+    response_time: int
+    created_at: datetime
+    updated_at: datetime
+
+class AdminUserStats(BaseModel):
+    total_users: int
+    active_users: int
+    total_conversations: int
+    avg_response_time: float
+    conversations_today: int
+    conversations_this_week: int
+    conversations_this_month: int
+
+class ConversationFilter(BaseModel):
+    user_email: Optional[str] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+    min_response_time: Optional[int] = None
+    max_response_time: Optional[int] = None
+    search_query: Optional[str] = None
+    
+class ConversationListResponse(BaseModel):
+    conversations: List[AdminConversationResponse]
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
+
+class AdminDashboardStats(BaseModel):
+    total_users: int
+    active_users: int
+    total_conversations: int
+    conversations_today: int
+    avg_response_time: int 
