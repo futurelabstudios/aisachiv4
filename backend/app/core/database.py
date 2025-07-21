@@ -1,5 +1,5 @@
 import logging
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import StaticPool
@@ -63,15 +63,15 @@ async def init_db():
         raise
 
 
-async def check_db_health() -> bool:
-    """Check database connectivity"""
+async def check_db_health() -> Tuple[bool, str]:
+    """Check database connectivity and return status and message"""
     try:
         async with AsyncSessionLocal() as session:
             await session.execute(text("SELECT 1"))
-            return True
+            return True, "Database connection successful"
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
-        return False
+        return False, f"Database health check failed: {e}"
 
 
 async def close_db():

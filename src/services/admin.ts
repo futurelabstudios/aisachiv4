@@ -42,7 +42,7 @@ export interface ConversationFilters {
 }
 
 export const getStatistics = async (): Promise<AdminStatistics> => {
-  const response = await apiClient.get('/api/admin/statistics');
+  const response = await apiClient.get('/admin/statistics');
   return response.data;
 };
 
@@ -56,7 +56,7 @@ export const getConversations = async (
     }
   });
 
-  const response = await apiClient.get(`/api/admin/conversations?${params}`);
+  const response = await apiClient.get(`/admin/conversations?${params}`);
   return response.data;
 };
 
@@ -64,7 +64,9 @@ export const exportConversations = async (
   filters: Omit<ConversationFilters, 'page' | 'page_size'>
 ): Promise<Blob> => {
   const response = await fetch(
-    `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/admin/conversations/export`,
+    `${
+      import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    }/admin/conversations/export`,
     {
       method: 'POST',
       headers: apiClient['getAuthHeaders'](), // eslint-disable-line @typescript-eslint/dot-notation

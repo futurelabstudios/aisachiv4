@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"Database URL: {settings.DATABASE_URL[:30]}...")  # Log first 30 chars for security
     
     try:
         await init_db()
@@ -83,11 +84,11 @@ async def health_check():
     """Application health check"""
     from .core.database import check_db_health
     
-    db_healthy = await check_db_health()
+    db_healthy, db_message = await check_db_health()
     
     return {
         "status": "healthy" if db_healthy else "unhealthy",
-        "database": db_healthy,
+        "database_status": db_message,
         "version": settings.APP_VERSION
     }
 
