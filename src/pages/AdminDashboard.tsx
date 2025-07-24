@@ -90,6 +90,7 @@ export default function AdminDashboard() {
     page_size: 20,
     user_email: '',
     search_query: '',
+    interaction_type: 'all',
   });
 
   const fetchStatistics = async () => {
@@ -175,10 +176,7 @@ export default function AdminDashboard() {
     }
   }, [filters, userProfile]);
 
-  const handleSortChange = (
-    key: 'sort_by' | 'sort_order',
-    value: string
-  ) => {
+  const handleSortChange = (key: 'sort_by' | 'sort_order', value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
@@ -192,6 +190,7 @@ export default function AdminDashboard() {
       page_size: 20,
       user_email: '',
       search_query: '',
+      interaction_type: 'all',
     });
   };
 
@@ -202,6 +201,16 @@ export default function AdminDashboard() {
   const formatResponseTime = (ms: number) => {
     if (ms < 1000) return `${ms}ms`;
     return `${(ms / 1000).toFixed(1)}s`;
+  };
+
+  const getInteractionBadge = (type: string) => {
+    const badges: { [key: string]: JSX.Element } = {
+      chat: <Badge variant="default">Chat</Badge>,
+      document_analysis: <Badge variant="secondary">Document</Badge>,
+      document_question: <Badge variant="outline">Follow-up</Badge>,
+      image_generation: <Badge variant="destructive">Image</Badge>,
+    };
+    return badges[type] || <Badge variant="default">{type}</Badge>;
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -249,14 +258,20 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  Assistant Answer
-                </h3>
+                <h3 className="font-semibold text-lg mb-2">Assistant Answer</h3>
                 <p className="bg-blue-50 p-3 rounded-md">
                   {selectedConversation.assistant_answer}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-semibold">Interaction Type</p>
+                  <span>
+                    {getInteractionBadge(
+                      selectedConversation.interaction_type || 'chat'
+                    )}
+                  </span>
+                </div>
                 <div>
                   <p className="font-semibold">Response Time</p>
                   <span>
@@ -267,6 +282,14 @@ export default function AdminDashboard() {
                   <p className="font-semibold">Date</p>
                   <span>{formatDate(selectedConversation.created_at)}</span>
                 </div>
+                {selectedConversation.metadata && (
+                  <div className="col-span-2">
+                    <p className="font-semibold">Metadata</p>
+                    <pre className="bg-gray-100 p-2 rounded-md text-xs overflow-auto">
+                      {JSON.stringify(selectedConversation.metadata, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -380,7 +403,7 @@ export default function AdminDashboard() {
               <CardDescription>
                 {language === 'hindi'
                   ? `कुल ${totalCount} बातचीत मिली`
-                  : `${totalCount} total conversations found`}
+                  : `${totalCount} total interactions found`}
               </CardDescription>
             </div>
             <Button onClick={exportConversations} variant="outline">
@@ -472,6 +495,34 @@ export default function AdminDashboard() {
             </Popover>
 
             <Select
+              value={filters.interaction_type || 'all'}
+              onValueChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  interaction_type: value,
+                  page: 1,
+                }))
+              }
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Interactions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Interactions</SelectItem>
+                <SelectItem value="chat">Chat Only</SelectItem>
+                <SelectItem value="document_analysis">
+                  Document Analysis
+                </SelectItem>
+                <SelectItem value="document_question">
+                  Follow-up Questions
+                </SelectItem>
+                <SelectItem value="image_generation">
+                  Image Generation
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
               value={filters.sort_by}
               onValueChange={(value) => handleSortChange('sort_by', value)}
             >
@@ -517,6 +568,9 @@ export default function AdminDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>
+                    {language === 'hindi' ? 'प्रकार' : 'Type'}
+                  </TableHead>
+                  <TableHead>
                     {language === 'hindi' ? 'उपयोगकर्ता' : 'User'}
                   </TableHead>
                   <TableHead>
@@ -538,6 +592,9 @@ export default function AdminDashboard() {
                   Array.from({ length: 10 }).map((_, index) => (
                     <TableRow key={index}>
                       <TableCell>
+                        <Skeleton className="h-5 w-20" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-5 w-32" />
                       </TableCell>
                       <TableCell>
@@ -557,12 +614,12 @@ export default function AdminDashboard() {
                 ) : conversations.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="text-center py-8 text-gray-500"
                     >
                       {language === 'hindi'
                         ? 'कोई बातचीत नहीं मिली'
-                        : 'No conversations found'}
+                        : 'No interactions found'}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -572,6 +629,11 @@ export default function AdminDashboard() {
                       onClick={() => setSelectedConversation(conversation)}
                       className="cursor-pointer hover:bg-gray-50"
                     >
+                      <TableCell>
+                        {getInteractionBadge(
+                          conversation.interaction_type || 'chat'
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="font-medium">
                           {conversation.user_email}
@@ -610,7 +672,7 @@ export default function AdminDashboard() {
               <div className="text-sm text-gray-500">
                 {language === 'hindi'
                   ? `पृष्ठ ${filters.page} का ${totalPages}, कुल ${totalCount} बातचीत`
-                  : `Page ${filters.page} of ${totalPages}, ${totalCount} total conversations`}
+                  : `Page ${filters.page} of ${totalPages}, ${totalCount} total interactions`}
               </div>
 
               <div className="flex space-x-2">

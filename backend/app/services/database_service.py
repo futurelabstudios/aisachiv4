@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func, desc, asc, or_
+import json
 
 from ..models.database import Conversation, User
 from ..models.schemas import UserCreate, ConversationFilter
@@ -86,25 +87,96 @@ class DatabaseService:
         response_time: int,
     ) -> Conversation:
         """Save a new conversation to the database"""
+        return await self.save_interaction(
+            db=db,
+            user_id=user_id,
+            interaction_type="chat",
+            user_question=user_question,
+            assistant_answer=assistant_answer,
+            response_time=response_time
+        )
+
+    async def save_interaction(
+        self,
+        db: AsyncSession,
+        user_id: str,
+        interaction_type: str,
+        user_question: str,
+        assistant_answer: str,
+        response_time: int,
+        interaction_metadata: Optional[Dict[str, Any]] = None,
+        session_id: Optional[str] = None,
+    ) -> Conversation:
+        """Universal method for logging all interaction types"""
         try:
             user_uuid = UUID(user_id)
             conversation = Conversation(
                 user_id=user_uuid,
+                interaction_type=interaction_type,
                 user_question=user_question,
                 assistant_answer=assistant_answer,
                 response_time=response_time,
+                interaction_metadata=interaction_metadata,
+                session_id=UUID(session_id) if session_id else None,
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc)
             )
             db.add(conversation)
             await db.commit()
             await db.refresh(conversation)
-            self.logger.info(f"Conversation saved for user {user_id}")
+            self.logger.info(f"Interaction logged: {interaction_type} for user {user_id}")
             return conversation
         except Exception as e:
-            self.logger.error(f"Error saving conversation for user {user_id}: {e}")
+            self.logger.error(f"Error saving interaction: {e}")
             await db.rollback()
             raise
+
+    async def save_document_analysis(
+        self,
+        db: AsyncSession,
+        user_id: str,
+        user_question: str,  # Original prompt/question
+        analysis_result: Dict[str, Any],
+        response_time: int,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Conversation:
+        """Log document analysis interaction"""
+        # The full analysis result should be stored in the metadata field.
+        # The assistant_answer can be a summary message.
+        full_metadata = analysis_result
+        if metadata:
+            full_metadata.update(metadata)
+
+        return await self.save_interaction(
+            db=db,
+            user_id=user_id,
+            interaction_type="document_analysis",
+            user_question=user_question,
+            assistant_answer="Document analysis completed successfully.",
+            response_time=response_time,
+            interaction_metadata=full_metadata
+        )
+    
+    async def save_document_question(
+        self,
+        db: AsyncSession,
+        user_id: str,
+        question: str,
+        answer: str,
+        response_time: int,
+        original_analysis_id: Optional[str] = None
+    ) -> Conversation:
+        """Log follow-up question about analyzed document"""
+        metadata = {"original_analysis_id": original_analysis_id} if original_analysis_id else None
+        return await self.save_interaction(
+            db=db,
+            user_id=user_id,
+            interaction_type="document_question",
+            user_question=question,
+            assistant_answer=answer,
+            response_time=response_time,
+            interaction_metadata=metadata
+        )
 
     async def update_conversation(
         self,
@@ -204,6 +276,8 @@ class DatabaseService:
             if filters:
                 if filters.user_email:
                     query = query.where(User.email.ilike(f"%{filters.user_email}%"))
+                if hasattr(filters, 'interaction_type') and filters.interaction_type:
+                    query = query.where(Conversation.interaction_type == filters.interaction_type)
                 if filters.date_from:
                     query = query.where(Conversation.created_at >= filters.date_from)
                 if filters.date_to:
@@ -247,6 +321,8 @@ class DatabaseService:
                     "user_question": conversation.user_question,
                     "assistant_answer": conversation.assistant_answer,
                     "response_time": conversation.response_time,
+                    "interaction_type": conversation.interaction_type,
+                    "interaction_metadata": conversation.interaction_metadata,
                     "created_at": conversation.created_at,
                     "updated_at": conversation.updated_at
                 })

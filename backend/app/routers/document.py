@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import re
@@ -7,8 +7,14 @@ from openai import OpenAI
 from ..core.config import get_settings
 from ..utils.openai_helpers import analyze_document_with_assistant, ask_document_question, cleanup_document_resources
 import io
+from ..models.schemas import User
+from ..utils.dependencies import get_current_user
+from ..services.database_service import database_service
+from ..core.database import get_session
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
-router = APIRouter(tags=["document"])
+router = APIRouter(prefix="/document", tags=["document"])
 settings = get_settings()
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -167,12 +173,17 @@ def validate_image_prompt(prompt: str, language: str) -> Dict[str, Any]:
 
 
 @router.post("/document", response_model=DocumentAnalysisResponse)
-async def analyze_document(request: DocumentAnalysisRequest):
+async def analyze_document(
+    request: DocumentAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session)
+):
     """
     Analyze uploaded documents using OpenAI Vision API
     """
+    start_time = datetime.now()
     try:
-        print(f"📥 Document analysis request received")
+        print(f"📥 Document analysis request received for user {current_user.id}")
         print(f"🌍 Language: {request.language}")
         print(f"📋 Has image_data: {bool(request.image_data)}")
         print(f"🌐 Has image_url: {bool(request.image_url)}")
@@ -214,6 +225,21 @@ async def analyze_document(request: DocumentAnalysisRequest):
         # The answer is now part of the main_information from the assistant
         answer = analysis_result.get('main_information')
 
+        processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
+        await database_service.save_document_analysis(
+            db=db,
+            user_id=str(current_user.id),
+            user_question=request.question or "Document analysis request",
+            analysis_result=analysis_result,
+            response_time=processing_time,
+            metadata={
+                "document_type": request.document_type,
+                "language": language,
+                "has_image_data": bool(request.image_data),
+                "has_image_url": bool(request.image_url)
+            }
+        )
+
         response = DocumentAnalysisResponse(
             success=True,
             analysis=analysis_result,
@@ -231,6 +257,18 @@ async def analyze_document(request: DocumentAnalysisRequest):
     except Exception as e:
         print(f"❌ Error in document analysis endpoint: {type(e).__name__}: {str(e)}")
         error_msg = f"Error analyzing document: {str(e)}"
+        
+        # Log failed attempts
+        await database_service.save_interaction(
+            db=db,
+            user_id=str(current_user.id),
+            interaction_type="document_analysis",
+            user_question=request.question or "Document analysis request",
+            assistant_answer=f"ERROR: {str(e)}",
+            response_time=int((datetime.now() - start_time).total_seconds() * 1000),
+            metadata={"error": True, "error_message": str(e)}
+        )
+
         return DocumentAnalysisResponse(
             success=False, 
             message=error_msg if request.language == "hinglish" 
@@ -239,10 +277,15 @@ async def analyze_document(request: DocumentAnalysisRequest):
 
 
 @router.post("/generate-image", response_model=ImageGenerationResponse)
-async def generate_image(request: ImageGenerationRequest):
+async def generate_image(
+    request: ImageGenerationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session)
+):
     """
     Generate infographic/image using OpenAI DALL-E API
     """
+    start_time = datetime.now()
     try:
         # Validate prompt
         validation = validate_image_prompt(request.prompt, request.language)
@@ -256,6 +299,17 @@ async def generate_image(request: ImageGenerationRequest):
         # Generate image using OpenAI DALL-E
         image_url = await generate_image_with_openai(request.prompt, request.language)
         
+        processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
+        await database_service.save_interaction(
+            db=db,
+            user_id=str(current_user.id),
+            interaction_type="image_generation",
+            user_question=request.prompt,
+            assistant_answer=image_url,
+            response_time=processing_time,
+            metadata={"language": request.language}
+        )
+
         return ImageGenerationResponse(
             success=True,
             image_url=image_url,
@@ -265,6 +319,17 @@ async def generate_image(request: ImageGenerationRequest):
 
     except Exception as e:
         error_msg = f"Error generating image: {str(e)}"
+        
+        await database_service.save_interaction(
+            db=db,
+            user_id=str(current_user.id),
+            interaction_type="image_generation",
+            user_question=request.prompt,
+            assistant_answer=f"ERROR: {str(e)}",
+            response_time=int((datetime.now() - start_time).total_seconds() * 1000),
+            metadata={"error": True, "error_message": str(e)}
+        )
+
         return ImageGenerationResponse(
             success=False, 
             message=error_msg if request.language == "hinglish" 
@@ -273,12 +338,17 @@ async def generate_image(request: ImageGenerationRequest):
 
 
 @router.post("/document/question", response_model=DocumentQuestionResponse)
-async def ask_document_question_endpoint(request: DocumentQuestionRequest):
+async def ask_document_question_endpoint(
+    request: DocumentQuestionRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session)
+):
     """
     Ask a follow-up question about a previously analyzed document
     """
+    start_time = datetime.now()
     try:
-        print(f"💬 Document question request received")
+        print(f"💬 Document question request received for user {current_user.id}")
         print(f"🎯 Assistant ID: {request.assistant_id}")
         print(f"🧵 Thread ID: {request.thread_id}")
         print(f"❓ Question: {request.question}")
@@ -292,6 +362,16 @@ async def ask_document_question_endpoint(request: DocumentQuestionRequest):
             language=request.language
         )
         
+        processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
+        await database_service.save_document_question(
+            db=db,
+            user_id=str(current_user.id),
+            question=request.question,
+            answer=answer,
+            response_time=processing_time,
+            original_analysis_id=request.assistant_id 
+        )
+
         return DocumentQuestionResponse(
             success=True,
             answer=answer,
@@ -302,6 +382,17 @@ async def ask_document_question_endpoint(request: DocumentQuestionRequest):
     except Exception as e:
         print(f"❌ Error in document question endpoint: {type(e).__name__}: {str(e)}")
         error_msg = f"Error processing question: {str(e)}"
+
+        await database_service.save_interaction(
+            db=db,
+            user_id=str(current_user.id),
+            interaction_type="document_question",
+            user_question=request.question,
+            assistant_answer=f"ERROR: {str(e)}",
+            response_time=int((datetime.now() - start_time).total_seconds() * 1000),
+            metadata={"error": True, "error_message": str(e), "assistant_id": request.assistant_id}
+        )
+
         return DocumentQuestionResponse(
             success=False,
             message=error_msg if request.language == "hinglish"
@@ -331,4 +422,4 @@ async def cleanup_document_endpoint(request: DocumentCleanupRequest):
     except Exception as e:
         print(f"❌ Error in document cleanup endpoint: {type(e).__name__}: {str(e)}")
         return {"success": False, "message": f"Error cleaning up resources: {str(e)}"}
-        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")

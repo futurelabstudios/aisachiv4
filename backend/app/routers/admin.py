@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.schemas import (
@@ -22,12 +23,11 @@ logger = logging.getLogger(__name__)
 @router.get("/conversations", response_model=ConversationListResponse)
 async def get_all_conversations(
     page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     user_email: Optional[str] = Query(None, description="Filter by user email"),
     date_from: Optional[datetime] = Query(None, description="Filter conversations from date"),
     date_to: Optional[datetime] = Query(None, description="Filter conversations to date"),
-    min_response_time: Optional[int] = Query(None, description="Minimum response time"),
-    max_response_time: Optional[int] = Query(None, description="Maximum response time"),
+    interaction_type: Optional[str] = Query(None, description="Filter by interaction type"),
     search_query: Optional[str] = Query(None, description="Search in conversation content"),
     sort_by: str = Query("created_at", description="Sort field"),
     sort_order: str = Query("desc", regex="^(asc|desc)$", description="Sort order"),
@@ -44,8 +44,7 @@ async def get_all_conversations(
             user_email=user_email,
             date_from=date_from,
             date_to=date_to,
-            min_response_time=min_response_time,
-            max_response_time=max_response_time,
+            interaction_type=interaction_type,
             search_query=search_query
         )
         
@@ -184,21 +183,22 @@ async def export_conversations(
         
         output = io.StringIO()
         writer = csv.DictWriter(output, fieldnames=[
-            'id', 'user_email', 'user_question', 'assistant_answer', 
-            'response_time', 'created_at', 'updated_at'
+            'id', 'user_email', 'interaction_type', 'user_question', 'assistant_answer', 
+            'response_time', 'created_at', 'metadata'
         ])
         
         writer.writeheader()
         for conv in conversations_data:
             # Truncate long text for CSV readability
             conv_export = {
-                'id': conv['id'],
-                'user_email': conv['user_email'],
-                'user_question': conv['user_question'][:500] + '...' if len(conv['user_question']) > 500 else conv['user_question'],
-                'assistant_answer': conv['assistant_answer'][:500] + '...' if len(conv['assistant_answer']) > 500 else conv['assistant_answer'],
-                'response_time': conv['response_time'],
-                'created_at': conv['created_at'],
-                'updated_at': conv['updated_at']
+                'id': conv.get('id'),
+                'user_email': conv.get('user_email'),
+                'interaction_type': conv.get('interaction_type', 'chat'),
+                'user_question': str(conv.get('user_question', ''))[:500] + ('...' if len(str(conv.get('user_question', ''))) > 500 else ''),
+                'assistant_answer': str(conv.get('assistant_answer', ''))[:500] + ('...' if len(str(conv.get('assistant_answer', ''))) > 500 else ''),
+                'response_time': conv.get('response_time'),
+                'created_at': conv.get('created_at'),
+                'metadata': str(conv.get('metadata')) if conv.get('metadata') else ''
             }
             writer.writerow(conv_export)
         
@@ -207,7 +207,6 @@ async def export_conversations(
         
         logger.info(f"Admin {admin_user.email} exported {len(conversations_data)} conversations")
         
-        from fastapi.responses import Response
         return Response(
             content=csv_content,
             media_type="text/csv",

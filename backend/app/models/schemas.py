@@ -164,9 +164,14 @@ class AdminConversationResponse(BaseModel):
     user_email: str
     user_question: str
     assistant_answer: str
-    response_time: int
     created_at: datetime
     updated_at: datetime
+    response_time: Optional[float] = None
+    interaction_type: Optional[str] = 'chat'
+    interaction_metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
 
 class AdminUserStats(BaseModel):
     total_users: int
@@ -181,8 +186,7 @@ class ConversationFilter(BaseModel):
     user_email: Optional[str] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
-    min_response_time: Optional[int] = None
-    max_response_time: Optional[int] = None
+    interaction_type: Optional[str] = None
     search_query: Optional[str] = None
     
 class ConversationListResponse(BaseModel):
@@ -197,4 +201,4 @@ class AdminDashboardStats(BaseModel):
     active_users: int
     total_conversations: int
     conversations_today: int
-    avg_response_time: int 
+    avg_response_time: int

@@ -22,6 +22,8 @@ export interface Conversation {
   response_time: number;
   created_at: string;
   updated_at: string;
+  interaction_type: string;
+  metadata: any;
 }
 
 export interface ConversationsResponse {
@@ -39,6 +41,7 @@ export interface ConversationFilters {
   sort_order?: string;
   page?: number;
   page_size?: number;
+  interaction_type?: string;
 }
 
 export const getStatistics = async (): Promise<AdminStatistics> => {
