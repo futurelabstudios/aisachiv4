@@ -31,13 +31,13 @@ export default function MessageInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isListening) {
+      onStopListening?.();
+      return;
+    }
     if (currentMessage.trim() && !isLoading) {
       onSendMessage(currentMessage);
       setMessage('');
-      // Stop listening if currently recording
-      if (isListening) {
-        onStopListening?.();
-      }
     }
   };
 
@@ -77,7 +77,7 @@ export default function MessageInput({
       />
 
       {/* Voice Button */}
-      {/* {onStartListening && onStopListening && (
+      {onStartListening && onStopListening && (
         <Button
           type="button"
           onClick={handleVoiceToggle}
@@ -95,7 +95,7 @@ export default function MessageInput({
             isListening ? 'scale-110' : 'scale-100'
           }`} />
         </Button>
-      )} */}
+      )}
 
       {/* Send Button */}
       <Button

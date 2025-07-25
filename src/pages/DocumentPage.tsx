@@ -877,18 +877,18 @@ export default function DocumentPage() {
                 />
 
                 {!uploadedFile && !capturedImage && !generatedImageUrl ? (
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <div
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-base sm:text-lg font-medium mb-2">
                         {language === 'hindi'
                           ? 'फ़ाइल अपलोड करें'
                           : 'Upload File'}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {language === 'hindi'
                           ? 'PDF ✓, Word, PPT, छवि फ़ाइलें'
                           : 'PDF ✓, Word, PPT, Image files'}
@@ -901,14 +901,14 @@ export default function DocumentPage() {
                     </div>
 
                     {/* <div
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                       onClick={startCamera}
                     >
                       <Camera className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-base sm:text-lg font-medium mb-2">
                         {language === "hindi" ? "फोटो लें" : "Take Photo"}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {language === "hindi"
                           ? "दस्तावेज़ की फोटो खींचें + AI विश्लेषण"
                           : "Capture photo + AI analysis"}
@@ -921,14 +921,14 @@ export default function DocumentPage() {
                     </div> */}
 
                     <div
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center cursor-pointer hover:border-emerald-500 transition-colors"
                       onClick={() => setShowImageGenerator(true)}
                     >
                       <Palette className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-                      <p className="text-lg font-medium mb-2">
+                      <p className="text-base sm:text-lg font-medium mb-2">
                         {language === 'hindi' ? 'छवि बनाएं' : 'Generate Image'}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {language === 'hindi'
                           ? 'इन्फोग्राफिक और चार्ट बनाएं'
                           : 'Create infographics & charts'}
@@ -941,7 +941,7 @@ export default function DocumentPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       {capturedImage ? (
                         <img
@@ -959,7 +959,7 @@ export default function DocumentPage() {
                         <FileText className="w-6 h-6 text-emerald-600" />
                       )}
                       <div>
-                        <p className="font-medium">
+                        <p className="font-medium text-sm sm:text-base">
                           {uploadedFile?.name ||
                             (capturedImage
                               ? language === 'hindi'
@@ -972,13 +972,13 @@ export default function DocumentPage() {
                               : '')}
                         </p>
                         {uploadedFile && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs sm:text-sm text-gray-500">
                             {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button
                         onClick={handleAnalyze}
                         disabled={

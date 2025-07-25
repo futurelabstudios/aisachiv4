@@ -39,8 +39,8 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
           {getTitle()}
         </h1>
         <span className="text-sm text-sachiv-gray">
-          {language === 'english' ? 'Your Gram Panchayat Assistant' : 
-           language === 'hindi' ? 'आपका ग्राम पंचायत सहायक' : 
+          {language === ('english' as Language) ? 'Your Gram Panchayat Assistant' : 
+           language === ('hindi' as Language) ? 'आपका ग्राम पंचायत सहायक' : 
            'Aapka Gram Panchayat Sahayak'}
         </span>
       </div>
@@ -51,31 +51,31 @@ export default function Header({ language, onLanguageChange }: HeaderProps) {
             className="px-4 py-2 rounded-lg border border-sachiv-primary text-sachiv-primary hover:bg-sachiv-primary/10 flex items-center gap-2 transition-colors duration-200"
           >
             <span className="hidden sm:inline">
-              {language === 'english' ? 'Language' : language === 'hindi' ? 'भाषा' : 'Bhasha'}
+              {language === ('english' as Language) ? 'Language' : language === ('hindi' as Language) ? 'भाषा' : 'Bhasha'}
             </span>
             <span className="sm:hidden">
-              {language === 'english' ? 'EN' : language === 'hindi' ? 'हिं' : 'HI'}
+              {language === ('english' as Language) ? 'EN' : language === ('hindi' as Language) ? 'हिं' : 'HI'}
             </span>
             <ChevronDown className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          {languages.map((lang) => (
-            <DropdownMenuItem
-              key={lang.id}
-              onClick={() => onLanguageChange(lang.id as Language)}
-              className={`cursor-pointer flex items-center gap-2 ${
-                language === lang.id ? 'bg-sachiv-primary/10 text-sachiv-primary' : ''
-              }`}
-            >
-              <span className="text-sm">{lang.label}</span>
-              {language === lang.id && (
-                <span className="ml-auto text-xs text-sachiv-primary">✓</span>
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.id}
+                onClick={() => onLanguageChange(lang.id as Language)}
+                className={`cursor-pointer flex items-center gap-2 ${
+                  language === lang.id ? 'bg-sachiv-primary/10 text-sachiv-primary' : ''
+                }`}
+              >
+                <span className="text-sm">{lang.label}</span>
+                {language === lang.id && (
+                  <span className="ml-auto text-xs text-sachiv-primary">✓</span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
     </header>
   );
 }

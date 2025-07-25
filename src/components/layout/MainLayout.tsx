@@ -13,8 +13,10 @@ import {
   PlayCircle,
   BookOpen,
   Settings,
+  Download,
 } from 'lucide-react';
 import MobileNavigation from '@/components/MobileNavigation';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -22,6 +24,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const { language, setLanguage, t } = useLanguage();
+  const { isInstallable, handleInstallClick } = usePWAInstall();
 
   const { user, userProfile } = useAuth();
   const location = useLocation();
@@ -156,15 +159,29 @@ export default function MainLayout({ children }: MainLayoutProps) {
               </h1>
               <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
             </div>
-            <Button
-              onClick={toggleLanguage}
-              variant="outline"
-              size="sm"
-              className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              {getLanguageButtonText()}
-            </Button>
+            <div className="flex items-center gap-2">
+              {isInstallable && (
+                <Button
+                  onClick={handleInstallClick}
+                  variant="outline"
+                  size="sm"
+                  className="p-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                  aria-label="Install App"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+              )}
+              
+              <Button
+                onClick={toggleLanguage}
+                variant="outline"
+                size="sm"
+                className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+              >
+                <Globe className="w-4 h-4 mr-1" />
+                {getLanguageButtonText()}
+              </Button>
+            </div>
           </div>
         </header>
 

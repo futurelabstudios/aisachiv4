@@ -85,7 +85,11 @@ export default function MobileNavigation() {
       {/* Navigation Items */}
       <div
         className={`transition-all duration-300 ease-in-out ${
-          isExpanded ? 'pb-12' : 'pb-2'
+          currentPath === '/voice-agent'
+            ? 'pb-32'
+            : isExpanded
+            ? 'pb-12'
+            : 'pb-2'
         }`}
       >
         <div

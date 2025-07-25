@@ -51,7 +51,7 @@ If you can't use .env files, you can set them directly in the browser console:
 
 ```javascript
 // Set OpenAI API key
-localStorage.setItem('openai_api_key', 'your_openai_api_key_here');
+
 
 // Set ElevenLabs API key (optional)
 localStorage.setItem('elevenlabs_api_key', 'your_elevenlabs_api_key_here');

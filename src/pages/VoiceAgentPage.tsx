@@ -57,19 +57,19 @@ export default function VoiceAgentPage() {
     }
   };
 
-  // Load OpenAI API key
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem('openai-api-key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-    } else {
-      // Set default API key - should be stored more securely in a production environment
-      const defaultKey =
-        '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';
-      setApiKey(defaultKey);
-      localStorage.setItem('openai-api-key', defaultKey);
-    }
-  }, []);
+  // // Load OpenAI API key
+  // useEffect(() => {
+  //   const storedApiKey = localStorage.getItem('openai-api-key');
+  //   if (storedApiKey) {
+  //     setApiKey(storedApiKey);
+  //   } else {
+  //     // Set default API key - should be stored more securely in a production environment
+  //     const defaultKey =
+  //       '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';
+  //     setApiKey(defaultKey);
+  //     localStorage.setItem('openai-api-key', defaultKey);
+  //   }
+  // }, []);
 
   // Save conversation snippets
   const saveConversation = (text: string) => {

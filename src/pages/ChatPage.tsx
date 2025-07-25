@@ -112,6 +112,7 @@ export default function ChatPage() {
   };
 
   const handleSendMessage = async (content: string) => {
+    if (!content.trim()) return;
     console.log('📤 Sending message:', content);
 
     // Add user message to local state
@@ -191,28 +192,33 @@ export default function ChatPage() {
   };
 
   const handleStartListening = () => {
-    if (!navigator.onLine) {
-      toast({
-        title: t('speechErrorTitle'),
-        description: t('offlineError'),
-        variant: 'destructive',
-      });
-      setIsListening(false);
-      return;
-    }
     setTranscript('');
     setIsListening(true);
+  };
 
-    const started = speechRecognition.start({
-      language: chatState.language,
-      onResult: (text) => {
+  const handleStopListening = () => {
+    setIsListening(false);
+  };
+
+  useEffect(() => {
+    // This effect manages the entire lifecycle of speech recognition.
+    if (isListening) {
+      let finalTranscript = '';
+
+      const handleResult = (text: string) => {
+        finalTranscript = text;
         setTranscript(text);
-      },
-      onEnd: () => {
-        setIsListening(false);
-        // Transcript is now handled by the result finalization
-      },
-      onError: (error) => {
+      };
+
+      const handleEnd = () => {
+        if (finalTranscript.trim()) {
+          handleSendMessage(finalTranscript.trim());
+        }
+        setTranscript('');
+        setIsListening(false); // Ensure listening is set to false
+      };
+
+      const handleError = (error: string) => {
         console.error('Speech recognition error:', error);
         setIsListening(false);
 
@@ -227,80 +233,30 @@ export default function ChatPage() {
 
         toast({
           title: t('speechErrorTitle'),
-          description: description,
+          description,
           variant: 'destructive',
         });
-      },
-    });
+      };
 
-    if (!started) {
-      setIsListening(false);
-    }
-  };
-
-  const handleStopListening = () => {
-    speechRecognition.stop();
-    setIsListening(false);
-    if (transcript.trim()) {
-      handleSendMessage(transcript.trim());
-      setTranscript(''); // Clear transcript after sending
-    }
-  };
-
-  useEffect(() => {
-    let finalTranscript = '';
-    const handleResult = (text: string) => {
-      finalTranscript = text;
-      setTranscript(text);
-    };
-
-    const handleEnd = () => {
-      if (finalTranscript.trim()) {
-        handleSendMessage(finalTranscript.trim());
-      }
-      setIsListening(false);
-    };
-
-    if (isListening) {
-      const started = speechRecognition.start({
+      const started = speechRecognitionService.start({
         language: chatState.language,
         onResult: handleResult,
         onEnd: handleEnd,
-        onError: (error) => {
-          console.error('Speech recognition error:', error);
-          setIsListening(false);
-
-          let description = t('speechErrorGeneric');
-          if (error === 'network') {
-            description = t('speechErrorNetwork');
-          } else if (
-            error === 'not-allowed' ||
-            error === 'service-not-allowed'
-          ) {
-            description = t('speechErrorNotAllowed');
-          } else if (error === 'no-speech') {
-            description = t('speechErrorNoSpeech');
-          }
-
-          toast({
-            title: t('speechErrorTitle'),
-            description: description,
-            variant: 'destructive',
-          });
-        },
+        onError: handleError,
       });
 
       if (!started) {
         setIsListening(false);
       }
     } else {
-      speechRecognition.stop();
+      speechRecognitionService.stop();
     }
 
     return () => {
-      speechRecognition.stop();
+      speechRecognitionService.stop();
     };
-  }, [isListening]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isListening, chatState.language, t, toast]);
 
   // Add a welcome message when the chat first loads
   useEffect(() => {
